@@ -1,0 +1,32 @@
+{
+    "name": "refind/laravel-poc",
+    "type": "project",
+    "description": "Isolated ReFind Laravel foundation and technical proof of concept",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.4",
+        "laravel/framework": "^13.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.0",
+        "mockery/mockery": "^1.6",
+        "phpunit/phpunit": "^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "preferred-install": "dist",
+        "allow-plugins": {}
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

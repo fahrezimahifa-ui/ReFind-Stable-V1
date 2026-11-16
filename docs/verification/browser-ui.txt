@@ -1,0 +1,1 @@
+{"ui_checks_passed": 132, "screenshots": "C:\\ReFind-Laravel\\evidence\\ui\\20261116T182823Z"}

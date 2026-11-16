@@ -1,0 +1,26 @@
+{
+  "php-8.5.12-1-nts-Win32-vs17-x64.zip": {
+    "url": "https://downloads.php.net/~windows/releases/php-8.5.12-1-nts-Win32-vs17-x64.zip",
+    "sha256": "2a36a2edcb7a5b9252f638fd5e4cf84d7f6e066092654220dc0b63e5cf4e9723"
+  },
+  "selected_php": "8.5.12-1",
+  "mariadb-10.11.19-winx64.zip": {
+    "url": "https://downloads.mariadb.org/rest-api/mariadb/10.11.19/mariadb-10.11.19-winx64.zip",
+    "sha256": "398ea30e5036010bbebe01d2b1804280424dcc2626e36d8e95155c04d25a0490"
+  },
+  "selected_mariadb": "10.11.19",
+  "composer.phar": {
+    "url": "https://getcomposer.org/download/2.11.2/composer.phar",
+    "sha256": "dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028"
+  },
+  "selected_composer": "2.11.2",
+  "cacert.pem": {
+    "url": "https://curl.se/ca/cacert.pem",
+    "sha256": "427c064216761a1e72a8b30f0d954d08cb6e4435a82091fb865afd20c8497285"
+  },
+  "laravel-skeleton.zip": {
+    "url": "https://codeload.github.com/laravel/laravel/zip/a255d7688770af9713daff1439c47ff9bc6abd47",
+    "sha256": "314654a77d0e51baee61ba8bd8ed1f65a571eabc5cfe2ad033517ff1f6b406ac"
+  },
+  "skeleton_sha": "a255d7688770af9713daff1439c47ff9bc6abd47"
+}

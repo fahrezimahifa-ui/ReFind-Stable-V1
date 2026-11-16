@@ -1,0 +1,10 @@
+PHPUnit 12.5.44 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.5.12
+Configuration: C:\ReFind-Laravel\laravel\phpunit.xml
+
+..................                                                18 / 18 (100%)
+
+Time: 00:01.316, Memory: 44.00 MB
+
+OK (18 tests, 59 assertions)

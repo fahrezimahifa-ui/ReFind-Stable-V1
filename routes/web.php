@@ -1,0 +1,29 @@
+<?php
+
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DiscoveryController;
+use App\Http\Controllers\MediaController;
+use App\Http\Controllers\PageController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', [PageController::class, 'show'])->defaults('legacy_methods', ['GET', 'HEAD']);
+Route::get('/{page}', [PageController::class, 'show'])->where('page', '(?i:(?:index|login|register|browse|item|report|claim|my-reports|admin|history|notifications|profile|settings)\.html)')->defaults('legacy_methods', ['GET', 'HEAD']);
+$api = function (string $path, array $methods, array $action, string $access = 'none') {
+    $r = Route::match($methods, '/api/'.$path, $action)->defaults('legacy_methods', $methods)->defaults('access', $access);
+
+    return $r;
+};
+$api('session.php', ['GET'], [AuthController::class, 'session']);
+$api('auth.php', ['POST'], [AuthController::class, 'mutate'], 'auth_action');
+$api('references.php', ['GET'], [DiscoveryController::class, 'references']);
+$api('items.php', ['GET'], [DiscoveryController::class, 'items']);
+$api('notifications.php', ['GET'], [DiscoveryController::class, 'notifications']);
+$api('photos.php', ['GET'], [MediaController::class, 'photo']);
+$api('avatar.php', ['GET'], [MediaController::class, 'avatar']);
+foreach (['items.php' => 'STUDENT', 'claims.php' => 'STUDENT', 'staff.php' => 'BUILDING_MANAGEMENT', 'handovers.php' => 'BUILDING_MANAGEMENT', 'account.php' => 'authenticated', 'notifications.php' => 'authenticated', 'register.php' => 'registration'] as $path => $access) {
+    $api($path, ['POST'], [DiscoveryController::class, 'unavailable'], $access);
+}
+foreach (['claims.php' => 'authenticated', 'staff.php' => 'BUILDING_MANAGEMENT', 'handovers.php' => 'authenticated', 'account.php' => 'authenticated'] as $path => $access) {
+    $api($path, ['GET'], [DiscoveryController::class, 'unavailable'], $access);
+}
+$api('visual-search.php',['POST'],[DiscoveryController::class, 'visual'],'STUDENT');

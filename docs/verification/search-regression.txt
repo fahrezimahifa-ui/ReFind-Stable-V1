@@ -1,0 +1,51 @@
+PASS terms "brown wallet" => [["brown"],["wallet"]]
+PASS terms "wallet brown" => [["wallet"],["brown"]]
+PASS terms "  Brown   WALLET " => [["brown"],["wallet"]]
+PASS terms "wallets" => [["wallet"]]
+PASS terms "wallet wallets Wallet" => [["wallet"]]
+PASS terms "batteries" => [["batteries","battery"]]
+PASS terms "glasses" => [["glass"]]
+PASS terms "watches" => [["watch"]]
+PASS terms "boxes" => [["box"]]
+PASS terms "cases" => [["case"]]
+PASS terms "shoes" => [["shoe"]]
+PASS terms "keys" => [["key"]]
+PASS terms "glass" => [["glass"]]
+PASS terms "campus" => [["campus"]]
+PASS terms "iris" => [["iris"]]
+PASS terms "bus" => [["bus"]]
+PASS terms "tas" => [["tas"]]
+PASS terms "\"brown wallet\"," => [["brown"],["wallet"]]
+PASS terms "ID\/Wallet" => [["id\/wallet"]]
+PASS terms "fx-991" => [["fx-991"]]
+PASS terms "???" => [["???"]]
+PASS terms "" => []
+PASS terms "   " => []
+PASS at most 8 words are used
+PASS condition requires every word
+PASS one placeholder per accepted form
+PASS alternative forms of one word are OR-ed
+PASS search text never enters the SQL
+PASS empty search adds no condition
+PASS quotes and SQL keywords stay bound values
+PASS finds "brown wallet" in "Brownâ€¦"
+PASS finds "wallet brown" in "Brownâ€¦"
+PASS finds "wallets" in "Brownâ€¦"
+PASS finds "wallet" in "Brownâ€¦"
+PASS finds "brown leather wallet" in "Brownâ€¦"
+PASS finds "Brown Wallet" in "Brownâ€¦"
+PASS finds "wallet parkiran" in "Brownâ€¦"
+PASS finds "id\/wallet" in "Brownâ€¦"
+PASS skips "black wallet" in "Brownâ€¦"
+PASS skips "brown wallet gedung" in "Brownâ€¦"
+PASS finds "headphones" in "AKGâ€¦"
+PASS finds "black headphones" in "AKGâ€¦"
+PASS finds "umbrellas" in "Brownâ€¦"
+PASS finds "brown umbrellas" in "Brownâ€¦"
+PASS finds "batteries" in "Spareâ€¦"
+PASS finds "glasses" in "Readingâ€¦"
+PASS finds "cases" in "Readingâ€¦"
+PASS skips "phone cases" in "Casioâ€¦"
+PASS skips "cases" in "Casioâ€¦"
+PASS finds "calculators casio" in "Casioâ€¦"
+All search checks passed.

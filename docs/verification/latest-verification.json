@@ -1,0 +1,72 @@
+{
+  "phase": "0-2 technical proof of concept",
+  "passed": true,
+  "failure": null,
+  "results": {
+    "graceful-stop-boundary": {
+      "pass": true
+    },
+    "database-before": {
+      "exit_code": 0
+    },
+    "php-syntax": {
+      "files": 47,
+      "pass": true
+    },
+    "composer-validation": {
+      "exit_code": 0
+    },
+    "platform-requirements": {
+      "exit_code": 0
+    },
+    "dependency-audit": {
+      "exit_code": 0
+    },
+    "foundation-guards": {
+      "exit_code": 0
+    },
+    "search-regression": {
+      "exit_code": 0
+    },
+    "reset-before-phpunit": {
+      "exit_code": 0
+    },
+    "phpunit": {
+      "exit_code": 0
+    },
+    "reset-before-http": {
+      "exit_code": 0
+    },
+    "http-contract": {
+      "exit_code": 0
+    },
+    "session-concurrency": {
+      "exit_code": 0
+    },
+    "browser-ui": {
+      "exit_code": 0
+    },
+    "database-after": {
+      "exit_code": 0
+    },
+    "business-data-and-media-unchanged": {
+      "pass": true
+    },
+    "native-protection": {
+      "exit_code": 0
+    },
+    "resource-sample": {
+      "db": {
+        "rss_mib": 111.4
+      },
+      "web-8014": {
+        "rss_mib": 49.9
+      }
+    },
+    "final-owned-processes-stopped": {
+      "pass": true
+    }
+  },
+  "receipt_directory": "C:\\ReFind-Laravel\\evidence\\verification-20261116T182749Z",
+  "timestamp_utc": "2026-11-16T18:29:49.180302+00:00"
+}

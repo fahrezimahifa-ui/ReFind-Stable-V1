@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script src="js/theme.js"></script>
+  <link rel="preload" href="assets/fonts/Manrope-variable.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="app-base" content="{{ $BASE_PATH }}">
+  <title>Log in · ReFind</title><link rel="icon" type="image/svg+xml" href="assets/refind-logo-mark.svg"><link rel="icon" type="image/png" sizes="32x32" href="assets/refind-favicon-32.png"><link rel="apple-touch-icon" sizes="180x180" href="assets/refind-shortcut-180.png">
+  <link rel="stylesheet" href="vendor/bootstrap.min.css"><link rel="stylesheet" href="css/theme.css"><link rel="stylesheet" href="css/auth.css"><link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="{{ $BASE_PATH }}css/polish.css"></head>
+<body data-page="login">
+  @include('partials.navbar')
+  <main id="main-content" tabindex="-1" class="auth-main">
+    <section class="intro"><span class="eyebrow">UMN Lost &amp; Found</span><h1>Let's get you back to it.</h1><p>Sign in to report, claim or review items. Your account determines your role.</p><ol class="journey" aria-label="How ReFind works"><li>Report</li><li>Discover</li><li>Verify</li><li>Return</li></ol></section>
+    <section class="auth-card" aria-labelledby="login-title"><h2 id="login-title">Welcome back</h2><p class="muted">Enter your account email and password.</p>
+      <form id="login-form" novalidate>
+        <div class="field"><label for="email">Email</label><input class="form-control" id="email" name="email" type="email" autocomplete="username" maxlength="150" required><span id="email-error" class="field-error" hidden></span></div>
+        <div class="field"><label for="password">Password</label><input class="form-control" id="password" name="password" type="password" autocomplete="current-password" required aria-describedby="password-hint"><span class="hint" id="password-hint">Use your ReFind account password.</span></div>
+        <div id="login-feedback" class="feedback" role="alert" tabindex="-1" hidden></div>
+        <button class="btn btn-primary" id="login-submit" type="submit" disabled>Preparing sign-in…</button>
+      </form>
+      <a id="registration-link" class="btn btn-outline" href="{{ $BASE_PATH }}register.html" hidden>Create account</a>
+      <p class="setup-note" data-registration-offer hidden>New to ReFind? Create your Student account.</p>
+    </section>
+  </main>
+  <script src="vendor/jquery.min.js"></script><script src="js/api.js"></script><script src="js/shell.js"></script><script src="js/auth-ui.js"></script>
+</body>
+</html>

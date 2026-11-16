@@ -1,0 +1,80 @@
+<?php
+
+namespace App\Services;
+
+final class SafeReturnUrl
+{
+    public function pageRoutes(): array
+    {
+        return [
+            'index.html' => ['roles' => [], 'page' => 'home.html', 'batch' => 'B02'],
+            'login.html' => ['roles' => [], 'page' => 'login.html', 'batch' => 'B02'],
+            'register.html' => ['roles' => [], 'page' => 'register.html', 'batch' => 'v0.2.5'],
+            'browse.html' => ['roles' => ['STUDENT', 'BUILDING_MANAGEMENT'], 'page' => 'browse.html', 'batch' => 'B04'],
+            'item.html' => ['roles' => ['STUDENT', 'BUILDING_MANAGEMENT'], 'page' => 'item.html', 'batch' => 'B04'],
+            'report.html' => ['roles' => ['STUDENT'], 'page' => 'report.html', 'batch' => 'B04'],
+            'claim.html' => ['roles' => ['STUDENT'], 'page' => 'claim.html', 'batch' => 'B04'],
+            'my-reports.html' => ['roles' => ['STUDENT'], 'page' => 'my-reports.html', 'batch' => 'B04'],
+            'admin.html' => ['roles' => ['BUILDING_MANAGEMENT'], 'page' => 'bm.html', 'batch' => 'B05'],
+            'history.html' => ['roles' => ['STUDENT', 'BUILDING_MANAGEMENT'], 'page' => 'history.html', 'batch' => 'B04'],
+            'notifications.html' => ['roles' => ['STUDENT', 'BUILDING_MANAGEMENT'], 'page' => 'notifications.html', 'batch' => 'B04'],
+            'profile.html' => ['roles' => ['STUDENT', 'BUILDING_MANAGEMENT'], 'page' => 'profile.html', 'batch' => 'B03'],
+            'settings.html' => ['roles' => ['STUDENT', 'BUILDING_MANAGEMENT'], 'page' => 'settings.html', 'batch' => 'B03'],
+        ];
+    }
+
+    public function landingUrl(array $user): string
+    {
+        return '/'.($user['role'] === 'BUILDING_MANAGEMENT' ? 'admin.html' : 'index.html');
+    }
+
+    public function safeReturn(mixed $value, ?array $user = null): string
+    {
+        $fallback = $user ? $this->landingUrl($user) : '/'.'index.html';
+        if (! is_string($value) || strlen($value) > 800 || preg_match('/[\\\\\x00-\x1f\x7f]/', $value)) {
+            return $fallback;
+        }
+        $parts = parse_url($value);
+        if (! $parts || isset($parts['scheme']) || isset($parts['host']) || isset($parts['fragment']) || isset($parts['user'])) {
+            return $fallback;
+        }
+        $path = $parts['path'] ?? '';
+        $base = '/';
+        if (str_starts_with($path, $base)) {
+            $path = substr($path, strlen($base));
+        }
+        $path = strtolower($path);
+        $route = $this->pageRoutes()[$path] ?? null;
+        if (! $route || in_array($path, ['login.html', 'register.html'], true) || ($user && $route['roles'] && ! in_array($user['role'], $route['roles'], true))) {
+            return $fallback;
+        }
+        parse_str($parts['query'] ?? '', $query);
+        $clean = [];
+        foreach ($query as $key => $v) {
+            if (! is_string($v) || preg_match('/[\x00-\x1f\x7f]/', $v)) {
+                return $fallback;
+            }
+            if (in_array($key, ['id', 'edit', 'claim', 'report', 'handover', 'category_id', 'location_id', 'page', 'from', 'notification_page', 'notification'], true) && preg_match('/^[1-9][0-9]{0,9}$/D', $v) && (float) $v <= 4294967295) {
+                $clean[$key] = $v;
+            } elseif ($key === 'origin' && $v === 'notifications') {
+                $clean[$key] = $v;
+            }
+            // The Unread notification view survives a login return and item round trip.
+            elseif (in_array($key, ['filter', 'notification_filter'], true) && $v === 'unread') {
+                $clean[$key] = $v;
+            } elseif ($key === 'tab' && in_array($v, ['reports', 'claims', 'handover', 'closed'], true)) {
+                $clean[$key] = $v;
+            } elseif ($key === 'view' && in_array($v, ['all', 'returned', 'unclaimed', 'lost', 'found'], true)) {
+                $clean[$key] = $v;
+            } elseif ($key === 'type' && in_array(strtolower($v), ['lost', 'found'], true)) {
+                $clean[$key] = strtolower($v);
+            } elseif (in_array($key, ['q', 'category', 'location', 'status', 'date'], true) && mb_check_encoding($v, 'UTF-8') && mb_strlen($v) <= 200) {
+                $clean[$key] = $v;
+            } else {
+                return $fallback;
+            }
+        }
+
+        return $base.$path.($clean ? '?'.http_build_query($clean, '', '&', PHP_QUERY_RFC3986) : '');
+    }
+}
