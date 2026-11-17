@@ -1,0 +1,77 @@
+{
+  "phase": 4,
+  "passed": true,
+  "failure": null,
+  "results": {
+    "preflight": {
+      "available_memory_mib": 3580,
+      "disk_free_gib": 36.13
+    },
+    "php-syntax": {
+      "files": 67,
+      "pass": true
+    },
+    "composer-validation": {
+      "exit_code": 0
+    },
+    "platform-requirements": {
+      "exit_code": 0
+    },
+    "guard-tests": {
+      "exit_code": 0
+    },
+    "write-foundation": {
+      "exit_code": 0
+    },
+    "write-checks": 104,
+    "academic-dev": {
+      "exit_code": 0
+    },
+    "search-regression": {
+      "exit_code": 0
+    },
+    "reset-before-phpunit": {
+      "exit_code": 0
+    },
+    "phpunit": {
+      "exit_code": 0
+    },
+    "reset-before-http": {
+      "exit_code": 0
+    },
+    "http-contract": {
+      "exit_code": 0
+    },
+    "session-concurrency": {
+      "exit_code": 0
+    },
+    "browser-ui": {
+      "exit_code": 0
+    },
+    "poc-database-after": {
+      "exit_code": 0
+    },
+    "original-poc-databases-unchanged": {
+      "pass": true,
+      "connection_credentials": "original SELECT-only identities",
+      "tables_per_schema": 15
+    },
+    "poc-state-protection": {
+      "exit_code": 0
+    },
+    "native-protection": {
+      "exit_code": 0
+    },
+    "final-owned-processes-stopped": {
+      "pass": true
+    }
+  },
+  "resources": {
+    "minimum_available_memory_mib": 2924,
+    "maximum_php_process_rss_mib": 66.3,
+    "maximum_owned_db_rss_mib": 117.9,
+    "maximum_child_chrome_rss_mib": 571.8
+  },
+  "receipt_directory": "C:\\ReFind-Laravel\\evidence\\phase4\\verification-20261117T071125Z",
+  "timestamp_utc": "2026-11-17T07:13:41.178570+00:00"
+}

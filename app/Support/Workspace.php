@@ -21,11 +21,14 @@ final class Workspace
             return self::$profile;
         }
         $name = getenv('REFIND_PROFILE');
-        if (! in_array($name, ['dev', 'test'], true)) {
+        if (! in_array($name, ['academic-dev', 'academic-test'], true)) {
             throw new RuntimeException('Explicit isolated REFIND_PROFILE required.');
         }
-        $owner = json_decode((string) file_get_contents(self::ROOT.'/.refind-laravel-owner.json'), true, 32, JSON_THROW_ON_ERROR);
-        if (($owner['project'] ?? '') !== 'refind-laravel-poc' || self::norm($owner['root'] ?? '') !== self::norm(self::ROOT)) {
+        self::assertPath(self::ROOT.'/.refind-laravel-owner.json');
+        self::assertPath(self::ROOT.'/state/academic-owner.json');
+        $parent = json_decode((string) file_get_contents(self::ROOT.'/.refind-laravel-owner.json'), true, 32, JSON_THROW_ON_ERROR);
+        $owner = json_decode((string) file_get_contents(self::ROOT.'/state/academic-owner.json'), true, 32, JSON_THROW_ON_ERROR);
+        if (($owner['project'] ?? '') !== 'refind-laravel-academic-b' || self::norm($owner['root'] ?? '') !== self::norm(self::ROOT) || ($owner['parent_workspace_id'] ?? '') !== ($parent['workspace_id'] ?? null)) {
             throw new RuntimeException('Workspace ownership mismatch.');
         }
         self::assertPath(self::ROOT);
@@ -33,10 +36,10 @@ final class Workspace
         self::assertPath(self::ROOT.'/state/'.$name);
         self::assertPath(self::ROOT.'/state/'.$name.'/profile.json');
         $p = json_decode((string) file_get_contents(self::ROOT.'/state/'.$name.'/profile.json'), true, 32, JSON_THROW_ON_ERROR);
-        if (($p['profile'] ?? '') !== $name || ($p['workspace_id'] ?? '') !== $owner['workspace_id'] || ($p['database'] ?? '') !== 'refind_laravel_'.$name || ($p['username'] ?? '') !== 'refind_'.$name.'_ro') {
+        if (($p['profile'] ?? '') !== $name || ($p['workspace_id'] ?? '') !== $owner['workspace_id'] || ($p['database'] ?? '') !== 'refind_laravel_b_'.substr($name, 9) || ($p['username'] ?? '') !== 'refind_b_'.substr($name, 9).'_app' || ($p['cookie'] ?? '') !== 'refind_laravel_b_'.substr($name, 9) || ($p['url'] ?? '') !== 'http://127.0.0.1:'.($name === 'academic-dev' ? 8013 : 8014)) {
             throw new RuntimeException('Profile identity mismatch.');
         }
-        $expected = ['DB_HOST' => '127.0.0.1', 'DB_PORT' => '3307', 'DB_DATABASE' => $p['database'], 'DB_USERNAME' => $p['username'], 'DB_CONNECTION' => 'mariadb', 'SESSION_DRIVER' => 'file', 'SESSION_COOKIE' => 'refind_laravel_'.$name];
+        $expected = ['DB_HOST' => '127.0.0.1', 'DB_PORT' => '3307', 'DB_DATABASE' => $p['database'], 'DB_USERNAME' => $p['username'], 'DB_CONNECTION' => 'mariadb', 'SESSION_DRIVER' => 'file', 'SESSION_COOKIE' => 'refind_laravel_b_'.substr($name, 9)];
         foreach ($expected as $key => $value) {
             $external = getenv($key);
             if ($external !== false && $external !== $value) {

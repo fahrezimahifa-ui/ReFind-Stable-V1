@@ -18,6 +18,6 @@ final class ReFindSessionStore extends Store
             $this->regenerateToken();
         }
 
-return $result;
+        return $result;
     }
 }

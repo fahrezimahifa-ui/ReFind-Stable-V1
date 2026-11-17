@@ -41,7 +41,7 @@ final class AuthService
             throw new ContractError('This action is not available to your role.', 403, 'forbidden');
         }
 
-return $user;
+        return $user;
     }
 
     public function identity(User $u): array

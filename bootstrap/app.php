@@ -3,7 +3,7 @@
 use App\Exceptions\ContractError;
 use App\Http\Middleware\ApiMethodBoundary;
 use App\Http\Middleware\LegacyMethod;
-use App\Http\Middleware\ReFindCsrfMiddleware;
+use App\Http\Middleware\ReFindRequestGuard;
 use App\Http\Middleware\SecurityHeaders;
 use App\Support\Contract;
 use App\Support\Workspace;
@@ -23,7 +23,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $m->remove([TrimStrings::class, ConvertEmptyStringsToNull::class, HandleCors::class]);
         $m->prepend(ApiMethodBoundary::class);
         $m->append(SecurityHeaders::class);
-        $m->web(prepend: [LegacyMethod::class], replace: [PreventRequestForgery::class => ReFindCsrfMiddleware::class]);
+        $m->web(prepend: [LegacyMethod::class], replace: [PreventRequestForgery::class => ReFindRequestGuard::class]);
     })
     ->withExceptions(function (Exceptions $e): void {
         $e->render(fn (Throwable $error, Request $request) => Contract::error($error, $request));

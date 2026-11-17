@@ -53,9 +53,9 @@ final class LoginLimiter
                 throw new ContractError('Email or password could not be verified.', 401, 'invalid_credentials');
             }
 
-return $user;
+            return $user;
         } finally {
-            flock($file,LOCK_UN);
+            flock($file, LOCK_UN);
             fclose($file);
         }
     }

@@ -39,7 +39,7 @@ final class DiscoveryController
             throw new ContractError('This operation is not available in the proof of concept.', 501, 'feature_pending');
         }
 
-return Contract::json(['unread_count' => (int) DB::selectOne('SELECT COUNT(*) AS n FROM notifications WHERE user_id=? AND is_read=0', [$u->user_id])->n]);
+        return Contract::json(['unread_count' => (int) DB::selectOne('SELECT COUNT(*) AS n FROM notifications WHERE user_id=? AND is_read=0', [$u->user_id])->n]);
     }
 
     public function unavailable(Request $r, AuthService $auth)
@@ -51,6 +51,6 @@ return Contract::json(['unread_count' => (int) DB::selectOne('SELECT COUNT(*) AS
 
     public function visual()
     {
-        throw new ContractError('Photo search is unavailable.',403,'visual_disabled');
+        throw new ContractError('Photo search is unavailable.', 403, 'visual_disabled');
     }
 }

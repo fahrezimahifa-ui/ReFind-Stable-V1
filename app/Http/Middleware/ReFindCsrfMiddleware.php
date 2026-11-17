@@ -3,8 +3,6 @@
 namespace App\Http\Middleware;
 
 use App\Exceptions\ContractError;
-use App\Services\AuthService;
-use App\Support\Contract;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 
 final class ReFindCsrfMiddleware extends PreventRequestForgery
@@ -13,27 +11,6 @@ final class ReFindCsrfMiddleware extends PreventRequestForgery
     {
         if (in_array($request->method(), ['GET', 'HEAD', 'OPTIONS'], true)) {
             return $next($request);
-        }
-        $auth = app(AuthService::class);
-        $access = $request->route()->defaults['access'] ?? 'none';
-        if ($access === 'registration') {
-            throw new ContractError('Account creation is currently unavailable. Please log in with an existing account.', 403, 'registration_disabled');
-        }
-        if ($access === 'auth_action') {
-            Contract::allowed($request->query(), []);
-            Contract::allowed($request->request->all(), ['action', 'email', 'password', 'return', '_csrf']);
-            $action = Contract::text($request->request->all(), 'action', 20);
-            if ($action === 'login') {
-                if ($auth->current()) {
-                    throw new ContractError('Log out before signing in with another account.', 409, 'already_authenticated');
-                }
-            } elseif ($action === 'logout') {
-                $auth->require();
-            } else {
-                throw new ContractError('Invalid authentication action.', 400, 'invalid_request');
-            }
-        } elseif ($access !== 'none') {
-            $auth->require(in_array($access, ['STUDENT', 'BUILDING_MANAGEMENT'], true) ? $access : null);
         }
         $h = $request->header('X-CSRF-Token');
         $b = $request->request->all()['_csrf'] ?? null;

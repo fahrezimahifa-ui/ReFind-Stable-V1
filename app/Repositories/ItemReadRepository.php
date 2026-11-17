@@ -248,7 +248,7 @@ final class ItemReadRepository
             throw new ContractError('Enter a valid event date.');
         }
 
-return $value;
+        return $value;
     }
 
     public function listing(array $filters, array $user): array
@@ -317,7 +317,7 @@ return $value;
             return ['item' => $items[0]];
         }
 
-        return ['items' => $items, 'total' => $total, 'page' => $page, 'limit' => $limit, 'pages' => max(1,(int) ceil($total / $limit))];
+        return ['items' => $items, 'total' => $total, 'page' => $page, 'limit' => $limit, 'pages' => max(1, (int) ceil($total / $limit))];
 
     }
 }

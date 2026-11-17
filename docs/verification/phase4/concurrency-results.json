@@ -1,0 +1,11 @@
+{
+  "profile": "academic-test",
+  "checks_passed": 4,
+  "independent_web_processes": 2,
+  "observed_lock_wait_seconds": 1.135,
+  "logout_race_statuses": [
+    200,
+    401
+  ],
+  "old_cookie_replay_rejected": true
+}

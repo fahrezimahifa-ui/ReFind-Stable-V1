@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Http\Middleware\ReFindCsrfMiddleware;
+use App\Http\Middleware\ReFindRequestGuard;
 use App\Models\User;
 use App\Services\AuthService;
 use App\Session\ReFindSessionStore;
@@ -35,7 +35,7 @@ final class AuthContractTest extends TestCase
         $this->assertSame(['mariadb'], array_keys(config('database.connections')));
         $this->assertSame(['refind_private'], array_keys(config('filesystems.disks')));
         $group = app('router')->getMiddlewareGroups()['web'];
-        $this->assertContains(ReFindCsrfMiddleware::class, $group);
+        $this->assertContains(ReFindRequestGuard::class, $group);
         $this->assertNotContains(PreventRequestForgery::class, $group);
         $this->get('/api/session.php')->assertOk()->assertJsonPath('authenticated', false)->assertJsonPath('visual_search_enabled', false);
     }
@@ -120,7 +120,7 @@ final class AuthContractTest extends TestCase
             DB::statement('UPDATE users SET full_name=full_name WHERE 1=0');
             $this->fail('Application user unexpectedly has UPDATE access.');
         } catch (QueryException $e) {
-            $this->assertSame(1142,(int) $e->errorInfo[1]);
+            $this->assertSame(1142, (int) $e->errorInfo[1]);
         }
     }
 }

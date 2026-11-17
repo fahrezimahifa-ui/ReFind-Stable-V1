@@ -7,7 +7,7 @@ if (PHP_SAPI !== 'cli' || ($argv[1] ?? '') !== '--auth-state-only') {
 }
 require __DIR__.'/../vendor/autoload.php';
 
-if (Workspace::profile()['profile'] !== 'test') {
+if (Workspace::profile()['profile'] !== 'academic-test') {
     throw new RuntimeException('Test profile required.');
 }
 $file = Workspace::storage().'/auth/attempts.json';

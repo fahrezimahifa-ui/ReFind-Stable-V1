@@ -2,11 +2,11 @@
 
 namespace App\Providers;
 
+use App\Database\PinnedMariaDbConnection;
 use App\Services\AuthService;
 use App\Session\ReFindSessionManager;
 use App\Support\Workspace;
 use Illuminate\Database\Connectors\MariaDbConnector;
-use Illuminate\Database\MariaDbConnection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 
@@ -38,7 +38,7 @@ final class AppServiceProvider extends ServiceProvider
                 return $pdo;
             };
 
-            return new MariaDbConnection($pdo, $config['database'], '', $config);
+            return new PinnedMariaDbConnection($pdo, $config['database'], '', $config);
         });
     }
 }

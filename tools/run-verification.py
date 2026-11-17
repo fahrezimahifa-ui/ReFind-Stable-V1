@@ -1,3 +1,4 @@
+raise RuntimeError('Historical Milestone A runner: use tools/verify-phase4.py on the academic branch.')
 from pathlib import Path
 import os,sys,json,subprocess,datetime,importlib.util,hashlib
 ROOT=Path('C:/ReFind-Laravel');APP=ROOT/'laravel';PHP=ROOT/'runtime/php85/php.exe';INI=ROOT/'runtime/php85/php.ini';COMPOSER=ROOT/'runtime/composer.phar'

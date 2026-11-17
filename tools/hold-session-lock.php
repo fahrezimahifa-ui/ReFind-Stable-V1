@@ -12,7 +12,7 @@ require __DIR__.'/../vendor/autoload.php';
 $app = require __DIR__.'/../bootstrap/app.php';
 $app->make(Kernel::class)->bootstrap();
 
-if (Workspace::profile()['profile'] !== 'test') {
+if (Workspace::profile()['profile'] !== 'academic-test') {
     throw new RuntimeException('Synthetic test profile required.');
 }
 $input = json_decode(file_get_contents(Workspace::storage().'/concurrency-input.json'), true, 16, JSON_THROW_ON_ERROR);

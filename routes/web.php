@@ -26,4 +26,4 @@ foreach (['items.php' => 'STUDENT', 'claims.php' => 'STUDENT', 'staff.php' => 'B
 foreach (['claims.php' => 'authenticated', 'staff.php' => 'BUILDING_MANAGEMENT', 'handovers.php' => 'authenticated', 'account.php' => 'authenticated'] as $path => $access) {
     $api($path, ['GET'], [DiscoveryController::class, 'unavailable'], $access);
 }
-$api('visual-search.php',['POST'],[DiscoveryController::class, 'visual'],'STUDENT');
+$api('visual-search.php', ['POST'], [DiscoveryController::class, 'visual'], 'STUDENT');

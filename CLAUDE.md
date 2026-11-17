@@ -1,6 +1,7 @@
-# ReFind migration workspace
+# ReFind academic workspace
 
-Read AGENTS.md and docs/POC_REPORT.md first. Only Phases 0–2 were authorized.
-Do not install global runtimes, Laravel Boost, or dependencies automatically.
-Use only the owned portable runtime and explicit profile through tools/workspace.
-Stop for review before further migration work.
+Read AGENTS.md, README.md and docs/PHASE4_REPORT.md first.
+Only the protected Phase 4 foundation is authorized; stop before Phase 5.
+Use the academic launcher and explicit B profiles. Never run historical A runners on this branch.
+Do not install global runtimes, Laravel Boost or dependencies automatically.
+Preserve original PoC/native resources; no pushes or deployments.

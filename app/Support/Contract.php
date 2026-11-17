@@ -3,7 +3,11 @@
 namespace App\Support;
 
 use App\Exceptions\ContractError;
+use App\Foundation\WriteFailure;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 final class Contract
@@ -25,11 +29,18 @@ final class Contract
 
     public static function error(\Throwable $error, Request $request)
     {
+        if ($error instanceof ValidationException) {
+            $error = new ContractError('Please check the highlighted fields.', 422, 'validation_error', array_map(fn ($messages) => $messages[0], $error->errors()));
+        } elseif ($error instanceof AuthenticationException) {
+            $error = new ContractError('Please log in to continue.', 401, 'authentication_required');
+        } elseif ($error instanceof AuthorizationException) {
+            $error = new ContractError('This action is not available to your role.', 403, 'forbidden');
+        }
         $status = $error instanceof ContractError ? $error->status : ($error instanceof HttpExceptionInterface ? $error->getStatusCode() : 500);
         $code = $error instanceof ContractError ? $error->errorCode : match ($status) {
             404 => 'not_found',405 => 'method_not_allowed',default => 'server_error'
         };
-        $message = $status === 500 ? 'The request could not be completed. Please try again.' : ($error instanceof ContractError ? $error->getMessage() : match ($status) {
+        $message = $status === 500 ? ($error instanceof WriteFailure && $error->uncertain ? 'The outcome needs verification. Reload before attempting another change.' : 'The request could not be completed. Please try again.') : ($error instanceof ContractError ? $error->getMessage() : match ($status) {
             404 => 'Page or resource not found.',405 => 'Method not allowed.',default => 'Request failed.'
         });
         $headers = $error instanceof ContractError ? $error->headers : ($error instanceof HttpExceptionInterface ? $error->getHeaders() : []);
@@ -42,7 +53,7 @@ final class Contract
                 $data['fields'] = $error->fields;
             }
 
-return response()->json($data, $status, $headers + self::headers());
+            return response()->json($data, $status, $headers + self::headers());
         }
 
         return response()->view('message', ['TITLE' => 'Unable to open page', 'MESSAGE' => $message, 'BACK_URL' => '/index.html', 'BASE_PATH' => '/'], $status, $headers + self::headers(false));
@@ -61,7 +72,7 @@ return response()->json($data, $status, $headers + self::headers());
             throw new ContractError('Invalid record ID.', 400, 'invalid_id');
         }
 
-return (int) $value;
+        return (int) $value;
     }
 
     public static function text(array $data, string $key, int $max, bool $required = true): string
@@ -74,6 +85,6 @@ return (int) $value;
             throw new ContractError('Check the '.$key.' field.');
         }
 
-return $v;
+        return $v;
     }
 }

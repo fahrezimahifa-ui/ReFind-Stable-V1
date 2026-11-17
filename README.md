@@ -1,54 +1,44 @@
-# ReFind Laravel technical proof of concept
+# ReFind Phase 4 protected write foundation
 
-**Milestone A only. Phases 0–2. This is not the academic candidate or the full migration.**
+Current branch: `migration/academic-b`, based on Milestone A `ac03a9dae33c5d03318ac357fdb0c31abcaffa75`.
 
-WDD requires a PHP framework. Laravel is the lecturer's recommendation and our chosen framework. Academic sufficiency must be assessed against the current rubric in a later reviewed phase.
+Phase 4 introduces protected transaction/media infrastructure and synthetic tests. Report, claim, BM decision, pickup and account mutations remain unavailable. This is not the academic demonstration release. Stop for review before Phase 5.
 
-## Review and run
+## Review
 
-Workspace: `C:\ReFind-Laravel`. Application: `C:\ReFind-Laravel\laravel`.
-The native reference is an independent, pinned, read-only clone at `C:\ReFind-Laravel\native-reference`. The application has its own `.git`, local `migration/laravel13` branch and no remote.
+Read `docs/PHASE4_REPORT.md` and the sanitized receipts under `docs/verification/phase4`.
+The original PoC report remains historical at `docs/POC_REPORT.md`; its branch, profiles, credentials and databases remain preserved.
 
-Run from PowerShell:
+## Start only when needed
 
 ```powershell
-python -B C:\ReFind-Laravel\launchers\control.py start --profile dev
-python -B C:\ReFind-Laravel\launchers\control.py status
-python -B C:\ReFind-Laravel\launchers\control.py stop
+python -B C:\ReFind-Laravel\launchers\academic-control.py start --profile academic-dev
+python -B C:\ReFind-Laravel\launchers\academic-control.py status
+python -B C:\ReFind-Laravel\launchers\academic-control.py stop
 ```
 
-Then open <http://127.0.0.1:8013/login.html>. Synthetic login details are stored only in the private `C:\ReFind-Laravel\state\dev\credentials.json`. Never use real ReFind accounts or copy native runtime/configuration into this workspace.
+Open <http://127.0.0.1:8013/login.html>. Synthetic development login values are stored privately in `C:\ReFind-Laravel\state\academic-dev\credentials.json`.
 
-The launcher performs resource, port, configuration, process identity and ownership checks. It never installs a Windows service, edits PATH/XAMPP, controls the existing mysql service, or uses Docker. Startup requires 2 GiB available RAM and 5 GiB free disk. Web servers bind to loopback and serve only `public`.
+Use the academic controller on this branch. Do not use the historical PoC controller or runners while serving the academic checkout. Only one release/profile set may use the shared portable MariaDB instance at a time; competing controllers refuse the occupied database port. Stop all owned processes before changing branches.
 
-Every start requires an explicit profile. Test ports are 8014/8015 and use `refind_laravel_test`; development uses port 8013 and `refind_laravel_dev`. MariaDB uses port 3307 and a new data directory. Application credentials have SELECT-only grants. All sessions, cache, generated media and secrets are profile-specific.
+Both 2 GiB available RAM and 5 GiB free disk are required. No gate was lowered. The controller uses loopback, at most two PHP servers and one owned database process. No XAMPP configuration, service installation, Docker or global PATH change is required.
 
-## Implemented
+## Profiles and write privileges
 
-- Native UI assets preserved; home/login/browse/item templates adapted to Blade.
-- Genuine Laravel routes, controllers, middleware, User model, media policy and read repository.
-- Guest/auth session API, login/logout, credential fingerprints, idle/absolute expiry and persistent login limiting.
-- Mandatory canonical 64-character CSRF token, including under `APP_ENV=testing`.
-- Discovery search/filters/paging, details, generic history, stored suggestions and eligible own edit metadata.
-- References, own unread count, protected item/evidence/avatar delivery and authorized thumbnails/revalidation.
-- Explicit role guards and unavailable responses for later-phase screens/actions.
+- `academic-dev`: `refind_laravel_b_dev`, independent keys/cookie/storage and SELECT-only application access.
+- `academic-test`: `refind_laravel_b_test`, separate keys/cookie/storage; application writes only to `_foundation_probe` (INSERT/UPDATE/DELETE) and `_write_operations` (INSERT).
+- All business tables remain read-only. Original PoC/native targets are refused.
 
-## Deliberately unavailable
+Only the B synthetic test profile can execute a write unit in this phase. No HTTP endpoint exposes the write coordinator, fault injection, reconciliation or restoration tools.
 
-Registration, profile/password/avatar mutations, report/claim mutations, BM review/status/pickup operations and full notifications/activity screens. Matching recalculation and business transaction/locking migration are deferred. AI visual search and its schema/provider/jobs are absent.
+## Verify
 
-No core request includes a legacy PHP handler. No request mutates business tables. Guarded setup created synthetic data only in the new schemas.
+```powershell
+python -B C:\ReFind-Laravel\laravel\tools\verify-phase4.py
+```
 
-## Verification
+The verifier uses B fixtures, samples resources, compares protected state and always stops owned runtimes. It performs synthetic writes, deliberate B-only connection termination and B-test database/media restoration. Do not run simultaneous verification or maintenance commands. Failed test state and manifests are retained for review; failure does not trigger an automatic reset.
 
-Use `tools/run-verification.py` through the local Python interpreter. It verifies only migration-owned resources, captures sanitized receipts and always stops owned processes at completion. It uses the already available Python psutil, Pillow and Playwright packages and installed Chrome; no shared Python/npm package was installed.
+Private manifests are under `state/academic-test/operations/manifests`; snapshots are under `state/academic-test/snapshots`. Never copy these, credentials, session files or private media into Git. Reconciliation uses an explicit operation ID and the transaction ledger. Restoration is a separate CLI-only, quiescent-test operation and refuses web processes; review the report before using either tool.
 
-The canonical process/startup sources are versioned under `tools/workspace`; deployed launcher copies are under the workspace's `launchers` directory. Runtime provisioning is a fresh-workspace operation, not an update/reset command. Do not rerun source-generation scratch scripts.
-
-See `docs/POC_REPORT.md`, `docs/CSRF_CONTRACT.md`, `docs/MIGRATION_STAGES.md`, and `docs/SOURCE_PROVENANCE.json`.
-
-## Stop and recovery
-
-Stop owned processes before reviewing a failed gate. Keep the isolated state and evidence; no cleanup/reset is automatic. A profile-specific stop leaves the owned database running, while plain `stop` shuts down all owned web instances and gracefully shuts down the owned database. Restart preserves data and credentials.
-
-The original `/refind/`, `/refind-test/`, dirty RC worktree, shared Git metadata, XAMPP configuration and port-3306 services are protected. No push, deployment, live cutover or later migration phase is authorized by this checkpoint.
+Nothing is pushed or deployed. Milestone A is preserved on `migration/laravel13`; starting that release requires its original source checkout and launcher instructions. Native ReFind and persistent QA remain independent.

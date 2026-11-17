@@ -1,11 +1,11 @@
 from pathlib import Path
 import urllib.request,urllib.error,urllib.parse,http.cookiejar,json,subprocess,os,time,concurrent.futures
-ROOT=Path('C:/ReFind-Laravel');BASE='http://127.0.0.1:';credentials=json.loads((ROOT/'state/test/credentials.json').read_text())['student_a'];jar=http.cookiejar.CookieJar();client=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
-s=json.load(client.open(BASE+'8014/api/session.php'));data=urllib.parse.urlencode(dict(action='login',email=credentials['email'],password=credentials['password'])).encode();r=client.open(urllib.request.Request(BASE+'8014/api/auth.php',data=data,headers={'X-CSRF-Token':s['csrf']}));logged=json.load(r);token=logged['csrf'];cookie='; '.join(c.name+'='+c.value for c in jar);encrypted=next(c.value for c in jar if c.name=='refind_laravel_test')
-(ROOT/'state/test/concurrency-input.json').write_text(json.dumps({'cookie':encrypted}),encoding='utf-8')
-ready=ROOT/'state/test/lock-ready.json'
+ROOT=Path('C:/ReFind-Laravel');BASE='http://127.0.0.1:';credentials=json.loads((ROOT/'state/academic-test/credentials.json').read_text())['student_a'];jar=http.cookiejar.CookieJar();client=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+s=json.load(client.open(BASE+'8014/api/session.php'));data=urllib.parse.urlencode(dict(action='login',email=credentials['email'],password=credentials['password'])).encode();r=client.open(urllib.request.Request(BASE+'8014/api/auth.php',data=data,headers={'X-CSRF-Token':s['csrf']}));logged=json.load(r);token=logged['csrf'];cookie='; '.join(c.name+'='+c.value for c in jar);encrypted=next(c.value for c in jar if c.name=='refind_laravel_b_test')
+(ROOT/'state/academic-test/concurrency-input.json').write_text(json.dumps({'cookie':encrypted}),encoding='utf-8')
+ready=ROOT/'state/academic-test/lock-ready.json'
 if ready.exists():ready.unlink()
-env=os.environ.copy();env['REFIND_PROFILE']='test'
+env=os.environ.copy();env['REFIND_PROFILE']='academic-test'
 helper=subprocess.Popen([str(ROOT/'runtime/php85/php.exe'),'-c',str(ROOT/'runtime/php85/php.ini'),str(ROOT/'laravel/tools/hold-session-lock.php')],env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE,creationflags=subprocess.CREATE_NO_WINDOW)
 try:
  deadline=time.monotonic()+8
@@ -28,5 +28,5 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
  a=pool.submit(send,8014,'/api/auth.php',{'action':'logout'});b=pool.submit(send,8015,'/api/items.php',{'action':'create'});outcomes=[a.result(),b.result()]
 assert outcomes[0]==200 and outcomes[1] in [401,501],'Logout race violated authenticated mutation boundary'
 assert send(8014,'/api/items.php')==401 and send(8015,'/api/items.php')==401,'Old cookie identity replayed across processes'
-receipt={'profile':'test','checks_passed':4,'independent_web_processes':2,'observed_lock_wait_seconds':round(elapsed,3),'logout_race_statuses':outcomes,'old_cookie_replay_rejected':True}
-(ROOT/'evidence/concurrency-results.json').write_text(json.dumps(receipt,indent=2),encoding='utf-8');print(json.dumps(receipt))
+receipt={'profile':'academic-test','checks_passed':4,'independent_web_processes':2,'observed_lock_wait_seconds':round(elapsed,3),'logout_race_statuses':outcomes,'old_cookie_replay_rejected':True}
+(ROOT/'evidence/phase4/concurrency-results.json').write_text(json.dumps(receipt,indent=2),encoding='utf-8');print(json.dumps(receipt))

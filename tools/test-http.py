@@ -1,7 +1,7 @@
 from pathlib import Path
 import json,urllib.request,urllib.error,urllib.parse,http.cookiejar,re,io
 from PIL import Image
-ROOT=Path('C:/ReFind-Laravel');BASE='http://127.0.0.1:8014';CREDS=json.loads((ROOT/'state/test/credentials.json').read_text());MEDIA=json.loads((ROOT/'state/test/fixtures.json').read_text())
+ROOT=Path('C:/ReFind-Laravel');BASE='http://127.0.0.1:8014';CREDS=json.loads((ROOT/'state/academic-test/credentials.json').read_text());MEDIA=json.loads((ROOT/'state/academic-test/fixtures.json').read_text())
 results=[]
 def check(label,condition):
  if not condition:raise AssertionError(label)
@@ -29,7 +29,7 @@ class Client:
   status,obj,h,b=self.call('/api/auth.php',data,token=False if body else True,headers={'Origin':BASE})
   check('synthetic '+who+' login',status==200 and obj['authenticated']);check('login rotates CSRF token',obj['csrf']!=old and re.fullmatch('[a-f0-9]{64}',obj['csrf']) is not None);check('login rotates session cookie',self.cookie()!=oldcookie);self.token=obj['csrf'];return obj,old,oldcookie
 
-guest=Client();boot,h=guest.boot();check('AI and registration disabled',not boot['visual_search_enabled'] and not boot['registration_enabled']);check('expiry contract',boot['expires']=={'idle_seconds':1800,'absolute_seconds':28800});cookie=h.get('Set-Cookie','');check('isolated HttpOnly Lax cookie','refind_laravel_test=' in cookie and 'httponly' in cookie.lower() and 'samesite=lax' in cookie.lower());check('no XSRF cookie',all(c.name!='XSRF-TOKEN' for c in guest.jar));check('stable token on GET',guest.call('/api/session.php')[1]['csrf']==guest.token)
+guest=Client();boot,h=guest.boot();check('AI and registration disabled',not boot['visual_search_enabled'] and not boot['registration_enabled']);check('expiry contract',boot['expires']=={'idle_seconds':1800,'absolute_seconds':28800});cookie=h.get('Set-Cookie','');check('isolated HttpOnly Lax cookie','refind_laravel_b_test=' in cookie and 'httponly' in cookie.lower() and 'samesite=lax' in cookie.lower());check('no XSRF cookie',all(c.name!='XSRF-TOKEN' for c in guest.jar));check('stable token on GET',guest.call('/api/session.php')[1]['csrf']==guest.token)
 for path,status in [('/api/items.php',401),('/api/items.php?mine=1',401),('/api/photos.php?kind=item&id=1',401),('/api/avatar.php?token='+MEDIA['avatar_token'],401),('/api/session.php?unexpected=1',400),('/api/auth.php',405),('/app/config.php',404),('/storage/auth/secret.json',404),('/vendor/autoload.php',404),('/api/bootstrap.php',404),('/storage/items/test.png',404)]:check('guest boundary '+path,guest.call(path)[0]==status)
 check('guest protected page redirects',guest.call('/browse.html')[0]==302);check('guest home redirects to login',guest.call('/')[2].get('Location','').endswith('/login.html'));check('nonloopback host refused',guest.call('/api/session.php',headers={'Host':'example.invalid:8014'})[0]==403)
 for method in ['HEAD','OPTIONS']:
@@ -63,5 +63,5 @@ inactive=Client();inactive.boot();cred=CREDS['inactive'];check('inactive account
 for i in range(5):
  limited=Client();limited.boot();r=limited.call('/api/auth.php',dict(action='login',email='limit-probe@refind-poc.invalid',password='incorrect'));check('persistent failed login '+str(i+1),r[0]==401)
 limited=Client();limited.boot();r=limited.call('/api/auth.php',dict(action='login',email='limit-probe@refind-poc.invalid',password='incorrect'));check('limiter survives fresh session',r[0]==429 and int(r[2].get('Retry-After','0'))>0)
-(ROOT/'evidence/http-contract-results.json').write_text(json.dumps({'profile':'test','base':BASE,'passed':len(results),'checks':results},indent=2),encoding='utf-8')
+(ROOT/'evidence/phase4/http-contract-results.json').write_text(json.dumps({'profile':'academic-test','base':BASE,'passed':len(results),'checks':results},indent=2),encoding='utf-8')
 print(json.dumps({'http_contract_checks_passed':len(results),'native_traffic':False}))

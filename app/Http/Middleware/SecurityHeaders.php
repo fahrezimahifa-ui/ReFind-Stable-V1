@@ -15,6 +15,6 @@ final class SecurityHeaders
             }
         }
 
-return $response;
+        return $response;
     }
 }
