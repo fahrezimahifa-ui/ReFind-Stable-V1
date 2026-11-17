@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "phase": 5,
+  "checkpoint": "crud",
+  "run_id": "e38ccd8629fe4ac98f1594e7adb8c1e3",
+  "invocation_id": "37a3dd034a8f4631ad1f19e1192b7d39",
+  "suite": "verification-protocol",
+  "profile": "academic-test",
+  "receipt_path": "c:/refind-laravel/evidence/phase5/verification-crud-20261117t090938z-e38ccd86/suites/verification-protocol.json",
+  "started_at": 1794906591.3043444,
+  "completed_at": 1794906594.6061268,
+  "passed": true,
+  "completed": true,
+  "checks": 21,
+  "results": {
+    "checks": [
+      "missing",
+      "nonzero",
+      "malformed",
+      "incomplete",
+      "failed",
+      "zero",
+      "boolean-count",
+      "stale",
+      "foreign-suite",
+      "foreign-run",
+      "foreign-invocation",
+      "foreign-profile",
+      "foreign-checkpoint",
+      "positive-control",
+      "positive-control",
+      "preexisting-receipt-rejected",
+      "early-exception",
+      "early-exception-no-pass-or-receipt",
+      "early-fatal",
+      "early-fatal-no-pass-or-receipt",
+      "bootstrap-failure-nonzero-no-pass"
+    ],
+    "early_failures_do_not_report_pass": true,
+    "native_connections": false
+  }
+}

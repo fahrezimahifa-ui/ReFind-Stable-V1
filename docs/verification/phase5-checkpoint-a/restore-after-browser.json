@@ -1,0 +1,19 @@
+{
+    "schema_version": 1,
+    "phase": 5,
+    "checkpoint": "crud",
+    "run_id": "e38ccd8629fe4ac98f1594e7adb8c1e3",
+    "invocation_id": "cbd36319719c4eeeb7549f4103c87291",
+    "suite": "restore-after-browser",
+    "profile": "academic-test",
+    "receipt_path": "c:\/refind-laravel\/evidence\/phase5\/verification-crud-20261117t090938z-e38ccd86\/suites\/restore-after-browser.json",
+    "started_at": 1794906878.054379,
+    "passed": true,
+    "completed": true,
+    "checks": 1,
+    "completed_at": 1794906879.005092,
+    "results": {
+        "action": "restore",
+        "profile": "academic-test"
+    }
+}

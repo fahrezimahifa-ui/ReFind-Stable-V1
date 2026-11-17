@@ -9,6 +9,8 @@ if (PHP_SAPI !== 'cli') {
     http_response_code(403);
     exit;
 }
+require_once __DIR__.'/VerificationReceipt.php';
+VerificationReceipt::begin();
 require dirname(__DIR__).'/vendor/autoload.php';
 function search_terms(string $query, int $maxWords = 8): array
 {
@@ -20,9 +22,11 @@ function search_condition(array $terms, string $haystack): array
 }
 
 $failures = 0;
+$checks = 0;
 function check(string $label, bool $passed): void
 {
-    global $failures;
+    global $failures, $checks;
+    $checks++;
     echo ($passed ? 'PASS ' : 'FAIL ').$label.PHP_EOL;
     if (! $passed) {
         $failures++;
@@ -100,4 +104,7 @@ foreach ([
 }
 
 echo $failures ? "$failures search check(s) failed.".PHP_EOL : 'All search checks passed.'.PHP_EOL;
+if (! $failures) {
+    VerificationReceipt::complete($checks, ['search_checks_passed' => $checks]);
+}
 exit($failures ? 1 : 0);

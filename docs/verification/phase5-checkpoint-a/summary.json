@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "run_id": "e38ccd8629fe4ac98f1594e7adb8c1e3",
+  "phase": 5,
+  "checkpoint": "crud",
+  "completed": true,
+  "passed": true,
+  "failure": null,
+  "results": {
+    "preflight": {
+      "available_memory_mib": 2892,
+      "disk_free_gib": 36.05
+    },
+    "php-syntax": {
+      "exit_code": 0,
+      "checks": 82,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\php-syntax.json",
+      "invocation_id": "4b0c85c867224d0ab062c8661ce3777f"
+    },
+    "composer-validation": {
+      "exit_code": 0,
+      "checks": 1,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\composer-validation.json",
+      "invocation_id": "b40610e79e7e4bc7abc9cc8d01a38551"
+    },
+    "platform-requirements": {
+      "exit_code": 0,
+      "checks": 18,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\platform-requirements.json",
+      "invocation_id": "72c6c13b79704b4d9036ba69b76bf702"
+    },
+    "verification-protocol": {
+      "exit_code": 0,
+      "checks": 21,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\verification-protocol.json",
+      "invocation_id": "37a3dd034a8f4631ad1f19e1192b7d39"
+    },
+    "metrics-bootstrap-0": {
+      "exit_code": 0,
+      "checks": 4,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\metrics-bootstrap-0.json",
+      "invocation_id": "009ef9c0bdfd4f08a8140465624b363d"
+    },
+    "metrics-bootstrap-1": {
+      "exit_code": 0,
+      "checks": 4,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\metrics-bootstrap-1.json",
+      "invocation_id": "0f5d8408f51445afbec360a8f921d1d5"
+    },
+    "guard-tests": {
+      "exit_code": 0,
+      "checks": 69,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\guard-tests.json",
+      "invocation_id": "7968e6ed6950406d9578d6b0a927afb4"
+    },
+    "privileges-academic-test": {
+      "exit_code": 0,
+      "checks": 21,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\privileges-academic-test.json",
+      "invocation_id": "4913098ebacd49c48316c24dfd2e1890"
+    },
+    "privileges-academic-dev": {
+      "exit_code": 0,
+      "checks": 21,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\privileges-academic-dev.json",
+      "invocation_id": "fd0d3bc74dbf49fe827594d8e40568db"
+    },
+    "write-foundation": {
+      "exit_code": 0,
+      "checks": 98,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\write-foundation.json",
+      "invocation_id": "a80c21e4d85a4d5ba3e2395d5c09f793"
+    },
+    "report-service": {
+      "exit_code": 0,
+      "checks": 28,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\report-service.json",
+      "invocation_id": "ddfe4fe1d99b40d2850d178c99e0b47e"
+    },
+    "academic-dev": {
+      "exit_code": 0,
+      "checks": 4,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\academic-dev.json",
+      "invocation_id": "7c230a6153b34ee5955f0c07601a8448"
+    },
+    "search-regression": {
+      "exit_code": 0,
+      "checks": 50,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\search-regression.json",
+      "invocation_id": "fd74298a96c8429b929f13ba104a11b8"
+    },
+    "reset-before-phpunit": {
+      "exit_code": 0,
+      "checks": 1,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\reset-before-phpunit.json",
+      "invocation_id": "7d3fca94df17498897b156730f08eed2"
+    },
+    "phpunit": {
+      "exit_code": 0,
+      "checks": 22,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\phpunit.json",
+      "invocation_id": "f3880979bda847359e814cce2acd701f"
+    },
+    "reset-before-http": {
+      "exit_code": 0,
+      "checks": 1,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\reset-before-http.json",
+      "invocation_id": "c1d63584c63240e88d0d654da06e4a85"
+    },
+    "snapshot-before-http": {
+      "exit_code": 0,
+      "checks": 1,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\snapshot-before-http.json",
+      "invocation_id": "229b01488d0046aba5be1ebca6d38645"
+    },
+    "eligibility-fixtures": {
+      "exit_code": 0,
+      "checks": 1,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\eligibility-fixtures.json",
+      "invocation_id": "3e3ba9f0506b4d3aa06606d6c9b04d2a"
+    },
+    "report-http": {
+      "exit_code": 0,
+      "checks": 65,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\report-http.json",
+      "invocation_id": "6ddcf72f8712409b91026c70996ee2f9"
+    },
+    "restore-after-report-http": {
+      "exit_code": 0,
+      "checks": 1,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\restore-after-report-http.json",
+      "invocation_id": "95957f80f4bd428ca4fb16b456f32f9c"
+    },
+    "reset-before-regression": {
+      "exit_code": 0,
+      "checks": 1,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\reset-before-regression.json",
+      "invocation_id": "743eac2b9a8c4d1187d27427320a49c9"
+    },
+    "http-contract": {
+      "exit_code": 0,
+      "checks": 136,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\http-contract.json",
+      "invocation_id": "8a25785c5a4b4d2d983372fe8bff262e"
+    },
+    "session-concurrency": {
+      "exit_code": 0,
+      "checks": 4,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\session-concurrency.json",
+      "invocation_id": "ab1719379ebf4d1a97bbe1338b30d5dc"
+    },
+    "browser-ui": {
+      "exit_code": 0,
+      "checks": 132,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\browser-ui.json",
+      "invocation_id": "057a04ccfdd847079c53603dcd04ca7b"
+    },
+    "report-browser-ui": {
+      "exit_code": 0,
+      "checks": 152,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\report-browser-ui.json",
+      "invocation_id": "5bd3a91c49934b46aa4dbf3531caa9f7"
+    },
+    "restore-after-browser": {
+      "exit_code": 0,
+      "checks": 1,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\restore-after-browser.json",
+      "invocation_id": "cbd36319719c4eeeb7549f4103c87291"
+    },
+    "poc-database-after": {
+      "exit_code": 0,
+      "checks": 30,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\poc-database-after.json",
+      "invocation_id": "b64a3aeb2a154f33b2e86340bd7abf4e"
+    },
+    "original-poc-databases-unchanged": {
+      "pass": true,
+      "connection_credentials": "original SELECT-only identities",
+      "tables_per_schema": 15
+    },
+    "poc-state-protection": {
+      "exit_code": 0,
+      "checks": 238,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\poc-state-protection.json",
+      "invocation_id": "a911ec4fd7494f798aac228c1e1742de"
+    },
+    "native-protection": {
+      "exit_code": 0,
+      "checks": 6,
+      "receipt": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86\\suites\\native-protection.json",
+      "invocation_id": "a7ed9250f9ec4a8d8c21cfd41e4812f0"
+    },
+    "final-resource-preflight": {
+      "available_memory_mib": 2729,
+      "disk_free_gib": 36.02
+    },
+    "final-owned-processes-stopped": {
+      "pass": true
+    }
+  },
+  "resources": {
+    "minimum_available_memory_mib": 2290,
+    "maximum_php_process_rss_mib": 66.0,
+    "maximum_owned_db_rss_mib": 118.3,
+    "maximum_child_chrome_rss_mib": 613.7
+  },
+  "receipt_directory": "C:\\ReFind-Laravel\\evidence\\phase5\\verification-crud-20261117T090938Z-e38ccd86",
+  "timestamp_utc": "2026-11-17T09:14:44.654910+00:00"
+}

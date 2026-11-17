@@ -1,3 +1,4 @@
+from verification_receipt import complete_receipt
 from pathlib import Path
 import urllib.request,urllib.error,urllib.parse,http.cookiejar,json,subprocess,os,time,concurrent.futures
 ROOT=Path('C:/ReFind-Laravel');BASE='http://127.0.0.1:';credentials=json.loads((ROOT/'state/academic-test/credentials.json').read_text())['student_a'];jar=http.cookiejar.CookieJar();client=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
@@ -25,8 +26,9 @@ def send(port,path,data=None):
  except urllib.error.HTTPError as e:r=e
  r.read();return r.code
 with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
- a=pool.submit(send,8014,'/api/auth.php',{'action':'logout'});b=pool.submit(send,8015,'/api/items.php',{'action':'create'});outcomes=[a.result(),b.result()]
+ a=pool.submit(send,8014,'/api/auth.php',{'action':'logout'});b=pool.submit(send,8015,'/api/claims.php',{'action':'submit'});outcomes=[a.result(),b.result()]
 assert outcomes[0]==200 and outcomes[1] in [401,501],'Logout race violated authenticated mutation boundary'
 assert send(8014,'/api/items.php')==401 and send(8015,'/api/items.php')==401,'Old cookie identity replayed across processes'
 receipt={'profile':'academic-test','checks_passed':4,'independent_web_processes':2,'observed_lock_wait_seconds':round(elapsed,3),'logout_race_statuses':outcomes,'old_cookie_replay_rejected':True}
-(ROOT/'evidence/phase4/concurrency-results.json').write_text(json.dumps(receipt,indent=2),encoding='utf-8');print(json.dumps(receipt))
+(ROOT/'evidence/phase5/concurrency-results.json').write_text(json.dumps(receipt,indent=2),encoding='utf-8');print(json.dumps(receipt))
+complete_receipt(4, receipt)

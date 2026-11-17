@@ -4,6 +4,7 @@ use App\Exceptions\ContractError;
 use App\Http\Middleware\ApiMethodBoundary;
 use App\Http\Middleware\LegacyMethod;
 use App\Http\Middleware\ReFindRequestGuard;
+use App\Http\Middleware\ReportQueryMetrics;
 use App\Http\Middleware\SecurityHeaders;
 use App\Support\Contract;
 use App\Support\Workspace;
@@ -22,6 +23,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $m): void {
         $m->remove([TrimStrings::class, ConvertEmptyStringsToNull::class, HandleCors::class]);
         $m->prepend(ApiMethodBoundary::class);
+        $m->prepend(ReportQueryMetrics::class);
         $m->append(SecurityHeaders::class);
         $m->web(prepend: [LegacyMethod::class], replace: [PreventRequestForgery::class => ReFindRequestGuard::class]);
     })

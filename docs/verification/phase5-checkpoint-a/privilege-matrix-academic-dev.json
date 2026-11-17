@@ -1,0 +1,16 @@
+{
+  "profile": "academic-dev",
+  "passed": true,
+  "schema_grants": [
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_dev",
+      "PRIVILEGE_TYPE": "SELECT",
+      "IS_GRANTABLE": "NO"
+    }
+  ],
+  "table_grants": [],
+  "column_grants": [],
+  "cross_schema_select_update_denials": 10,
+  "protected_mutation_denials": 6,
+  "native_server_contacted": false
+}

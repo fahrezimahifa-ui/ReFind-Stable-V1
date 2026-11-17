@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Exceptions\ContractError;
+use App\Policies\ReportPolicy;
 use App\Services\AuthService;
 use App\Services\Search;
 use App\Support\Contract;
@@ -196,15 +197,7 @@ final class ItemReadRepository
 
     public function requireEditableItem(array $user, array $item): void
     {
-        $this->requireRole($user, 'STUDENT');
-        if ((string) $item['reporter_user_id'] !== $user['user_id']) {
-            $this->fail('Only the reporter can change this report.', 403, 'forbidden');
-        }
-        if (! in_array($item['status_code'], ['OPEN', 'POTENTIAL_MATCH'], true) ||
-            $this->activeClaimForReport((int) $item['item_id']) ||
-            $this->row("SELECT match_id FROM item_matches WHERE match_status = 'CONFIRMED' AND (lost_item_id = ? OR found_item_id = ?) LIMIT 1", [(int) $item['item_id'], (int) $item['item_id']])) {
-            $this->fail('This report is locked by its workflow.', 409, 'state_conflict');
-        }
+        app(ReportPolicy::class)->editable($user, $item);
     }
 
     public function structuredFilters(array $filters): array

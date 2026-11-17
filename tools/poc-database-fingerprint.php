@@ -3,6 +3,8 @@
 if (PHP_SAPI !== 'cli') {
     exit(1);
 }
+require_once __DIR__.'/VerificationReceipt.php';
+VerificationReceipt::begin();
 $root = 'C:/ReFind-Laravel';
 $out = [];
 $tables = ['users', 'buildings', 'categories', 'item_statuses', 'campus_locations', 'location_floors', 'items', 'item_photos', 'item_matches', 'claims', 'claim_photos', 'handovers', 'notifications', 'item_status_history', '_workspace_owner'];
@@ -24,3 +26,4 @@ foreach (['dev', 'test'] as $name) {
     }
 }
 echo json_encode($out,JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);
+VerificationReceipt::complete(count($tables) * 2, ['schemas' => $out, 'credentials' => 'original SELECT-only identities', 'native_server_contacted' => false]);

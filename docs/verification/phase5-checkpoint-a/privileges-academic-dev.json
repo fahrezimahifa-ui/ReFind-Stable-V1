@@ -1,0 +1,30 @@
+{
+    "schema_version": 1,
+    "phase": 5,
+    "checkpoint": "crud",
+    "run_id": "e38ccd8629fe4ac98f1594e7adb8c1e3",
+    "invocation_id": "fd0d3bc74dbf49fe827594d8e40568db",
+    "suite": "privileges-academic-dev",
+    "profile": "academic-dev",
+    "receipt_path": "c:\/refind-laravel\/evidence\/phase5\/verification-crud-20261117t090938z-e38ccd86\/suites\/privileges-academic-dev.json",
+    "started_at": 1794906600.307566,
+    "passed": true,
+    "completed": true,
+    "checks": 21,
+    "completed_at": 1794906600.670907,
+    "results": {
+        "profile": "academic-dev",
+        "schema_grants": [
+            {
+                "TABLE_SCHEMA": "refind_laravel_b_dev",
+                "PRIVILEGE_TYPE": "SELECT",
+                "IS_GRANTABLE": "NO"
+            }
+        ],
+        "table_grants": [],
+        "column_grants": [],
+        "cross_schema_denials": 10,
+        "protected_mutation_denials": 6,
+        "native_server_contacted": false
+    }
+}

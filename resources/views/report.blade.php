@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script src="js/theme.js"></script>
+  <link rel="preload" href="assets/fonts/Manrope-variable.woff2" as="font" type="font/woff2" crossorigin="anonymous"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="app-base" content="{{ $BASE_PATH }}"><title>Report an item · ReFind</title><link rel="icon" type="image/svg+xml" href="assets/refind-logo-mark.svg"><link rel="icon" type="image/png" sizes="32x32" href="assets/refind-favicon-32.png"><link rel="apple-touch-icon" sizes="180x180" href="assets/refind-shortcut-180.png"><link rel="stylesheet" href="vendor/bootstrap.min.css"><link rel="stylesheet" href="css/theme.css"><link rel="stylesheet" href="css/auth.css"><link rel="stylesheet" href="css/styles.css"><link rel="stylesheet" href="css/student.css"><link rel="stylesheet" href="{{ $BASE_PATH }}css/polish.css"></head>
+<body data-page="report" data-requires-auth="true">
+@include('partials.navbar')
+<main id="main-content" tabindex="-1" class="student-main form-main">
+  <header class="page-heading"><div><h1 id="report-heading">What happened?</h1><p id="report-intro">Describe the item and where you last saw it. Photos are optional; verification details stay private.</p></div></header>
+  <p class="context-note" id="report-context" hidden></p><p class="loading-note" id="page-loading" role="status">Loading form…</p><div class="feedback" id="page-feedback" role="alert" tabindex="-1" hidden></div><button class="btn btn-outline" id="retry-page" type="button" hidden>Retry loading</button>
+  <form id="report-form" novalidate hidden><fieldset id="report-fields">
+    <div class="type-tabs report-type-switch" id="report-type" role="group" aria-label="Report type"><button type="button" class="type-tab" data-report-type="LOST">I lost something</button><button type="button" class="type-tab" data-report-type="FOUND">I found something</button></div>
+    <section class="form-card"><h2>1 · Item details</h2>
+      <div class="field"><label for="r-title">Item name *</label><input class="form-control" id="r-title" maxlength="120" required placeholder="For example, a brown leather wallet"><span class="field-error" data-error="title" hidden></span></div>
+      <div class="field"><label for="r-category">Category *</label><select class="form-select" id="r-category" required></select><span class="field-error" data-error="category_id" hidden></span></div>
+      <div class="field"><label for="r-description">Public description *</label><textarea class="form-control" id="r-description" rows="4" maxlength="2000" required placeholder="Brand, color and visible details"></textarea><span class="hint">Describe what others can see. Keep personal contact details and private clues out of this description.</span><span class="field-error" data-error="description" hidden></span></div>
+    </section>
+    <section class="form-card"><h2>2 · Where &amp; when</h2><div class="form-grid">
+      <div class="field"><label for="r-location" id="r-location-label">Campus area *</label><select class="form-select" id="r-location" required></select><span class="field-error" data-error="location_id" hidden></span></div>
+      <div class="field"><label for="r-detail">Specific spot · optional</label><textarea class="form-control" id="r-detail" rows="2" maxlength="500" placeholder="Floor, room or nearby landmark"></textarea><span class="field-error" data-error="location_detail" hidden></span></div>
+      <div class="field"><label for="r-date" id="r-date-label">Event date *</label><input class="form-control" id="r-date" type="date" required><span class="field-error" data-error="date" hidden></span></div>
+      <div class="field"><label for="r-time">Approximate time · optional</label><input class="form-control" id="r-time" type="time"><span class="hint">Leave blank if you do not know the time.</span><span class="field-error" data-error="time" hidden></span></div>
+    </div></section>
+    <details class="form-card optional-media" id="public-photo-section" open><summary>3 · Public item photos<span class="hint">Optional but recommended · up to 4 photos help others recognize the item</span></summary>
+      <div id="saved-public" class="saved-media"></div><div class="upload-control" id="public-upload">
+        <label class="upload-pick" for="r-photos"><span>Add public photos</span><span class="upload-choose">Choose photos</span><span class="upload-file-hint">Select or drop JPEG, PNG or WebP images</span><input class="upload-input" id="r-photos" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
+        <span class="hint">Up to 10 MB per input image. ReFind prepares smaller copies.</span><div class="upload-previews"></div><p class="upload-status" role="status"></p>
+      </div><span class="field-error" data-error="photos" hidden></span>
+    </details>
+    <div id="visual-report-consent" class="context-note" hidden>
+      <label><input type="checkbox" id="visual-report-opt-in"> Make my new public demo photos searchable by image</label>
+      <p class="hint">ReFind sends opted-in photos to Google Gemini. Use cleared demo photos without personal information.</p>
+    </div>
+    <section class="form-card private-card"><h2 id="private-heading">4 · Ownership details for Building Management</h2><p id="private-intro">This helps Building Management verify the owner and never appears on the public report.</p>
+      <div class="field"><label for="r-clue" id="r-clue-label">A detail only the owner would know *</label><textarea class="form-control" id="r-clue" rows="3" maxlength="1000" required placeholder="For example, a small tear inside a pocket or a mark under the cover"></textarea><span class="field-error" data-error="clue" hidden></span></div>
+      <div id="lost-evidence"><details class="optional-media"><summary>Private supporting photos<span class="hint">Optional · max 2 photos including any saved evidence</span></summary>
+        <p id="saved-proof-count" hidden></p><label class="retain-choice" id="saved-proof-choice" hidden><input type="checkbox" id="keep-proof" checked> Keep saved private supporting photos</label>
+        <div class="upload-control" id="proof-upload"><label class="upload-pick" for="r-proof"><span>Add private ownership photos</span><span class="upload-choose">Choose photos</span><span class="upload-file-hint">Select or drop JPEG, PNG or WebP images</span><input class="upload-input" id="r-proof" type="file" accept="image/jpeg,image/png,image/webp" multiple></label><div class="upload-previews"></div><p class="upload-status" role="status"></p></div>
+      </details></div><span class="field-error" data-error="ownershipPhotos" hidden></span>
+    </section>
+  </fieldset>
+  <div class="context-note found-next" id="found-next" hidden><strong>After you submit</strong><p>ReFind suggests your report to students with similar Lost reports. Building Management verifies any ownership claim before the item is returned.</p><p>If you still have the item, contact Building Management to ask how to hand it in.</p></div>
+  <p class="report-visibility" id="report-visibility"><strong>Who can see this report?</strong> Signed-in ReFind users see the item name, category, description, public photos, campus area and spot, date and approximate time, status, and your display name and profile picture. Ownership details and private photos are seen only by Building Management.</p>
+  <div class="feedback" id="form-feedback" role="alert" tabindex="-1" hidden></div><div class="sticky-form-actions"><a class="btn btn-outline" id="report-cancel" href="my-reports.html">Cancel</a><button class="btn btn-primary" id="report-submit" type="submit">Submit report</button></div></form>
+</main>
+<script src="vendor/jquery.min.js"></script><script src="js/api.js"></script><script src="js/shell.js"></script><script src="js/student-common.js"></script><script src="js/uploads.js"></script><script src="js/student.js"></script>
+</body></html>

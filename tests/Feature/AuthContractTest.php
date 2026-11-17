@@ -98,7 +98,7 @@ final class AuthContractTest extends TestCase
 
     public function test_business_mutation_remains_unavailable_after_valid_guards(): void
     {
-        $this->authenticated()->withHeaders(['X-CSRF-Token' => $this->token()])->post('/api/items.php', ['action' => 'create'])->assertStatus(501)->assertJsonPath('code', 'feature_pending');
+        $this->authenticated()->withHeaders(['X-CSRF-Token' => $this->token()])->post('/api/claims.php', ['action' => 'submit'])->assertStatus(501)->assertJsonPath('code', 'feature_pending');
     }
 
     public function test_no_head_expansion_for_api(): void

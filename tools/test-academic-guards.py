@@ -1,3 +1,4 @@
+from verification_receipt import complete_receipt
 from pathlib import Path
 import json,importlib.util,subprocess,os,hashlib,psutil
 ROOT=Path('C:/ReFind-Laravel');APP=ROOT/'laravel';PHP=ROOT/'runtime/php85/php.exe';INI=ROOT/'runtime/php85/php.ini'
@@ -33,4 +34,5 @@ check('canonical academic launcher matches',(APP/'tools/workspace/academic-contr
 denied('unowned process refused',lambda:b.checked_process({'exe':psutil.Process().exe(),'required_args':[],'pid':os.getpid(),'created':psutil.Process().create_time()}))
 provenance=json.loads((APP/'docs/SOURCE_PROVENANCE.json').read_text())
 for rel,digest in provenance['source_files'].items():check('preserved frontend '+rel,hashlib.sha256((APP/'public'/rel).read_bytes()).hexdigest()==digest)
-receipt={'passed':len(checks),'checks':checks,'native_connections':False,'original_profile_files_modified':False};(ROOT/'evidence/phase4/guard-results.json').write_text(json.dumps(receipt,indent=2),encoding='utf-8');print(json.dumps({'academic_guard_checks_passed':len(checks)}))
+receipt={'passed':len(checks),'checks':checks,'native_connections':False,'original_profile_files_modified':False};(ROOT/'evidence/phase5/guard-results.json').write_text(json.dumps(receipt,indent=2),encoding='utf-8');print(json.dumps({'academic_guard_checks_passed':len(checks)}))
+complete_receipt(len(checks), receipt)

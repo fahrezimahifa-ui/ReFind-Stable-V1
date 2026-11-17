@@ -20,4 +20,4 @@ for filename,digest in before['shared_configuration_hashes'].items():
  if hashlib.sha256(Path(filename).read_bytes()).hexdigest()!=digest:mismatches.append(filename)
  checks.append(filename)
 receipt={'protected_installations_and_configs_checked':len(checks),'uncommitted_paths_preserved':sum(len(p['modified_hashes']) for p in before['installations'].values()),'mismatches':mismatches,'native_database_connections_performed':False}
-(ROOT/'evidence/phase4/native-protection-results.json').write_text(json.dumps(receipt,indent=2),encoding='utf-8');print(json.dumps(receipt));sys.exit(1 if mismatches else 0)
+(ROOT/'evidence/phase5/native-protection-results.json').write_text(json.dumps(receipt,indent=2),encoding='utf-8');print(json.dumps(receipt));sys.exit(1 if mismatches else 0)

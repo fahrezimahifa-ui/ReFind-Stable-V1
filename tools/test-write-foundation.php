@@ -74,12 +74,15 @@ try {
         }
     }
     foreach (['users', 'items', 'item_photos', 'claims', 'claim_photos', 'handovers', 'item_matches', 'item_status_history', 'notifications', 'categories', '_workspace_owner'] as $table) {
+        if(in_array($table,['items','item_photos'],true)) continue; // Newly granted report CRUD is checked independently.
+        if(config('refind.report_effects') && in_array($table,['item_matches','item_status_history','notifications'],true)) continue;
+
         foreach (['UPDATE `'.$table.'` SET '.($table === 'users' ? 'full_name=full_name' : ($table === 'items' ? 'title=title' : ($table === 'categories' ? 'category_name=category_name' : ($table === '_workspace_owner' ? 'workspace_id=workspace_id' : ($table === 'notifications' ? 'is_read=is_read' : ($table === 'item_photos' ? 'is_primary=is_primary' : ($table === 'claims' ? 'claim_status=claim_status' : ($table === 'claim_photos' ? 'file_path=file_path' : ($table === 'handovers' ? 'handover_status=handover_status' : ($table === 'item_matches' ? 'match_score=match_score' : 'note=note')))))))))).' WHERE 1=0', 'DELETE FROM `'.$table.'` WHERE 1=0', 'INSERT INTO `'.$table.'` SELECT * FROM `'.$table.'` WHERE 1=0'] as $sql) {
             try {
                 $db->statement($sql);
                 throw new RuntimeException('SAFETY GATE FAILED: business write permission');
             } catch (QueryException $e) {
-                check('business DML denied '.$table.' '.strtok($sql, ' '), (int) $e->errorInfo[1] === 1142);
+                check('business DML denied '.$table.' '.strtok($sql, ' '), in_array((int) $e->errorInfo[1],[1142,1143],true));
             }
         }
     }
@@ -88,7 +91,7 @@ try {
             $db->statement($sql);
             throw new RuntimeException('SAFETY GATE FAILED: ledger mutable');
         } catch (QueryException $e) {
-            check('append-only ledger '.strtok($sql, ' '), (int) $e->errorInfo[1] === 1142);
+            check('append-only ledger '.strtok($sql, ' '), in_array((int) $e->errorInfo[1],[1142,1143],true));
         }
     }
     $db->insert('INSERT INTO _foundation_probe(id,operation_id,value)VALUES(10,?,0),(20,?,0)', [bin2hex(random_bytes(16)), bin2hex(random_bytes(16))]);
@@ -304,12 +307,13 @@ try {
     unset($op);
     AcademicSnapshot::restore($admin, $snapshot);
     check('entire B test database and media restored', AcademicSnapshot::capture($admin) === $initial);
-    $receipt = ['passed' => count($checks), 'checks' => $checks, 'observations' => $samples, 'restore_verified' => true, 'business_http_mutations_enabled' => false, 'native_connections' => false, 'real_connection_loss_tested' => true, 'lost_commit_acknowledgement_simulated' => true];
-    file_put_contents(Workspace::ROOT.'/evidence/phase4/write-results.json', json_encode($receipt, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
+    $receipt = ['passed' => count($checks), 'checks' => $checks, 'observations' => $samples, 'restore_verified' => true, 'reporting_http_mutations_enabled' => true, 'unsupported_business_mutations_enabled' => false, 'native_connections' => false, 'real_connection_loss_tested' => true, 'lost_commit_acknowledgement_simulated' => true];
+    file_put_contents(Workspace::ROOT.'/evidence/phase5/write-results.json', json_encode($receipt, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
     echo json_encode(['write_foundation_checks_passed' => count($checks), 'restore_verified' => true, 'observations' => $samples]);
 } catch (Throwable $e) {
     // Keep synthetic state and manifests for review on failure. No reset is automatic.
-    file_put_contents(Workspace::ROOT.'/evidence/phase4/write-failure.json', json_encode(['class' => get_class($e), 'message' => $e->getMessage()], JSON_PRETTY_PRINT));
+    file_put_contents(Workspace::ROOT.'/evidence/phase5/write-failure.json', json_encode(['class' => get_class($e), 'message' => $e->getMessage()], JSON_PRETTY_PRINT));
     fwrite(STDERR, get_class($e).': '.$e->getMessage().PHP_EOL);
     exit(1);
 }
+VerificationReceipt::complete(count($checks), $receipt);

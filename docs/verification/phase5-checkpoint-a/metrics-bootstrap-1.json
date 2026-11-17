@@ -1,0 +1,20 @@
+{
+    "schema_version": 1,
+    "phase": 5,
+    "checkpoint": "crud",
+    "run_id": "e38ccd8629fe4ac98f1594e7adb8c1e3",
+    "invocation_id": "0f5d8408f51445afbec360a8f921d1d5",
+    "suite": "metrics-bootstrap-1",
+    "profile": "academic-test",
+    "receipt_path": "c:\/refind-laravel\/evidence\/phase5\/verification-crud-20261117t090938z-e38ccd86\/suites\/metrics-bootstrap-1.json",
+    "started_at": 1794906595.53186,
+    "passed": true,
+    "completed": true,
+    "checks": 4,
+    "completed_at": 1794906595.882056,
+    "results": {
+        "metrics_enabled": true,
+        "connection_class": "App\\Database\\PinnedMariaDbConnection",
+        "pdo_resolved": false
+    }
+}

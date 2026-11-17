@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "phase": 5,
+  "checkpoint": "crud",
+  "run_id": "e38ccd8629fe4ac98f1594e7adb8c1e3",
+  "invocation_id": "ab1719379ebf4d1a97bbe1338b30d5dc",
+  "suite": "session-concurrency",
+  "profile": "academic-test",
+  "receipt_path": "c:/refind-laravel/evidence/phase5/verification-crud-20261117t090938z-e38ccd86/suites/session-concurrency.json",
+  "started_at": 1794906681.94943,
+  "completed_at": 1794906684.4367628,
+  "passed": true,
+  "completed": true,
+  "checks": 4,
+  "results": {
+    "profile": "academic-test",
+    "checks_passed": 4,
+    "independent_web_processes": 2,
+    "observed_lock_wait_seconds": 1.087,
+    "logout_race_statuses": [
+      200,
+      401
+    ],
+    "old_cookie_replay_rejected": true
+  }
+}

@@ -1,0 +1,18 @@
+{
+    "schema_version": 1,
+    "phase": 5,
+    "checkpoint": "crud",
+    "run_id": "e38ccd8629fe4ac98f1594e7adb8c1e3",
+    "invocation_id": "7c230a6153b34ee5955f0c07601a8448",
+    "suite": "academic-dev",
+    "profile": "academic-dev",
+    "receipt_path": "c:\/refind-laravel\/evidence\/phase5\/verification-crud-20261117t090938z-e38ccd86\/suites\/academic-dev.json",
+    "started_at": 1794906611.979035,
+    "passed": true,
+    "completed": true,
+    "checks": 4,
+    "completed_at": 1794906612.329597,
+    "results": {
+        "academic_dev_boundary_checks_passed": 4
+    }
+}

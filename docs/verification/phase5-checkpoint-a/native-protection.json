@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "phase": 5,
+  "checkpoint": "crud",
+  "run_id": "e38ccd8629fe4ac98f1594e7adb8c1e3",
+  "invocation_id": "a7ed9250f9ec4a8d8c21cfd41e4812f0",
+  "suite": "native-protection",
+  "profile": "academic-test",
+  "receipt_path": "c:/refind-laravel/evidence/phase5/verification-crud-20261117t090938z-e38ccd86/suites/native-protection.json",
+  "started_at": 1794906881.2942424,
+  "completed_at": 1794906882.665517,
+  "passed": true,
+  "completed": true,
+  "checks": 6,
+  "results": {
+    "protected_installations_and_configs_checked": 6,
+    "uncommitted_paths_preserved": 10,
+    "mismatches": [],
+    "native_database_connections_performed": false
+  }
+}

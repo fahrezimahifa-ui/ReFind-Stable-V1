@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="C:\ReFind-Laravel\laravel\phpunit.xml" tests="22" assertions="156" errors="0" failures="0" skipped="0" time="10.017916">
+    <testsuite name="Proof of concept" tests="22" assertions="156" errors="0" failures="0" skipped="0" time="10.017916">
+      <testsuite name="Tests\Unit\SearchTest" file="C:\ReFind-Laravel\laravel\tests\Unit\SearchTest.php" tests="1" assertions="11" errors="0" failures="0" skipped="0" time="0.006643">
+        <testcase name="test_word_forms_and_bound_sql_preserve_native_search" file="C:\ReFind-Laravel\laravel\tests\Unit\SearchTest.php" line="10" class="Tests\Unit\SearchTest" classname="Tests.Unit.SearchTest" assertions="11" time="0.006643"/>
+      </testsuite>
+      <testsuite name="Tests\Unit\SessionStoreTest" file="C:\ReFind-Laravel\laravel\tests\Unit\SessionStoreTest.php" tests="2" assertions="9" errors="0" failures="0" skipped="0" time="0.071130">
+        <testcase name="test_start_and_all_framework_regeneration_paths_keep_one_hex_token" file="C:\ReFind-Laravel\laravel\tests\Unit\SessionStoreTest.php" line="11" class="Tests\Unit\SessionStoreTest" classname="Tests.Unit.SessionStoreTest" assertions="7" time="0.069062"/>
+        <testcase name="test_malformed_default_length_token_is_replaced_at_start" file="C:\ReFind-Laravel\laravel\tests\Unit\SessionStoreTest.php" line="29" class="Tests\Unit\SessionStoreTest" classname="Tests.Unit.SessionStoreTest" assertions="2" time="0.002068"/>
+      </testsuite>
+      <testsuite name="Tests\Feature\AuthContractTest" file="C:\ReFind-Laravel\laravel\tests\Feature\AuthContractTest.php" tests="15" assertions="39" errors="0" failures="0" skipped="0" time="9.206393">
+        <testcase name="test_testing_environment_uses_real_compatibility_store_and_middleware" file="C:\ReFind-Laravel\laravel\tests\Feature\AuthContractTest.php" line="30" class="Tests\Feature\AuthContractTest" classname="Tests.Feature.AuthContractTest" assertions="10" time="6.047029"/>
+        <testcase name="test_tokenless_login_is_rejected_even_while_running_unit_tests" file="C:\ReFind-Laravel\laravel\tests\Feature\AuthContractTest.php" line="43" class="Tests\Feature\AuthContractTest" classname="Tests.Feature.AuthContractTest" assertions="2" time="0.050507"/>
+        <testcase name="test_same_origin_shortcut_does_not_bypass_token" file="C:\ReFind-Laravel\laravel\tests\Feature\AuthContractTest.php" line="48" class="Tests\Feature\AuthContractTest" classname="Tests.Feature.AuthContractTest" assertions="2" time="0.049753"/>
+        <testcase name="test_conflicting_and_array_body_tokens_are_rejected" file="C:\ReFind-Laravel\laravel\tests\Feature\AuthContractTest.php" line="53" class="Tests\Feature\AuthContractTest" classname="Tests.Feature.AuthContractTest" assertions="3" time="0.063806"/>
+        <testcase name="test_body_token_alone_reaches_authentication" file="C:\ReFind-Laravel\laravel\tests\Feature\AuthContractTest.php" line="59" class="Tests\Feature\AuthContractTest" classname="Tests.Feature.AuthContractTest" assertions="2" time="1.120276"/>
+        <testcase name="test_foreign_origin_is_rejected_with_a_valid_token" file="C:\ReFind-Laravel\laravel\tests\Feature\AuthContractTest.php" line="64" class="Tests\Feature\AuthContractTest" classname="Tests.Feature.AuthContractTest" assertions="2" time="0.059936"/>
+        <testcase name="test_idle_expiry_clears_identity" file="C:\ReFind-Laravel\laravel\tests\Feature\AuthContractTest.php" line="69" class="Tests\Feature\AuthContractTest" classname="Tests.Feature.AuthContractTest" assertions="2" time="0.076436"/>
+        <testcase name="test_absolute_expiry_cannot_be_extended_by_activity" file="C:\ReFind-Laravel\laravel\tests\Feature\AuthContractTest.php" line="74" class="Tests\Feature\AuthContractTest" classname="Tests.Feature.AuthContractTest" assertions="1" time="0.063121"/>
+        <testcase name="test_fingerprint_and_inactive_account_are_checked" file="C:\ReFind-Laravel\laravel\tests\Feature\AuthContractTest.php" line="79" class="Tests\Feature\AuthContractTest" classname="Tests.Feature.AuthContractTest" assertions="2" time="0.097727"/>
+        <testcase name="test_public_projection_omits_private_verification_fields" file="C:\ReFind-Laravel\laravel\tests\Feature\AuthContractTest.php" line="85" class="Tests\Feature\AuthContractTest" classname="Tests.Feature.AuthContractTest" assertions="4" time="0.104649"/>
+        <testcase name="test_other_role_and_private_evidence_are_forbidden" file="C:\ReFind-Laravel\laravel\tests\Feature\AuthContractTest.php" line="93" class="Tests\Feature\AuthContractTest" classname="Tests.Feature.AuthContractTest" assertions="2" time="1.297031"/>
+        <testcase name="test_business_mutation_remains_unavailable_after_valid_guards" file="C:\ReFind-Laravel\laravel\tests\Feature\AuthContractTest.php" line="99" class="Tests\Feature\AuthContractTest" classname="Tests.Feature.AuthContractTest" assertions="2" time="0.073264"/>
+        <testcase name="test_no_head_expansion_for_api" file="C:\ReFind-Laravel\laravel\tests\Feature\AuthContractTest.php" line="104" class="Tests\Feature\AuthContractTest" classname="Tests.Feature.AuthContractTest" assertions="3" time="0.036081"/>
+        <testcase name="test_application_database_identity_is_checked_before_connecting" file="C:\ReFind-Laravel\laravel\tests\Feature\AuthContractTest.php" line="109" class="Tests\Feature\AuthContractTest" classname="Tests.Feature.AuthContractTest" assertions="1" time="0.021701"/>
+        <testcase name="test_application_credentials_cannot_update_even_a_zero_row_selection" file="C:\ReFind-Laravel\laravel\tests\Feature\AuthContractTest.php" line="117" class="Tests\Feature\AuthContractTest" classname="Tests.Feature.AuthContractTest" assertions="1" time="0.045077"/>
+      </testsuite>
+      <testsuite name="Tests\Feature\ExceptionContractTest" file="C:\ReFind-Laravel\laravel\tests\Feature\ExceptionContractTest.php" tests="3" assertions="11" errors="0" failures="0" skipped="0" time="0.695725">
+        <testcase name="test_laravel_validation_maps_to_existing_field_contract" file="C:\ReFind-Laravel\laravel\tests\Feature\ExceptionContractTest.php" line="16" class="Tests\Feature\ExceptionContractTest" classname="Tests.Feature.ExceptionContractTest" assertions="3" time="0.610978"/>
+        <testcase name="test_laravel_authentication_and_authorization_map_to_json" file="C:\ReFind-Laravel\laravel\tests\Feature\ExceptionContractTest.php" line="26" class="Tests\Feature\ExceptionContractTest" classname="Tests.Feature.ExceptionContractTest" assertions="4" time="0.059535"/>
+        <testcase name="test_uncertain_commit_requests_refresh_without_leaking_cause" file="C:\ReFind-Laravel\laravel\tests\Feature\ExceptionContractTest.php" line="35" class="Tests\Feature\ExceptionContractTest" classname="Tests.Feature.ExceptionContractTest" assertions="4" time="0.025212"/>
+      </testsuite>
+      <testsuite name="Tests\Feature\QueryMetricsSafetyTest" file="C:\ReFind-Laravel\laravel\tests\Feature\QueryMetricsSafetyTest.php" tests="1" assertions="86" errors="0" failures="0" skipped="0" time="0.038024">
+        <testcase name="test_metrics_toggle_preserves_the_guarded_connection_and_owned_transaction" file="C:\ReFind-Laravel\laravel\tests\Feature\QueryMetricsSafetyTest.php" line="12" class="Tests\Feature\QueryMetricsSafetyTest" classname="Tests.Feature.QueryMetricsSafetyTest" assertions="86" time="0.038024"/>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>

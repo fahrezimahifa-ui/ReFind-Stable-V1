@@ -1,12 +1,12 @@
-# ReFind Phase 4 protected write foundation
+# ReFind Phase 5 Checkpoint A — protected Student reporting
 
 Current branch: `migration/academic-b`, based on Milestone A `ac03a9dae33c5d03318ac357fdb0c31abcaffa75`.
 
-Phase 4 introduces protected transaction/media infrastructure and synthetic tests. Report, claim, BM decision, pickup and account mutations remain unavailable. This is not the academic demonstration release. Stop for review before Phase 5.
+Checkpoint A enables Laravel Student report CRUD and private uploads on synthetic academic-test only. Academic-dev remains read-only. Matching/history/notification effects, claims, BM decisions, pickup, account mutations and AI remain unavailable. This is not the academic demonstration release. Stop for review before Checkpoint B.
 
 ## Review
 
-Read `docs/PHASE4_REPORT.md` and the sanitized receipts under `docs/verification/phase4`.
+Read `docs/PHASE5_CHECKPOINT_A_REPORT.md` and the sanitized receipts under `docs/verification/phase5-checkpoint-a`. The Phase 4 report and earlier failure reports remain historical.
 The original PoC report remains historical at `docs/POC_REPORT.md`; its branch, profiles, credentials and databases remain preserved.
 
 ## Start only when needed
@@ -26,15 +26,15 @@ Both 2 GiB available RAM and 5 GiB free disk are required. No gate was lowered. 
 ## Profiles and write privileges
 
 - `academic-dev`: `refind_laravel_b_dev`, independent keys/cookie/storage and SELECT-only application access.
-- `academic-test`: `refind_laravel_b_test`, separate keys/cookie/storage; application writes only to `_foundation_probe` (INSERT/UPDATE/DELETE) and `_write_operations` (INSERT).
-- All business tables remain read-only. Original PoC/native targets are refused.
+- `academic-test`: `refind_laravel_b_test`, separate keys/cookie/storage; approved column-scoped item/photo CRUD, synthetic `_foundation_probe` writes and append-only `_write_operations` INSERT. The report records the exact privilege matrix.
+- Other business mutations and all original PoC/native targets are refused.
 
-Only the B synthetic test profile can execute a write unit in this phase. No HTTP endpoint exposes the write coordinator, fault injection, reconciliation or restoration tools.
+Only the B synthetic test profile can execute report write units. For the protected CRUD demonstration, use `academic-control.py start --profile academic-test`, port 8014 and its private synthetic credentials file. No HTTP endpoint exposes fault injection, reconciliation or restoration tools.
 
 ## Verify
 
 ```powershell
-python -B C:\ReFind-Laravel\laravel\tools\verify-phase4.py
+python -B C:\ReFind-Laravel\laravel\tools\verify-phase5.py --checkpoint crud
 ```
 
 The verifier uses B fixtures, samples resources, compares protected state and always stops owned runtimes. It performs synthetic writes, deliberate B-only connection termination and B-test database/media restoration. Do not run simultaneous verification or maintenance commands. Failed test state and manifests are retained for review; failure does not trigger an automatic reset.

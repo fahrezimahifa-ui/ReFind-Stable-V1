@@ -79,7 +79,7 @@ final class AcademicSnapshot
             fclose($f);
         }
 
-return $id;
+        return $id;
     }
 
     public static function restore(PDO $pdo, string $id): void
@@ -98,7 +98,7 @@ return $id;
             throw new RuntimeException('Foreign restore refused.');
         }
         foreach ($data['tables'] as $table => $snapshot) {
-            if ($pdo->query('SHOW CREATE TABLE `'.$table.'`')->fetch(PDO::FETCH_NUM)[1] !== $snapshot['ddl']) {
+            if (preg_replace('/ AUTO_INCREMENT=\d+/', '', $pdo->query('SHOW CREATE TABLE `'.$table.'`')->fetch(PDO::FETCH_NUM)[1]) !== preg_replace('/ AUTO_INCREMENT=\d+/', '', $snapshot['ddl'])) {
                 throw new RuntimeException('Schema drift; restore refused.');
             }
         }
@@ -134,6 +134,14 @@ return $id;
         } finally {
             $pdo->exec('SET FOREIGN_KEY_CHECKS=1');
         }
+        // Offline B-test maintenance: reset only the captured table counters after data commit.
+        // These ALTERs are intentionally outside the data transaction (DDL implicitly commits).
+        foreach ($data['tables'] as $table => $snapshot) {
+            if (stripos($snapshot['ddl'], 'auto_increment') !== false) {
+                $next = preg_match('/ AUTO_INCREMENT=(\d+)/', $snapshot['ddl'], $counter) ? (int) $counter[1] : 1;
+                $pdo->exec('ALTER TABLE `'.$table.'` AUTO_INCREMENT='.$next);
+            }
+        }
         file_put_contents($receipt, json_encode(['state' => 'media_started', 'snapshot' => $id]));
         foreach (self::media() as $relative => $bytes) {
             if (! array_key_exists($relative, $data['media'])) {
@@ -155,6 +163,6 @@ return $id;
         if (self::capture($pdo) !== $data) {
             throw new RuntimeException('Restoration verification failed.');
         }
-        file_put_contents($receipt,json_encode(['state' => 'verified', 'snapshot' => $id]));
+        file_put_contents($receipt, json_encode(['state' => 'verified', 'snapshot' => $id]));
     }
 }

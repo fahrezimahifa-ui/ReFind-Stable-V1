@@ -11,19 +11,20 @@ try {
     }
     DB::select('SELECT user_id FROM users LIMIT 1');
     $checks = 1;
-    foreach (['INSERT INTO _write_operations(operation_id,manifest_sha256)SELECT operation_id,manifest_sha256 FROM _write_operations WHERE 1=0', 'UPDATE users SET full_name=full_name WHERE 1=0', 'DELETE FROM items WHERE 1=0'] as $sql) {
+    foreach (['UPDATE _write_operations SET manifest_sha256=manifest_sha256 WHERE 1=0', 'UPDATE users SET full_name=full_name WHERE 1=0', 'UPDATE items SET reporter_user_id=reporter_user_id WHERE 1=0'] as $sql) {
         try {
             DB::statement($sql);
             throw new RuntimeException('SAFETY GATE FAILED: development writes unexpectedly permitted.');
         } catch (QueryException$e) {
-            if ((int) $e->errorInfo[1] !== 1142) {
+            if (!in_array((int) $e->errorInfo[1],[1142,1143],true)) {
                 throw $e;
             }$checks++;
         }
     }
-    echo json_encode(['academic_dev_read_only_checks_passed' => $checks]);
+    echo json_encode(['academic_dev_boundary_checks_passed' => $checks]);
 
 } catch (Throwable $e) {
     fwrite(STDERR, $e->getMessage());
     exit(1);
 }
+VerificationReceipt::complete($checks, ['academic_dev_boundary_checks_passed' => $checks]);

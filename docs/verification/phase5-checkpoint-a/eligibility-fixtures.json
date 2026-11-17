@@ -1,0 +1,19 @@
+{
+    "schema_version": 1,
+    "phase": 5,
+    "checkpoint": "crud",
+    "run_id": "e38ccd8629fe4ac98f1594e7adb8c1e3",
+    "invocation_id": "3e3ba9f0506b4d3aa06606d6c9b04d2a",
+    "suite": "eligibility-fixtures",
+    "profile": "academic-test",
+    "receipt_path": "c:\/refind-laravel\/evidence\/phase5\/verification-crud-20261117t090938z-e38ccd86\/suites\/eligibility-fixtures.json",
+    "started_at": 1794906652.967804,
+    "passed": true,
+    "completed": true,
+    "checks": 1,
+    "completed_at": 1794906653.283531,
+    "results": {
+        "action": "eligibility",
+        "profile": "academic-test"
+    }
+}

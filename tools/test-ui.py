@@ -1,10 +1,11 @@
+from verification_receipt import complete_receipt
 from pathlib import Path
 import os,json,datetime
 import psutil
 ROOT=Path('C:/ReFind-Laravel');BASE='http://127.0.0.1:8014';os.environ['TEMP']=os.environ['TMP']=str(ROOT/'state/academic-test/tmp')
 from playwright.sync_api import sync_playwright, expect
 creds=json.loads((ROOT/'state/academic-test/credentials.json').read_text())['student_a']
-run=datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ');out=ROOT/'evidence/phase4/ui'/run;out.mkdir(parents=True)
+run=datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ');out=ROOT/'evidence/phase5/ui'/run;out.mkdir(parents=True)
 checks=[];errors=[];traffic=[]
 def check(name,ok):
  if not ok:raise AssertionError(name)
@@ -41,4 +42,5 @@ with sync_playwright() as p:
  finally:browser.close()
 check('no JavaScript exceptions',not errors);check('no native/external browser traffic',not traffic)
 receipt={'profile':'academic-test','base':BASE,'passed':len(checks),'checks':checks,'javascript_errors':errors,'external_requests':traffic,'screenshots':str(out),'themes':['light','dark'],'viewports':[360,390,768,1280,1440]}
-(ROOT/'evidence/phase4/ui-results.json').write_text(json.dumps(receipt,indent=2),encoding='utf-8');print(json.dumps({'ui_checks_passed':len(checks),'screenshots':str(out)}))
+(ROOT/'evidence/phase5/ui-results.json').write_text(json.dumps(receipt,indent=2),encoding='utf-8');print(json.dumps({'ui_checks_passed':len(checks),'screenshots':str(out)}))
+complete_receipt(len(checks), receipt)

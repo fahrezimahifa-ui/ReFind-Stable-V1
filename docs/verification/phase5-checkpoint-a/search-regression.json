@@ -1,0 +1,18 @@
+{
+    "schema_version": 1,
+    "phase": 5,
+    "checkpoint": "crud",
+    "run_id": "e38ccd8629fe4ac98f1594e7adb8c1e3",
+    "invocation_id": "fd74298a96c8429b929f13ba104a11b8",
+    "suite": "search-regression",
+    "profile": "academic-test",
+    "receipt_path": "c:\/refind-laravel\/evidence\/phase5\/verification-crud-20261117t090938z-e38ccd86\/suites\/search-regression.json",
+    "started_at": 1794906612.465949,
+    "passed": true,
+    "completed": true,
+    "checks": 50,
+    "completed_at": 1794906612.498342,
+    "results": {
+        "search_checks_passed": 50
+    }
+}

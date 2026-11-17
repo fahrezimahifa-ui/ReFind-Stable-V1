@@ -1,0 +1,175 @@
+{
+    "schema_version": 1,
+    "phase": 5,
+    "checkpoint": "crud",
+    "run_id": "e38ccd8629fe4ac98f1594e7adb8c1e3",
+    "invocation_id": "b64a3aeb2a154f33b2e86340bd7abf4e",
+    "suite": "poc-database-after",
+    "profile": "academic-test",
+    "receipt_path": "c:\/refind-laravel\/evidence\/phase5\/verification-crud-20261117t090938z-e38ccd86\/suites\/poc-database-after.json",
+    "started_at": 1794906879.381118,
+    "passed": true,
+    "completed": true,
+    "checks": 30,
+    "completed_at": 1794906879.814201,
+    "results": {
+        "schemas": {
+            "dev": {
+                "users": {
+                    "rows": 4,
+                    "data_sha256": "4c78bcf4f54469dc505cefa41106111fec2c12562fe703cb9b4403ec9231d6a2",
+                    "schema_sha256": "93c2bee13cff6af27723a851ac71109e7c9fbeda48b2c7272865c391af797a79"
+                },
+                "buildings": {
+                    "rows": 4,
+                    "data_sha256": "f49dde2320c8d0df26253f2796ba217742f3a5bf8631a3cdfc01b45b0248bde0",
+                    "schema_sha256": "268def82b286434066c80eabaa5ed6997e4b07155443fb6ecf75280403ccf711"
+                },
+                "categories": {
+                    "rows": 8,
+                    "data_sha256": "f695dd75ad3fd199f91bf1c42cc97ba983c2f550ee520f58fbfd8b2ea701da7a",
+                    "schema_sha256": "47be02f81efd5289eddb3becd3ca732ef9c73da151a85e5966618a3598f6dba6"
+                },
+                "item_statuses": {
+                    "rows": 7,
+                    "data_sha256": "56f2cd02211fd013ffcd816ddf5c92b6c1bf4a7b5192c5e04ca64e52656eb130",
+                    "schema_sha256": "bf4be248172fedf18aec8474f7149adf9caa637e81beff0585396107042a1cd1"
+                },
+                "campus_locations": {
+                    "rows": 40,
+                    "data_sha256": "a3af03135d098060d49636836b9923af33ef9a55904335952daef757cac41ef0",
+                    "schema_sha256": "80a0158f346f8fd916f79f72baca48db2087da58cbd2166419edb16826bc2dc7"
+                },
+                "location_floors": {
+                    "rows": 91,
+                    "data_sha256": "1b39b4dc9c691b745417b4318ef11ab61c35c1966dc408470843f7cf555744e6",
+                    "schema_sha256": "82fd460d3d627a36a657e14ccc58564cb611fcb31cf70965cee0d47ff38f4d02"
+                },
+                "items": {
+                    "rows": 8,
+                    "data_sha256": "def26036de94feaf851cd4e508b2fd0d57f38603234756ef425797b34699becb",
+                    "schema_sha256": "8a1cf6c4dc4f67167af4d87731ba1853c96cbe8300366d6a1e05d74aca49076d"
+                },
+                "item_photos": {
+                    "rows": 9,
+                    "data_sha256": "ae06b2bfad2caced9490746f0003386de6a3b3b5c13b3efcca916a184be78412",
+                    "schema_sha256": "93917e6e322758965686cb9965a636349d37b03458704bb3c69b13ca1382b4dc"
+                },
+                "item_matches": {
+                    "rows": 1,
+                    "data_sha256": "7abea9fd65a272bd07da4a07f00c318c3d4065f26480e25d991e0b07f663b8d7",
+                    "schema_sha256": "b97ccff3e954a3112aded7d6165f6ea95c56a800e28a0bfd6b75e328e2ecb232"
+                },
+                "claims": {
+                    "rows": 1,
+                    "data_sha256": "aa1b5c36e2a6440b73dc1f2ccca5722f508406c19c7e76b27a07df9b0ded67fd",
+                    "schema_sha256": "2437b3f1c59a57cf915283d5065919f039a8f55b802f83e0d4cbfc4590198bf9"
+                },
+                "claim_photos": {
+                    "rows": 1,
+                    "data_sha256": "408ff74fa6fe918cd4977c9dfc3ce0f62162fbb9b08f709217cc231d568d6bf8",
+                    "schema_sha256": "ef8ee31e66886e1b1b527edb60b96936229d20ca7fb31b2789db4a054a455abe"
+                },
+                "handovers": {
+                    "rows": 0,
+                    "data_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                    "schema_sha256": "ac4404f198762b15cd0a230c4315f1390540dff474a62e58ae2c4e1d245720b8"
+                },
+                "notifications": {
+                    "rows": 2,
+                    "data_sha256": "eca2f18c36de87ea732d031ddfae2e8bca7edba827968adc4e81ec2ed3f1fac5",
+                    "schema_sha256": "0e5abf62df3b1b51b3cdf2ad38c8837a53b60c8414bdc70841ae167a690f2dec"
+                },
+                "item_status_history": {
+                    "rows": 8,
+                    "data_sha256": "333eef5b26274d011abebec6326636dbd2e3865fe0430e1845f54e0ba7de65fb",
+                    "schema_sha256": "a6ba70ec16e19da179de1109cd4567180e3a6fc5321cc90b263bc685709a0c8c"
+                },
+                "_workspace_owner": {
+                    "rows": 1,
+                    "data_sha256": "2b6852f28e2bf8930948695cb774090964644cfcefbce515f77a2c679e1227d8",
+                    "schema_sha256": "d0f53f7e25b388e3dea73349ad585c4eb04a261cf1985ca800c2811911c53fdb"
+                }
+            },
+            "test": {
+                "users": {
+                    "rows": 4,
+                    "data_sha256": "a7066b5ee7306e65cb3325e39602a93821feb473bf77685cdad0f3ec17fa0c64",
+                    "schema_sha256": "93c2bee13cff6af27723a851ac71109e7c9fbeda48b2c7272865c391af797a79"
+                },
+                "buildings": {
+                    "rows": 4,
+                    "data_sha256": "f49dde2320c8d0df26253f2796ba217742f3a5bf8631a3cdfc01b45b0248bde0",
+                    "schema_sha256": "268def82b286434066c80eabaa5ed6997e4b07155443fb6ecf75280403ccf711"
+                },
+                "categories": {
+                    "rows": 8,
+                    "data_sha256": "f695dd75ad3fd199f91bf1c42cc97ba983c2f550ee520f58fbfd8b2ea701da7a",
+                    "schema_sha256": "47be02f81efd5289eddb3becd3ca732ef9c73da151a85e5966618a3598f6dba6"
+                },
+                "item_statuses": {
+                    "rows": 7,
+                    "data_sha256": "56f2cd02211fd013ffcd816ddf5c92b6c1bf4a7b5192c5e04ca64e52656eb130",
+                    "schema_sha256": "bf4be248172fedf18aec8474f7149adf9caa637e81beff0585396107042a1cd1"
+                },
+                "campus_locations": {
+                    "rows": 40,
+                    "data_sha256": "a3af03135d098060d49636836b9923af33ef9a55904335952daef757cac41ef0",
+                    "schema_sha256": "80a0158f346f8fd916f79f72baca48db2087da58cbd2166419edb16826bc2dc7"
+                },
+                "location_floors": {
+                    "rows": 91,
+                    "data_sha256": "1b39b4dc9c691b745417b4318ef11ab61c35c1966dc408470843f7cf555744e6",
+                    "schema_sha256": "82fd460d3d627a36a657e14ccc58564cb611fcb31cf70965cee0d47ff38f4d02"
+                },
+                "items": {
+                    "rows": 8,
+                    "data_sha256": "8e2c15c6c42c7f24f8aca6f52ed78a6c157dd1399934b892657aa4008f0c40cb",
+                    "schema_sha256": "8a1cf6c4dc4f67167af4d87731ba1853c96cbe8300366d6a1e05d74aca49076d"
+                },
+                "item_photos": {
+                    "rows": 9,
+                    "data_sha256": "7012da1b33da11e3d920614131b97ba5e2d30d996a96cc5589fca11bf93e06ca",
+                    "schema_sha256": "93917e6e322758965686cb9965a636349d37b03458704bb3c69b13ca1382b4dc"
+                },
+                "item_matches": {
+                    "rows": 1,
+                    "data_sha256": "2d6bb20d070e980144c03c6248c56a2772cf70c0bc965f58d543462611bc73c7",
+                    "schema_sha256": "b97ccff3e954a3112aded7d6165f6ea95c56a800e28a0bfd6b75e328e2ecb232"
+                },
+                "claims": {
+                    "rows": 1,
+                    "data_sha256": "98cdf88a12c4e91542a8b537d34573ca46a5046a6e7353f98b220c083bee0d7b",
+                    "schema_sha256": "2437b3f1c59a57cf915283d5065919f039a8f55b802f83e0d4cbfc4590198bf9"
+                },
+                "claim_photos": {
+                    "rows": 1,
+                    "data_sha256": "eeb331005660602ae9602b4b292f89310d2f4039e0dfb3d0024afa3151e12bf7",
+                    "schema_sha256": "ef8ee31e66886e1b1b527edb60b96936229d20ca7fb31b2789db4a054a455abe"
+                },
+                "handovers": {
+                    "rows": 0,
+                    "data_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                    "schema_sha256": "ac4404f198762b15cd0a230c4315f1390540dff474a62e58ae2c4e1d245720b8"
+                },
+                "notifications": {
+                    "rows": 2,
+                    "data_sha256": "38a5aed16d7f617298f9dccac8ed91d9a2480fb175e5a192af3bb4f6b97b79aa",
+                    "schema_sha256": "0e5abf62df3b1b51b3cdf2ad38c8837a53b60c8414bdc70841ae167a690f2dec"
+                },
+                "item_status_history": {
+                    "rows": 8,
+                    "data_sha256": "b7a0420cc342f6c906b71d59a02df2715f2bd71f356b05e2dad7111ac5c9484e",
+                    "schema_sha256": "a6ba70ec16e19da179de1109cd4567180e3a6fc5321cc90b263bc685709a0c8c"
+                },
+                "_workspace_owner": {
+                    "rows": 1,
+                    "data_sha256": "2b6852f28e2bf8930948695cb774090964644cfcefbce515f77a2c679e1227d8",
+                    "schema_sha256": "d0f53f7e25b388e3dea73349ad585c4eb04a261cf1985ca800c2811911c53fdb"
+                }
+            }
+        },
+        "credentials": "original SELECT-only identities",
+        "native_server_contacted": false
+    }
+}

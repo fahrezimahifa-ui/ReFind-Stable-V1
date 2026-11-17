@@ -1,5 +1,5 @@
-# ReFind academic branch
-Only Phase 4 protected write foundation is authorized. Stop for review before Phase 5.
-Business mutation endpoints remain unavailable. Synthetic probe writes are allowed only in academic-test.
-Preserve migration/laravel13 at ac03a9dae33c5d03318ac357fdb0c31abcaffa75 and all original PoC/native state.
-Use explicit academic profiles, approved isolated runtimes, 2 GiB RAM/5 GiB disk gates, no pushes/deployment.
+# ReFind Phase 5
+Only Student report CRUD/uploads/rule-based matching/history/automatic report notifications are authorized.
+Use two internal checkpoints: CRUD/media, then matching/history/notifications. Stop if either consistency/safety gate fails.
+Keep claims, BM decisions, pickup, accounts and AI unavailable. Preserve original PoC/native resources.
+Use only academic profiles, 2 GiB RAM/5 GiB disk gates, synthetic data, no push/merge/deploy. Stop before Phase 6.

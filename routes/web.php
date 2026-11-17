@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DiscoveryController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PageController::class, 'show'])->defaults('legacy_methods', ['GET', 'HEAD']);
@@ -17,10 +18,11 @@ $api('session.php', ['GET'], [AuthController::class, 'session']);
 $api('auth.php', ['POST'], [AuthController::class, 'mutate'], 'auth_action');
 $api('references.php', ['GET'], [DiscoveryController::class, 'references']);
 $api('items.php', ['GET'], [DiscoveryController::class, 'items']);
+$api('items.php', ['POST'], [ReportController::class, 'mutate'], 'STUDENT');
 $api('notifications.php', ['GET'], [DiscoveryController::class, 'notifications']);
 $api('photos.php', ['GET'], [MediaController::class, 'photo']);
 $api('avatar.php', ['GET'], [MediaController::class, 'avatar']);
-foreach (['items.php' => 'STUDENT', 'claims.php' => 'STUDENT', 'staff.php' => 'BUILDING_MANAGEMENT', 'handovers.php' => 'BUILDING_MANAGEMENT', 'account.php' => 'authenticated', 'notifications.php' => 'authenticated', 'register.php' => 'registration'] as $path => $access) {
+foreach (['claims.php' => 'STUDENT', 'staff.php' => 'BUILDING_MANAGEMENT', 'handovers.php' => 'BUILDING_MANAGEMENT', 'account.php' => 'authenticated', 'notifications.php' => 'authenticated', 'register.php' => 'registration'] as $path => $access) {
     $api($path, ['POST'], [DiscoveryController::class, 'unavailable'], $access);
 }
 foreach (['claims.php' => 'authenticated', 'staff.php' => 'BUILDING_MANAGEMENT', 'handovers.php' => 'authenticated', 'account.php' => 'authenticated'] as $path => $access) {

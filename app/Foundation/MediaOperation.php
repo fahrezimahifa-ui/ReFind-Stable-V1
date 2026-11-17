@@ -116,7 +116,7 @@ final class MediaOperation
 
     public function removeAfterCommit(string $relative): void
     {
-        if ($this->data['state'] !== 'prepared') {
+        if (! in_array($this->data['state'], ['prepared', 'in_transaction'], true)) {
             throw new RuntimeException('Media plan is already sealed.');
         }
         MediaJournal::scoped('app/private/refind/'.$relative);

@@ -3,6 +3,7 @@
 namespace App\Foundation;
 
 use App\Database\PinnedMariaDbConnection;
+use App\Exceptions\ContractError;
 use RuntimeException;
 
 final class WriteContext
@@ -44,10 +45,20 @@ final class WriteContext
             }
         }
         $this->held[$table] = array_values(array_unique([...$previous, ...$ids]));
-        foreach ($ids as $id) {
-            $row = $this->connection->selectOne('SELECT * FROM `'.$table.'` WHERE `'.$key.'`=? FOR UPDATE', [$id]);
-            if ($row) {
-                $out[$id] = $row;
+        if ($table === 'items' && $ids) {
+            $rows = $this->connection->select('SELECT i.*,s.status_code FROM items i JOIN item_statuses s ON s.status_id=i.status_id WHERE i.item_id IN ('.implode(',', array_fill(0, count($ids), '?')).') ORDER BY i.item_id FOR UPDATE', $ids);
+            if (count($rows) !== count($ids)) {
+                throw new ContractError('A report changed or was removed. Reload and try again.', 409, 'state_conflict');
+            }
+            foreach ($rows as $row) {
+                $out[(int) $row->item_id] = $row;
+            }
+        } else {
+            foreach ($ids as $id) {
+                $row = $this->connection->selectOne('SELECT * FROM `'.$table.'` WHERE `'.$key.'`=? FOR UPDATE', [$id]);
+                if ($row) {
+                    $out[$id] = $row;
+                }
             }
         }
         $this->lockedIds = $ids;

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "phase": 5,
+  "checkpoint": "crud",
+  "run_id": "e38ccd8629fe4ac98f1594e7adb8c1e3",
+  "invocation_id": "4b0c85c867224d0ab062c8661ce3777f",
+  "suite": "php-syntax",
+  "profile": "academic-test",
+  "receipt_path": "c:/refind-laravel/evidence/phase5/verification-crud-20261117t090938z-e38ccd86/suites/php-syntax.json",
+  "started_at": 1794906579.4004705,
+  "completed_at": 1794906588.3435419,
+  "passed": true,
+  "completed": true,
+  "checks": 82,
+  "results": {
+    "files": 82
+  }
+}

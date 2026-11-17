@@ -5,6 +5,8 @@ use App\Support\Workspace;
 if (PHP_SAPI !== 'cli' || ($argv[1] ?? '') !== '--auth-state-only') {
     exit(1);
 }
+require_once __DIR__.'/VerificationReceipt.php';
+VerificationReceipt::begin();
 require __DIR__.'/../vendor/autoload.php';
 
 if (Workspace::profile()['profile'] !== 'academic-test') {
@@ -24,3 +26,4 @@ if (! $handle || ! flock($handle, LOCK_EX)) {
     flock($handle, LOCK_UN);
     fclose($handle);
 }echo "Isolated synthetic test limiter reset.\n";
+VerificationReceipt::complete(1, ['synthetic_auth_state_reset' => true]);

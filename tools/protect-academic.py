@@ -1,3 +1,4 @@
+from verification_receipt import complete_receipt
 from pathlib import Path
 import hashlib,json,subprocess,sys
 ROOT=Path('C:/ReFind-Laravel');before=json.loads((ROOT/'state/phase4-protection-before.json').read_text());bad=[]
@@ -12,4 +13,6 @@ for profile in ['dev','test']:
  if now!=prior:bad.append(profile+': file set')
 sha=subprocess.check_output(['git','rev-parse','migration/laravel13'],cwd=ROOT/'laravel',text=True).strip()
 if sha!=before['checkpoint']:bad.append('original branch')
-print(json.dumps({'protected_poc_files':len(before['files']),'mismatches':bad,'original_branch_preserved':sha==before['checkpoint']}));sys.exit(bool(bad))
+print(json.dumps({'protected_poc_files':len(before['files']),'mismatches':bad,'original_branch_preserved':sha==before['checkpoint']}))
+if not bad:complete_receipt(len(before['files'])+1, {'protected_poc_files':len(before['files']), 'mismatches':bad, 'original_branch_preserved':True})
+sys.exit(bool(bad))

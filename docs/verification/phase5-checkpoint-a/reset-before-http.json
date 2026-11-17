@@ -1,0 +1,18 @@
+{
+    "schema_version": 1,
+    "phase": 5,
+    "checkpoint": "crud",
+    "run_id": "e38ccd8629fe4ac98f1594e7adb8c1e3",
+    "invocation_id": "c1d63584c63240e88d0d654da06e4a85",
+    "suite": "reset-before-http",
+    "profile": "academic-test",
+    "receipt_path": "c:\/refind-laravel\/evidence\/phase5\/verification-crud-20261117t090938z-e38ccd86\/suites\/reset-before-http.json",
+    "started_at": 1794906651.799457,
+    "passed": true,
+    "completed": true,
+    "checks": 1,
+    "completed_at": 1794906651.834791,
+    "results": {
+        "synthetic_auth_state_reset": true
+    }
+}

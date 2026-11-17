@@ -3,6 +3,7 @@
 namespace App\Foundation;
 
 use App\Database\PinnedMariaDbConnection;
+use App\Exceptions\ContractError;
 use App\Support\Workspace;
 use RuntimeException;
 use Throwable;
@@ -25,7 +26,7 @@ final class WriteCoordinator
     /** Fault callbacks/commit transport are injectable PHP test collaborators, never HTTP inputs. */
     public function run(MediaOperation $operation, callable $work, ?callable $fault = null, ?callable $commitTransport = null, int $lockWait = 5): mixed
     {
-        if (Workspace::profile()['profile'] !== 'academic-test') {
+        if (! in_array(Workspace::profile()['profile'], config('refind.report_write_profiles', ['academic-test']), true)) {
             throw new RuntimeException('Phase 4 writes are enabled only for synthetic B tests.');
         }
         if ($lockWait < 0 || $lockWait > 5) {
@@ -113,6 +114,9 @@ final class WriteCoordinator
         }
         if ($rolledBack) {
             $operation->cleanup(false, fn ($path) => $this->referenced($path));
+        }
+        if ($rolledBack && $failure instanceof ContractError) {
+            throw $failure;
         }
         throw new WriteFailure($operation->id, ! $rolledBack, $failure ?? new RuntimeException('Write failed.'));
     }

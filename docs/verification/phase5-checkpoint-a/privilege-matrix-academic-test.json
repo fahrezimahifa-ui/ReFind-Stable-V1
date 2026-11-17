@@ -1,0 +1,222 @@
+{
+  "profile": "academic-test",
+  "passed": true,
+  "schema_grants": [
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "PRIVILEGE_TYPE": "SELECT",
+      "IS_GRANTABLE": "NO"
+    }
+  ],
+  "table_grants": [
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "item_photos",
+      "PRIVILEGE_TYPE": "DELETE",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "_write_operations",
+      "PRIVILEGE_TYPE": "INSERT",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "items",
+      "PRIVILEGE_TYPE": "DELETE",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "_foundation_probe",
+      "PRIVILEGE_TYPE": "INSERT",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "_foundation_probe",
+      "PRIVILEGE_TYPE": "UPDATE",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "_foundation_probe",
+      "PRIVILEGE_TYPE": "DELETE",
+      "IS_GRANTABLE": "NO"
+    }
+  ],
+  "column_grants": [
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "item_photos",
+      "COLUMN_NAME": "file_path",
+      "PRIVILEGE_TYPE": "INSERT",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "item_photos",
+      "COLUMN_NAME": "photo_kind",
+      "PRIVILEGE_TYPE": "INSERT",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "item_photos",
+      "COLUMN_NAME": "item_id",
+      "PRIVILEGE_TYPE": "INSERT",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "item_photos",
+      "COLUMN_NAME": "is_primary",
+      "PRIVILEGE_TYPE": "UPDATE",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "items",
+      "COLUMN_NAME": "reporter_user_id",
+      "PRIVILEGE_TYPE": "INSERT",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "items",
+      "COLUMN_NAME": "category_id",
+      "PRIVILEGE_TYPE": "INSERT",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "items",
+      "COLUMN_NAME": "location_id",
+      "PRIVILEGE_TYPE": "INSERT",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "items",
+      "COLUMN_NAME": "event_date",
+      "PRIVILEGE_TYPE": "INSERT",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "items",
+      "COLUMN_NAME": "verification_clue",
+      "PRIVILEGE_TYPE": "INSERT",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "items",
+      "COLUMN_NAME": "event_time",
+      "PRIVILEGE_TYPE": "INSERT",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "items",
+      "COLUMN_NAME": "status_id",
+      "PRIVILEGE_TYPE": "INSERT",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "items",
+      "COLUMN_NAME": "item_type",
+      "PRIVILEGE_TYPE": "INSERT",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "items",
+      "COLUMN_NAME": "description",
+      "PRIVILEGE_TYPE": "INSERT",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "items",
+      "COLUMN_NAME": "location_detail",
+      "PRIVILEGE_TYPE": "INSERT",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "items",
+      "COLUMN_NAME": "title",
+      "PRIVILEGE_TYPE": "INSERT",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "items",
+      "COLUMN_NAME": "category_id",
+      "PRIVILEGE_TYPE": "UPDATE",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "items",
+      "COLUMN_NAME": "location_id",
+      "PRIVILEGE_TYPE": "UPDATE",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "items",
+      "COLUMN_NAME": "event_date",
+      "PRIVILEGE_TYPE": "UPDATE",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "items",
+      "COLUMN_NAME": "verification_clue",
+      "PRIVILEGE_TYPE": "UPDATE",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "items",
+      "COLUMN_NAME": "event_time",
+      "PRIVILEGE_TYPE": "UPDATE",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "items",
+      "COLUMN_NAME": "description",
+      "PRIVILEGE_TYPE": "UPDATE",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "items",
+      "COLUMN_NAME": "location_floor_id",
+      "PRIVILEGE_TYPE": "UPDATE",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "items",
+      "COLUMN_NAME": "location_detail",
+      "PRIVILEGE_TYPE": "UPDATE",
+      "IS_GRANTABLE": "NO"
+    },
+    {
+      "TABLE_SCHEMA": "refind_laravel_b_test",
+      "TABLE_NAME": "items",
+      "COLUMN_NAME": "title",
+      "PRIVILEGE_TYPE": "UPDATE",
+      "IS_GRANTABLE": "NO"
+    }
+  ],
+  "cross_schema_select_update_denials": 10,
+  "protected_mutation_denials": 6,
+  "native_server_contacted": false
+}

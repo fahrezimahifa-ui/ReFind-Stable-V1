@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "phase": 5,
+  "checkpoint": "crud",
+  "run_id": "e38ccd8629fe4ac98f1594e7adb8c1e3",
+  "invocation_id": "b40610e79e7e4bc7abc9cc8d01a38551",
+  "suite": "composer-validation",
+  "profile": "academic-test",
+  "receipt_path": "c:/refind-laravel/evidence/phase5/verification-crud-20261117t090938z-e38ccd86/suites/composer-validation.json",
+  "started_at": 1794906588.5531576,
+  "completed_at": 1794906589.8780172,
+  "passed": true,
+  "completed": true,
+  "checks": 1,
+  "results": {
+    "composer_valid": true
+  }
+}

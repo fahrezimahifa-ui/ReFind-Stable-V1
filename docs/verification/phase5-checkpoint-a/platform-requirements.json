@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "phase": 5,
+  "checkpoint": "crud",
+  "run_id": "e38ccd8629fe4ac98f1594e7adb8c1e3",
+  "invocation_id": "72c6c13b79704b4d9036ba69b76bf702",
+  "suite": "platform-requirements",
+  "profile": "academic-test",
+  "receipt_path": "c:/refind-laravel/evidence/phase5/verification-crud-20261117t090938z-e38ccd86/suites/platform-requirements.json",
+  "started_at": 1794906590.0948815,
+  "completed_at": 1794906591.1218746,
+  "passed": true,
+  "completed": true,
+  "checks": 18,
+  "results": {
+    "platform_requirements": [
+      {
+        "name": "composer-runtime-api",
+        "version": "2.2.2",
+        "status": "success",
+        "failed_requirement": null,
+        "provider": null
+      },
+      {
+        "name": "ext-ctype",
+        "version": "*",
+        "status": "success",
+        "failed_requirement": null,
+        "provider": "provided by symfony/polyfill-ctype"
+      },
+      {
+        "name": "ext-dom",
+        "version": "20031129",
+        "status": "success",
+        "failed_requirement": null,
+        "provider": null
+      },
+      {
+        "name": "ext-fileinfo",
+        "version": "8.5.12",
+        "status": "success",
+        "failed_requirement": null,
+        "provider": null
+      },
+      {
+        "name": "ext-filter",
+        "version": "8.5.12",
+        "status": "success",
+        "failed_requirement": null,
+        "provider": null
+      },
+      {
+        "name": "ext-hash",
+        "version": "8.5.12",
+        "status": "success",
+        "failed_requirement": null,
+        "provider": null
+      },
+      {
+        "name": "ext-iconv",
+        "version": "8.5.12",
+        "status": "success",
+        "failed_requirement": null,
+        "provider": null
+      },
+      {
+        "name": "ext-json",
+        "version": "8.5.12",
+        "status": "success",
+        "failed_requirement": null,
+        "provider": null
+      },
+      {
+        "name": "ext-libxml",
+        "version": "8.5.12",
+        "status": "success",
+        "failed_requirement": null,
+        "provider": null
+      },
+      {
+        "name": "ext-mbstring",
+        "version": "*",
+        "status": "success",
+        "failed_requirement": null,
+        "provider": "provided by symfony/polyfill-mbstring"
+      },
+      {
+        "name": "ext-openssl",
+        "version": "8.5.12",
+        "status": "success",
+        "failed_requirement": null,
+        "provider": null
+      },
+      {
+        "name": "ext-pcre",
+        "version": "8.5.12",
+        "status": "success",
+        "failed_requirement": null,
+        "provider": null
+      },
+      {
+        "name": "ext-phar",
+        "version": "8.5.12",
+        "status": "success",
+        "failed_requirement": null,
+        "provider": null
+      },
+      {
+        "name": "ext-session",
+        "version": "8.5.12",
+        "status": "success",
+        "failed_requirement": null,
+        "provider": null
+      },
+      {
+        "name": "ext-tokenizer",
+        "version": "8.5.12",
+        "status": "success",
+        "failed_requirement": null,
+        "provider": null
+      },
+      {
+        "name": "ext-xml",
+        "version": "8.5.12",
+        "status": "success",
+        "failed_requirement": null,
+        "provider": null
+      },
+      {
+        "name": "ext-xmlwriter",
+        "version": "8.5.12",
+        "status": "success",
+        "failed_requirement": null,
+        "provider": null
+      },
+      {
+        "name": "php",
+        "version": "8.5.12",
+        "status": "success",
+        "failed_requirement": null,
+        "provider": null
+      }
+    ]
+  }
+}
