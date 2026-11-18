@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Exceptions\ContractError;
 use App\Services\AuthService;
+use App\Support\ClaimRevision;
 use App\Support\Contract;
 use Illuminate\Support\Facades\DB;
 
@@ -124,9 +125,8 @@ final class ClaimReadRepository
         }
         $claim = $this->avatar((array) $record);
         $proofIds = array_column($this->rows('SELECT claim_photo_id FROM claim_photos WHERE claim_id=? ORDER BY claim_photo_id', [$id]), 'claim_photo_id');
-        $claim['revision'] = $this->revision($claim + ['evidence' => json_encode($proofIds, JSON_THROW_ON_ERROR)], [
-            'claim_id', 'item_id', 'related_lost_item_id', 'claimant_user_id', 'ownership_answer', 'claim_status', 'review_note', 'reviewed_at', 'updated_at', 'evidence',
-        ]);
+        // Same digest the review command recomputes under its locks (see ClaimRevision for the native divergence).
+        $claim['revision'] = ClaimRevision::compute(DB::connection(), $claim);
         $claim['claim_id'] = (string) $claim['claim_id'];
         $reportUser = ['user_id' => $user['id'], 'role' => $user['role']];
         $item = $this->staffReport((int) $claim['item_id'], $reportUser);

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Exceptions\ContractError;
+use App\Foundation\LockUnavailable;
 use App\Foundation\MediaJournal;
 use App\Foundation\MediaOperation;
 use App\Foundation\UploadStager;
@@ -199,10 +200,10 @@ final class ClaimService
      * A rolled-back recoverable conflict keeps the native message; only scalar data is copied so the caught
      * failure (and its media operation) is released. Uncertain outcomes keep the reconciliation contract.
      */
-    public static function nativeConflict(Throwable $error, string $message = self::CONFLICT): Throwable
+    public static function nativeConflict(Throwable $error, string $message = self::CONFLICT, ?string $busy = null): Throwable
     {
         if ($error instanceof WriteFailure && ! $error->uncertain && $error->status === 409) {
-            return new ContractError($message, 409, 'state_conflict');
+            return new ContractError($busy !== null && $error->getPrevious() instanceof LockUnavailable ? $busy : $message, 409, 'state_conflict');
         }
 
         return $error;
