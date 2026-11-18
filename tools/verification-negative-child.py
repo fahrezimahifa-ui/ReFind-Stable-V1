@@ -22,6 +22,9 @@ elif mode=='foreign-suite':
 elif mode=='foreign-run':r['run_id']='0'*32
 elif mode=='foreign-invocation':r['invocation_id']='0'*32
 elif mode=='foreign-profile':r['profile']='academic-dev'
-elif mode=='foreign-checkpoint':r['checkpoint']='matching'
+elif mode=='foreign-checkpoint':
+    expected_checkpoint=os.environ['REFIND_VERIFY_CHECKPOINT']
+    r['checkpoint']='matching' if expected_checkpoint=='crud' else 'crud'
+    assert r['checkpoint']!=expected_checkpoint
 else:raise RuntimeError('Unknown negative fixture')
 p.write_text(json.dumps(r),encoding='utf-8')

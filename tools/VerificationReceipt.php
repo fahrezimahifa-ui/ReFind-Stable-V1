@@ -18,7 +18,7 @@ final class VerificationReceipt
         if ($values === []) {
             return; // Manual execution is permitted; the runner still requires a receipt.
         }
-        if (count($values) !== count($names) || ! preg_match('/^[a-f0-9]{32}$/D', $values['RUN_ID']) || ! preg_match('/^[a-f0-9]{32}$/D', $values['INVOCATION_ID']) || ! preg_match('/^[a-z0-9-]+$/D', $values['SUITE']) || ! in_array($values['PROFILE'], ['academic-test', 'academic-dev'], true) || $values['PROFILE'] !== getenv('REFIND_PROFILE') || $values['CHECKPOINT'] !== 'crud') {
+        if (count($values) !== count($names) || ! preg_match('/^[a-f0-9]{32}$/D', $values['RUN_ID']) || ! preg_match('/^[a-f0-9]{32}$/D', $values['INVOCATION_ID']) || ! preg_match('/^[a-z0-9-]+$/D', $values['SUITE']) || ! in_array($values['PROFILE'], ['academic-test', 'academic-dev'], true) || $values['PROFILE'] !== getenv('REFIND_PROFILE') || ! in_array($values['CHECKPOINT'], ['crud', 'matching'], true)) {
             throw new RuntimeException('Invalid verification receipt identity.');
         }
         $parent = realpath(dirname($values['RECEIPT']));
@@ -27,7 +27,7 @@ final class VerificationReceipt
         if (! $parent || ! $root || ! str_starts_with($norm($parent).'/', $norm($root).'/') || is_file($values['RECEIPT'])) {
             throw new RuntimeException('Receipt destination must be fresh and isolated.');
         }
-        self::$run = ['schema_version' => 1, 'phase' => 5, 'checkpoint' => 'crud', 'run_id' => $values['RUN_ID'], 'invocation_id' => $values['INVOCATION_ID'], 'suite' => $values['SUITE'], 'profile' => $values['PROFILE'], 'receipt_path' => $norm($values['RECEIPT']), 'started_at' => microtime(true)];
+        self::$run = ['schema_version' => 1, 'phase' => 5, 'checkpoint' => $values['CHECKPOINT'], 'run_id' => $values['RUN_ID'], 'invocation_id' => $values['INVOCATION_ID'], 'suite' => $values['SUITE'], 'profile' => $values['PROFILE'], 'receipt_path' => $norm($values['RECEIPT']), 'started_at' => microtime(true)];
     }
 
     public static function complete(int $checks, array $results = []): void

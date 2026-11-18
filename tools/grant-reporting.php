@@ -39,3 +39,4 @@ try {
     fwrite(STDERR, $e->getMessage());
     exit(1);
 }
+VerificationReceipt::complete(count($grants), ['profile' => $p['profile'], 'stage' => $stage, 'grants' => $grants, 'native_connections' => false]);

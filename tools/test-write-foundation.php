@@ -74,15 +74,19 @@ try {
         }
     }
     foreach (['users', 'items', 'item_photos', 'claims', 'claim_photos', 'handovers', 'item_matches', 'item_status_history', 'notifications', 'categories', '_workspace_owner'] as $table) {
-        if(in_array($table,['items','item_photos'],true)) continue; // Newly granted report CRUD is checked independently.
-        if(config('refind.report_effects') && in_array($table,['item_matches','item_status_history','notifications'],true)) continue;
+        if (in_array($table, ['items', 'item_photos'], true)) {
+            continue;
+        } // Newly granted report CRUD is checked independently.
 
-        foreach (['UPDATE `'.$table.'` SET '.($table === 'users' ? 'full_name=full_name' : ($table === 'items' ? 'title=title' : ($table === 'categories' ? 'category_name=category_name' : ($table === '_workspace_owner' ? 'workspace_id=workspace_id' : ($table === 'notifications' ? 'is_read=is_read' : ($table === 'item_photos' ? 'is_primary=is_primary' : ($table === 'claims' ? 'claim_status=claim_status' : ($table === 'claim_photos' ? 'file_path=file_path' : ($table === 'handovers' ? 'handover_status=handover_status' : ($table === 'item_matches' ? 'match_score=match_score' : 'note=note')))))))))).' WHERE 1=0', 'DELETE FROM `'.$table.'` WHERE 1=0', 'INSERT INTO `'.$table.'` SELECT * FROM `'.$table.'` WHERE 1=0'] as $sql) {
+        foreach (['UPDATE `'.$table.'` SET '.($table === 'users' ? 'full_name=full_name' : ($table === 'items' ? 'title=title' : ($table === 'categories' ? 'category_name=category_name' : ($table === '_workspace_owner' ? 'workspace_id=workspace_id' : ($table === 'notifications' ? 'is_read=is_read' : ($table === 'item_photos' ? 'is_primary=is_primary' : ($table === 'claims' ? 'claim_status=claim_status' : ($table === 'claim_photos' ? 'file_path=file_path' : ($table === 'handovers' ? 'handover_status=handover_status' : ($table === 'item_matches' ? (config('refind.report_effects') ? 'match_status=match_status' : 'match_score=match_score') : 'note=note')))))))))).' WHERE 1=0', 'DELETE FROM `'.$table.'` WHERE 1=0', 'INSERT INTO `'.$table.'` SELECT * FROM `'.$table.'` WHERE 1=0'] as $sql) {
+            if (config('refind.report_effects') && $table === 'item_matches' && str_starts_with($sql, 'DELETE')) {
+                continue;
+            }
             try {
                 $db->statement($sql);
                 throw new RuntimeException('SAFETY GATE FAILED: business write permission');
             } catch (QueryException $e) {
-                check('business DML denied '.$table.' '.strtok($sql, ' '), in_array((int) $e->errorInfo[1],[1142,1143],true));
+                check('business DML denied '.$table.' '.strtok($sql, ' '), in_array((int) $e->errorInfo[1], [1142, 1143], true));
             }
         }
     }
@@ -91,7 +95,7 @@ try {
             $db->statement($sql);
             throw new RuntimeException('SAFETY GATE FAILED: ledger mutable');
         } catch (QueryException $e) {
-            check('append-only ledger '.strtok($sql, ' '), in_array((int) $e->errorInfo[1],[1142,1143],true));
+            check('append-only ledger '.strtok($sql, ' '), in_array((int) $e->errorInfo[1], [1142, 1143], true));
         }
     }
     $db->insert('INSERT INTO _foundation_probe(id,operation_id,value)VALUES(10,?,0),(20,?,0)', [bin2hex(random_bytes(16)), bin2hex(random_bytes(16))]);

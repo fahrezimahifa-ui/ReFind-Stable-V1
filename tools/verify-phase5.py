@@ -3,7 +3,7 @@ import os,sys,json,subprocess,datetime,importlib.util,threading,time,psutil,argp
 from verification_protocol import execute_checked
 ROOT=Path('C:/ReFind-Laravel');APP=ROOT/'laravel';PHP=ROOT/'runtime/php85/php.exe';INI=ROOT/'runtime/php85/php.ini'
 spec=importlib.util.spec_from_file_location('b',ROOT/'launchers/academic-control.py');control=importlib.util.module_from_spec(spec);spec.loader.exec_module(control)
-parser=argparse.ArgumentParser();parser.add_argument('--checkpoint',choices=['crud'],required=True);CHECKPOINT=parser.parse_args().checkpoint
+parser=argparse.ArgumentParser();parser.add_argument('--checkpoint',choices=['crud','matching'],required=True);CHECKPOINT=parser.parse_args().checkpoint
 RUN_ID=uuid.uuid4().hex
 run=datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ');OUT=ROOT/'evidence/phase5'/('verification-'+CHECKPOINT+'-'+run+'-'+RUN_ID[:8]);OUT.mkdir();SUITES=OUT/'suites';SUITES.mkdir()
 env=os.environ.copy();env.update(REFIND_PROFILE='academic-test',REFIND_QUERY_METRICS='1',PYTHONOPTIMIZE='0',PHP_INI_SCAN_DIR=str(ROOT/'runtime/empty-ini-scan'),COMPOSER_HOME=str(ROOT/'state/academic-runtime/composer-home'),COMPOSER_CACHE_DIR=str(ROOT/'state/academic-runtime/composer-cache'))
@@ -48,6 +48,10 @@ try:
   audit=json.loads(php('privileges-'+profile,'tools/report-privileges.php',profile=profile));(OUT/('privileges-'+profile+'.json')).write_text(json.dumps(audit,indent=2),encoding='utf-8')
  php('write-foundation','tools/test-write-foundation.php')
  php('report-service','tools/test-report-service.php')
+ if CHECKPOINT=='matching':
+  php('native-matching-parity','tools/test-report-matching.php')
+  command('matching-concurrency',[sys.executable,'-B',APP/'tools/test-report-matching-concurrency.py'])
+  php('dev-reporting-effects','tools/test-reporting-dev.php',profile='academic-dev')
  receipt=json.loads((SUITES/'write-foundation.json').read_text())
  if receipt['results'].get('restore_verified') is not True:raise RuntimeError('Write restoration receipt is incomplete')
  php('academic-dev','tools/test-academic-dev.php',profile='academic-dev')
@@ -58,6 +62,7 @@ try:
  snapshot=json.loads(php('snapshot-before-http','tools/phase5-fixtures.php',['save']))['snapshot']
  php('eligibility-fixtures','tools/phase5-fixtures.php',['eligibility'])
  control.start('academic-test');command('report-http',[sys.executable,'-B',APP/'tools/test-report-http.py'])
+ if CHECKPOINT=='matching':command('matching-http',[sys.executable,'-B',APP/'tools/test-report-matching-http.py'])
  control.stop('academic-test');php('restore-after-report-http','tools/phase5-fixtures.php',['restore',snapshot])
  php('reset-before-regression','tools/reset-test-auth.php',['--auth-state-only'])
  control.start('academic-test');command('http-contract',[sys.executable,'-B',APP/'tools/test-http.py'])

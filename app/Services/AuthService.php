@@ -54,7 +54,7 @@ final class AuthService
         return $path && preg_match('~^avatars/([a-f0-9]{32})\.jpg$~D', $path, $m) ? '/api/avatar.php?token='.$m[1] : null;
     }
 
-    public function login(string $email, string $password): User
+    public function login(string $email, #[\SensitiveParameter] string $password): User
     {
         $u = app(LoginLimiter::class)->attempt($email, (string) request()->server('REMOTE_ADDR', 'local'), function () use ($email, $password) {
             $u = filter_var($email, FILTER_VALIDATE_EMAIL) && strlen($email) <= 150 ? User::where('email', $email)->first() : null;

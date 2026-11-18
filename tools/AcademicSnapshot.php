@@ -6,14 +6,19 @@ final class AcademicSnapshot
 {
     private const TABLES = ['users', 'buildings', 'categories', 'item_statuses', 'campus_locations', 'location_floors', 'items', 'item_photos', 'item_matches', 'claims', 'claim_photos', 'handovers', 'notifications', 'item_status_history', '_workspace_owner', '_write_operations', '_foundation_probe'];
 
+    private static function tables(): array
+    {
+        return Workspace::profile()['profile'] === 'academic-test' ? self::TABLES : array_values(array_diff(self::TABLES, ['_foundation_probe']));
+    }
+
     public static function admin(): PDO
     {
-        if (PHP_SAPI !== 'cli' || Workspace::profile()['profile'] !== 'academic-test' || Workspace::profile()['database'] !== 'refind_laravel_b_test') {
-            throw new RuntimeException('Restoration is restricted to synthetic B test.');
+        if (PHP_SAPI !== 'cli' || ! in_array(Workspace::profile()['profile'], ['academic-dev', 'academic-test'], true) || Workspace::profile()['database'] !== 'refind_laravel_b_'.substr(Workspace::profile()['profile'], 9)) {
+            throw new RuntimeException('Restoration is restricted to synthetic B profiles.');
         }
         $p = Workspace::profile();
         $secret = json_decode(file_get_contents(Workspace::ROOT.'/state/owner-credentials.json'), true, 16, JSON_THROW_ON_ERROR);
-        $pdo = new PDO('mysql:host=127.0.0.1;port=3307;dbname=refind_laravel_b_test;charset=utf8mb4', 'root', $secret['password'], [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_EMULATE_PREPARES => false]);
+        $pdo = new PDO('mysql:host=127.0.0.1;port=3307;dbname='.$p['database'].';charset=utf8mb4', 'root', $secret['password'], [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_EMULATE_PREPARES => false]);
         $row = $pdo->query('SELECT @@port AS port,@@datadir AS datadir')->fetch(PDO::FETCH_ASSOC);
         if ((int) $row['port'] !== 3307 || Workspace::norm($row['datadir']) !== Workspace::norm(Workspace::ROOT.'/state/mariadb-data') || $pdo->query('SELECT workspace_id FROM _workspace_owner')->fetchColumn() !== $p['workspace_id']) {
             throw new RuntimeException('Wrong restore server or schema owner.');
@@ -42,7 +47,7 @@ final class AcademicSnapshot
     private static function assertTarget(PDO $pdo): void
     {
         $row = $pdo->query('SELECT @@port AS port,@@datadir AS datadir,DATABASE() AS db')->fetch(PDO::FETCH_ASSOC);
-        if (PHP_SAPI !== 'cli' || Workspace::profile()['profile'] !== 'academic-test' || (int) $row['port'] !== 3307 || $row['db'] !== 'refind_laravel_b_test' || Workspace::norm($row['datadir']) !== Workspace::norm(Workspace::ROOT.'/state/mariadb-data')) {
+        if (PHP_SAPI !== 'cli' || ! in_array(Workspace::profile()['profile'], ['academic-dev', 'academic-test'], true) || (int) $row['port'] !== 3307 || $row['db'] !== Workspace::profile()['database'] || Workspace::norm($row['datadir']) !== Workspace::norm(Workspace::ROOT.'/state/mariadb-data')) {
             throw new RuntimeException('Foreign restoration connection refused.');
         }
         if ($pdo->query('SELECT workspace_id FROM _workspace_owner')->fetchColumn() !== Workspace::profile()['workspace_id']) {
@@ -53,8 +58,8 @@ final class AcademicSnapshot
     public static function capture(PDO $pdo): array
     {
         self::assertTarget($pdo);
-        $out = ['version' => 1, 'profile' => 'academic-test', 'database' => 'refind_laravel_b_test', 'workspace_id' => Workspace::profile()['workspace_id'], 'tables' => [], 'media' => self::media()];
-        foreach (self::TABLES as $table) {
+        $out = ['version' => 1, 'profile' => Workspace::profile()['profile'], 'database' => Workspace::profile()['database'], 'workspace_id' => Workspace::profile()['workspace_id'], 'tables' => [], 'media' => self::media()];
+        foreach (self::tables() as $table) {
             $out['tables'][$table] = ['ddl' => $pdo->query('SHOW CREATE TABLE `'.$table.'`')->fetch(PDO::FETCH_NUM)[1], 'rows' => $pdo->query('SELECT * FROM `'.$table.'` ORDER BY 1')->fetchAll(PDO::FETCH_ASSOC)];
         }
 
@@ -84,6 +89,11 @@ final class AcademicSnapshot
 
     public static function restore(PDO $pdo, string $id): void
     {
+        foreach (json_decode(file_get_contents(Workspace::ROOT.'/state/academic-processes.json'), true, 32, JSON_THROW_ON_ERROR) as $name => $record) {
+            if (str_starts_with($name, 'web-')) {
+                throw new RuntimeException('Stop all owned web processes before snapshot restoration.');
+            }
+        }
         self::assertTarget($pdo); // Validate the actual supplied connection, not a different handle.
         if (! preg_match('/^[a-f0-9]{32}$/D', $id)) {
             throw new RuntimeException('Invalid snapshot ID.');
@@ -94,7 +104,7 @@ final class AcademicSnapshot
         if (hash('sha256', $e['payload']) !== $e['sha256']) {
             throw new RuntimeException('Snapshot integrity failed.');
         }$data = json_decode($e['payload'], true, 64, JSON_THROW_ON_ERROR);
-        if ($data['profile'] !== 'academic-test' || $data['database'] !== 'refind_laravel_b_test' || $data['workspace_id'] !== Workspace::profile()['workspace_id'] || array_keys($data['tables']) !== self::TABLES) {
+        if ($data['profile'] !== Workspace::profile()['profile'] || $data['database'] !== Workspace::profile()['database'] || $data['workspace_id'] !== Workspace::profile()['workspace_id'] || array_keys($data['tables']) !== self::tables()) {
             throw new RuntimeException('Foreign restore refused.');
         }
         foreach ($data['tables'] as $table => $snapshot) {
@@ -112,7 +122,7 @@ final class AcademicSnapshot
         $pdo->exec('SET FOREIGN_KEY_CHECKS=0');
         try {
             $pdo->beginTransaction();
-            foreach (array_reverse(self::TABLES) as $table) {
+            foreach (array_reverse(self::tables()) as $table) {
                 $pdo->exec('DELETE FROM `'.$table.'`');
             }
             foreach ($data['tables'] as $table => $snapshot) {
