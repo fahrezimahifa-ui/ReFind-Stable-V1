@@ -6,6 +6,49 @@ final class AcademicSnapshot
 {
     private const TABLES = ['users', 'buildings', 'categories', 'item_statuses', 'campus_locations', 'location_floors', 'items', 'item_photos', 'item_matches', 'claims', 'claim_photos', 'handovers', 'notifications', 'item_status_history', '_workspace_owner', '_write_operations', '_foundation_probe'];
 
+    private static function synthetic(): bool
+    {
+        return in_array(Workspace::profile()['profile'], ['academic-dev', 'academic-test', 'phase6-dev'], true);
+    }
+
+    /**
+     * phase6-dev shares the owned 3307 server: before replacing its rows prove from live state (not only
+     * process records) that no phase6-dev web worker is listening and no app-principal session is connected.
+     */
+    private static function assertPhase6Quiescent(PDO $pdo): void
+    {
+        if (Workspace::profile()['profile'] !== 'phase6-dev') {
+            return;
+        }
+        $record = Workspace::ROOT.'/state/phase6-processes.json';
+        foreach (is_file($record) ? json_decode(file_get_contents($record), true, 32, JSON_THROW_ON_ERROR) : [] as $name => $value) {
+            if (str_starts_with($name, 'web-')) {
+                throw new RuntimeException('Stop phase6-dev web processes before snapshot restoration.');
+            }
+        }
+        foreach ([8016, 8017] as $port) {
+            $socket = @fsockopen('127.0.0.1', $port, $code, $message, 0.3);
+            if ($socket) {
+                fclose($socket);
+                throw new RuntimeException('A listener is still active on a phase6-dev port; restore refused.');
+            }
+        }
+        // An in-process test may hold this process's own already-resolved app connection; exclude only that one.
+        $own = [0];
+        $container = class_exists(\Illuminate\Container\Container::class) ? \Illuminate\Container\Container::getInstance() : null;
+        if ($container && $container->resolved('db')) {
+            foreach ($container->make('db')->getConnections() as $connection) {
+                $own[] = (int) $connection->selectOne('SELECT CONNECTION_ID() AS id')->id;
+            }
+        }
+        $marks = implode(',', array_fill(0, count($own), '?'));
+        $s = $pdo->prepare('SELECT COUNT(*) FROM information_schema.PROCESSLIST WHERE USER=? AND ID<>CONNECTION_ID() AND ID NOT IN ('.$marks.')');
+        $s->execute([Workspace::profile()['username'], ...$own]);
+        if ((int) $s->fetchColumn() !== 0) {
+            throw new RuntimeException('phase6-dev application connections are still live; restore refused.');
+        }
+    }
+
     private static function tables(): array
     {
         return Workspace::profile()['profile'] === 'academic-test' ? self::TABLES : array_values(array_diff(self::TABLES, ['_foundation_probe']));
@@ -13,7 +56,7 @@ final class AcademicSnapshot
 
     public static function admin(): PDO
     {
-        if (PHP_SAPI !== 'cli' || ! in_array(Workspace::profile()['profile'], ['academic-dev', 'academic-test'], true) || Workspace::profile()['database'] !== 'refind_laravel_b_'.substr(Workspace::profile()['profile'], 9)) {
+        if (PHP_SAPI !== 'cli' || ! self::synthetic() || Workspace::profile()['database'] !== Workspace::PROFILES[Workspace::profile()['profile']]['database']) {
             throw new RuntimeException('Restoration is restricted to synthetic B profiles.');
         }
         $p = Workspace::profile();
@@ -47,7 +90,7 @@ final class AcademicSnapshot
     private static function assertTarget(PDO $pdo): void
     {
         $row = $pdo->query('SELECT @@port AS port,@@datadir AS datadir,DATABASE() AS db')->fetch(PDO::FETCH_ASSOC);
-        if (PHP_SAPI !== 'cli' || ! in_array(Workspace::profile()['profile'], ['academic-dev', 'academic-test'], true) || (int) $row['port'] !== 3307 || $row['db'] !== Workspace::profile()['database'] || Workspace::norm($row['datadir']) !== Workspace::norm(Workspace::ROOT.'/state/mariadb-data')) {
+        if (PHP_SAPI !== 'cli' || ! self::synthetic() || (int) $row['port'] !== 3307 || $row['db'] !== Workspace::profile()['database'] || Workspace::norm($row['datadir']) !== Workspace::norm(Workspace::ROOT.'/state/mariadb-data')) {
             throw new RuntimeException('Foreign restoration connection refused.');
         }
         if ($pdo->query('SELECT workspace_id FROM _workspace_owner')->fetchColumn() !== Workspace::profile()['workspace_id']) {
@@ -95,6 +138,7 @@ final class AcademicSnapshot
             }
         }
         self::assertTarget($pdo); // Validate the actual supplied connection, not a different handle.
+        self::assertPhase6Quiescent($pdo);
         if (! preg_match('/^[a-f0-9]{32}$/D', $id)) {
             throw new RuntimeException('Invalid snapshot ID.');
         }

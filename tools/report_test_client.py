@@ -1,7 +1,7 @@
 from pathlib import Path
-import urllib.request,urllib.error,urllib.parse,http.cookiejar,json,secrets,io
+import urllib.request,urllib.error,urllib.parse,http.cookiejar,json,secrets,io,os
 from PIL import Image
-ROOT=Path('C:/ReFind-Laravel');BASE='http://127.0.0.1:8014'
+ROOT=Path('C:/ReFind-Laravel');BASE=os.environ.get('REFIND_TEST_BASE','http://127.0.0.1:8014');PROFILE=os.environ.get('REFIND_TEST_PROFILE','academic-test')
 class Client:
  def __init__(self):self.jar=http.cookiejar.CookieJar();self.http=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(self.jar));self.token=''
  def call(self,path,data=None,files=None,token=True,method=None):
@@ -22,7 +22,7 @@ class Client:
   raw=r.read();obj=json.loads(raw) if raw and 'application/json' in r.headers.get('Content-Type','') else None
   return r.code,obj,r.headers,raw
  def login(self,key):
-  self.token=self.call('/api/session.php')[1]['csrf'];c=json.loads((ROOT/'state/academic-test/credentials.json').read_text())[key];status,obj,_,_=self.call('/api/auth.php',dict(action='login',email=c['email'],password=c['password']));assert status==200;self.token=obj['csrf']
+  self.token=self.call('/api/session.php')[1]['csrf'];c=json.loads((ROOT/'state'/PROFILE/'credentials.json').read_text())[key];status,obj,_,_=self.call('/api/auth.php',dict(action='login',email=c['email'],password=c['password']));assert status==200;self.token=obj['csrf']
 def png(width=80,height=40):
  b=io.BytesIO();Image.new('RGB',(width,height),(70,110,160)).save(b,format='PNG');return b.getvalue()
 def data(client,**changes):
