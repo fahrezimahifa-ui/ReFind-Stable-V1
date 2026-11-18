@@ -39,7 +39,6 @@ try {
     if (config('refind.report_effects')) {
         $add('items', 'UPDATE', 'status_id,resolved_at');
         $add('item_matches', 'INSERT', 'lost_item_id,found_item_id,match_score');
-        $add('item_matches', 'UPDATE', 'match_score');
         $add('item_status_history', 'INSERT', 'item_id,status_id,changed_by_user_id,note');
         $add('notifications', 'INSERT', 'user_id,notification_type,title,message,item_id,claim_id');
     }
@@ -89,7 +88,7 @@ try {
             }
         }
     }
-    foreach (['UPDATE users SET full_name=full_name WHERE 1=0', 'UPDATE items SET reporter_user_id=reporter_user_id WHERE 1=0', 'UPDATE items SET item_type=item_type WHERE 1=0', 'UPDATE item_matches SET match_status=match_status WHERE 1=0', 'UPDATE item_matches SET lost_item_id=lost_item_id WHERE 1=0', 'UPDATE item_matches SET found_item_id=found_item_id WHERE 1=0', 'UPDATE notifications SET is_read=is_read WHERE 1=0', 'DELETE FROM _write_operations WHERE 1=0'] as $sql) {
+    foreach (['UPDATE users SET full_name=full_name WHERE 1=0', 'UPDATE items SET reporter_user_id=reporter_user_id WHERE 1=0', 'UPDATE items SET item_type=item_type WHERE 1=0', 'UPDATE item_matches SET match_status=match_status WHERE 1=0', 'UPDATE item_matches SET match_score=match_score WHERE 1=0', 'UPDATE item_matches SET lost_item_id=lost_item_id WHERE 1=0', 'UPDATE item_matches SET found_item_id=found_item_id WHERE 1=0', 'UPDATE notifications SET is_read=is_read WHERE 1=0', 'DELETE FROM _write_operations WHERE 1=0'] as $sql) {
         try {
             $db->statement($sql);
             throw new RuntimeException('SAFETY GATE FAILED: protected mutation');
@@ -99,9 +98,9 @@ try {
             }
         }
     }
-    echo json_encode(['profile' => $p['profile'], 'passed' => true, 'schema_grants' => $schema, 'table_grants' => $tables, 'column_grants' => $columns, 'cross_schema_select_update_denials' => 10, 'protected_mutation_denials' => 8, 'native_server_contacted' => false], JSON_PRETTY_PRINT);
+    echo json_encode(['profile' => $p['profile'], 'passed' => true, 'schema_grants' => $schema, 'table_grants' => $tables, 'column_grants' => $columns, 'cross_schema_select_update_denials' => 10, 'protected_mutation_denials' => 9, 'native_server_contacted' => false], JSON_PRETTY_PRINT);
 } catch (Throwable$e) {
     fwrite(STDERR, $e->getMessage());
     exit(1);
 }
-VerificationReceipt::complete(23, ['profile' => $p['profile'], 'schema_grants' => $schema, 'table_grants' => $tables, 'column_grants' => $columns, 'cross_schema_denials' => 10, 'protected_mutation_denials' => 8, 'native_server_contacted' => false]);
+VerificationReceipt::complete(24, ['profile' => $p['profile'], 'schema_grants' => $schema, 'table_grants' => $tables, 'column_grants' => $columns, 'cross_schema_denials' => 10, 'protected_mutation_denials' => 9, 'native_server_contacted' => false]);

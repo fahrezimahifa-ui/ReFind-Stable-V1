@@ -106,6 +106,8 @@ try {
     $admin->exec("INSERT INTO item_matches(lost_item_id,found_item_id,match_score,match_status) VALUES(100,1500,12,'REJECTED')");
     $admin->exec('ALTER TABLE items AUTO_INCREMENT=1501');
     $controlled = AcademicSnapshot::save($admin);
+    $protectedPairs = fn (): array => $admin->query("SELECT * FROM item_matches WHERE match_status IN ('CONFIRMED','REJECTED') ORDER BY match_id")->fetchAll(PDO::FETCH_ASSOC);
+    $initialProtectedPairs = $protectedPairs();
     $canonical = function () use ($admin): array {
         return [
             'items' => $admin->query('SELECT item_id,reporter_user_id,category_id,location_id,status_id,item_type,title,description,event_date,resolved_at FROM items ORDER BY item_id')->fetchAll(PDO::FETCH_ASSOC),
@@ -121,7 +123,10 @@ try {
         [2, array_replace($base, ['action' => 'create', 'type' => 'FOUND'])],
         [2, array_replace($base, ['action' => 'update', 'id' => '1502', 'type' => 'FOUND', 'category_id' => (string) $comparisonCategory])],
         [2, ['action' => 'delete', 'id' => '1502']],
+        [2, array_replace($base, ['id' => '200', 'type' => 'FOUND', 'title' => 'Amber denim wool pendant clasp', 'description' => 'Striped fabric sleeve.'])],
     ];
+    $rescoreStep = array_key_last($steps);
+    $rescoredPair = fn (array $rows): array => array_values(array_filter($rows, fn ($match) => (int) $match['lost_item_id'] === 1501 && (int) $match['found_item_id'] === 200));
     // Reference replay calls only extracted native functions, through the guarded B-test PDO adapter.
     $reference = function (int $owner, array $data) use ($admin, $statuses): void {
         $action = $data['action'];
@@ -182,6 +187,10 @@ try {
     AcademicSnapshot::restore($admin, $controlled);
     foreach ($steps as $index => [$owner,$data]) {
         $startOperation('laravel_replay_'.($index + 1).'_'.$data['action']);
+        if ($index === $rescoreStep) {
+            $beforeRescore = $canonical();
+            $beforeRescoreProtectedPairs = $protectedPairs();
+        }
         $service->mutate($actor($owner), $request($data), $recordCoordinatorStage);
         $actual = $canonical();
         foreach (['items', 'matches', 'history', 'notifications'] as $kind) {
@@ -193,12 +202,26 @@ try {
             $check('threshold equality score 55', (int) $admin->query('SELECT match_score FROM item_matches WHERE lost_item_id=100 AND found_item_id=1100')->fetchColumn() === 55);
             $check('confirmed pair preserved', (int) $admin->query("SELECT COUNT(*) FROM item_matches WHERE lost_item_id=901 AND found_item_id=900 AND match_status='CONFIRMED' AND match_score=100")->fetchColumn() === 1);
             $check('rejected pair remains rejected', (int) $admin->query("SELECT COUNT(*) FROM item_matches WHERE lost_item_id=100 AND found_item_id=1500 AND match_status='REJECTED' AND match_score=12")->fetchColumn() === 1);
+            $check('protected pair identities and confirmation metadata survive refresh', $protectedPairs() === $initialProtectedPairs);
         }
         if ($index === 1) {
             $check('unchanged pairing does not repeat notification', count($actual['notifications']) === count($expected[0]['notifications']));
         }
         if ($index === 4) {
             $check('deletion retains prior alerts with nullable item and sends owner-only deletion', count(array_filter($actual['notifications'], fn ($n) => $n['notification_type'] === 'REPORT_DELETED' && (int) $n['user_id'] === 1 && $n['item_id'] === null)) === 1);
+        }
+        if ($index === $rescoreStep) {
+            $prior = $rescoredPair($beforeRescore['matches']);
+            $updated = $rescoredPair($actual['matches']);
+            $check('same-pair rescore starts with one suggested score 100', count($prior) === 1 && $prior[0]['match_status'] === 'SUGGESTED' && (float) $prior[0]['match_score'] === 100.0);
+            $check('same-pair rescore leaves one suggested score 72', count($updated) === 1 && $updated[0]['match_status'] === 'SUGGESTED' && (float) $updated[0]['match_score'] === 72.0);
+            $pairStatuses = array_map('intval', $admin->query('SELECT status_id FROM items WHERE item_id IN (200,1501) ORDER BY item_id')->fetchAll(PDO::FETCH_COLUMN));
+            $potentialMatch = (int) $statuses['POTENTIAL_MATCH'];
+            $check('rescore keeps both reports in potential match', $pairStatuses === [$potentialMatch, $potentialMatch]);
+            $check('rescore sends no repeat notification', $actual['notifications'] === $beforeRescore['notifications']);
+            $history = array_slice($actual['history'], count($beforeRescore['history']));
+            $check('rescore keeps the report update history', count($history) === 1 && (int) $history[0]['item_id'] === 200 && $history[0]['note'] === 'Report details updated by the reporter.');
+            $check('rescore leaves protected pairs byte-for-byte unchanged', $protectedPairs() === $beforeRescoreProtectedPairs);
         }
         $check('no private clue in notifications step '.($index + 1), ! str_contains(json_encode($actual['notifications']), 'PRIVATE_SENTINEL'));
     }

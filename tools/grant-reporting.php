@@ -29,7 +29,7 @@ try {
         ['item_photos', 'INSERT', 'item_id,photo_kind,file_path'], ['item_photos', 'UPDATE', 'is_primary'], ['item_photos', 'DELETE', null], ['_write_operations', 'INSERT', null],
     ];
     if ($stage === 'matching') {
-        $grants = array_merge($grants, [['items', 'UPDATE', 'status_id,resolved_at'], ['item_matches', 'INSERT', 'lost_item_id,found_item_id,match_score'], ['item_matches', 'UPDATE', 'match_score'], ['item_matches', 'DELETE', null], ['item_status_history', 'INSERT', 'item_id,status_id,changed_by_user_id,note'], ['notifications', 'INSERT', 'user_id,notification_type,title,message,item_id,claim_id']]);
+        $grants = array_merge($grants, [['items', 'UPDATE', 'status_id,resolved_at'], ['item_matches', 'INSERT', 'lost_item_id,found_item_id,match_score'], ['item_matches', 'DELETE', null], ['item_status_history', 'INSERT', 'item_id,status_id,changed_by_user_id,note'], ['notifications', 'INSERT', 'user_id,notification_type,title,message,item_id,claim_id']]);
     }
     foreach ($grants as [$table,$priv,$columns]) {
         $pdo->exec('GRANT '.$priv.($columns ? ' ('.$columns.')' : '').' ON '.$target.'`'.$table.'` TO '.$user);

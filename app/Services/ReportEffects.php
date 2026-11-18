@@ -78,13 +78,11 @@ final class ReportEffects
                     continue;
                 }
                 $pair = [(int) $lost['item_id'], (int) $found['item_id']];
-                // MariaDB's duplicate-key path requires identity-column UPDATE privileges.
-                // Parent rows and the advisory lock are already owned; keep those columns immutable.
-                $existing = $this->db->selectOne('SELECT match_status FROM item_matches WHERE lost_item_id=? AND found_item_id=? FOR UPDATE', $pair);
+                // The refresh already removed this report's suggestions under the advisory lock.
+                // Insert missing pairs and leave retained pairs untouched.
+                $existing = $this->db->selectOne('SELECT match_id FROM item_matches WHERE lost_item_id=? AND found_item_id=? FOR UPDATE', $pair);
                 if (! $existing) {
                     $this->db->insert('INSERT INTO item_matches(lost_item_id,found_item_id,match_score) VALUES (?,?,?)', [...$pair, $score]);
-                } elseif ($existing->match_status === 'SUGGESTED') {
-                    $this->db->update("UPDATE item_matches SET match_score=? WHERE lost_item_id=? AND found_item_id=? AND match_status='SUGGESTED'", [$score, ...$pair]);
                 }
                 $paired[$other] = true;
             }

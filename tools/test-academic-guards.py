@@ -28,7 +28,7 @@ for key in ['database','username','password','key']:
  check('independent '+key,len({p[key] for p in profiles})==4)
 check('independent B cookies',profiles[2]['cookie']!=profiles[3]['cookie'] and all(p['cookie'] not in ['refind_v1','refind_test','refind_laravel_dev','refind_laravel_test'] for p in profiles[2:]))
 check('original checkpoint branch unchanged',subprocess.check_output(['git','rev-parse','migration/laravel13'],cwd=APP,text=True).strip()=='ac03a9dae33c5d03318ac357fdb0c31abcaffa75')
-check('academic branch selected',subprocess.check_output(['git','branch','--show-current'],cwd=APP,text=True).strip()=='migration/academic-b')
+check('academic branch selected',subprocess.check_output(['git','branch','--show-current'],cwd=APP,text=True).strip()=='migration/phase6-6a')
 check('no remote',not subprocess.check_output(['git','remote'],cwd=APP,text=True).strip())
 check('canonical academic launcher matches',(APP/'tools/workspace/academic-control.py').read_bytes()==(ROOT/'launchers/academic-control.py').read_bytes())
 denied('unowned process refused',lambda:b.checked_process({'exe':psutil.Process().exe(),'required_args':[],'pid':os.getpid(),'created':psutil.Process().create_time()}))
