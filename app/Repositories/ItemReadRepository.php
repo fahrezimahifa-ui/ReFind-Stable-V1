@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 final class ItemReadRepository
 {
-    private const ACTIVE_ITEM_CODES = ['OPEN', 'UNDER_REVIEW', 'POTENTIAL_MATCH', 'VERIFICATION'];
+    public const ACTIVE_ITEM_CODES = ['OPEN', 'UNDER_REVIEW', 'POTENTIAL_MATCH', 'VERIFICATION'];
 
     private const RESUBMITTABLE_CLAIM_CODES = ['NEED_MORE_INFO', 'WITHDRAWN'];
 

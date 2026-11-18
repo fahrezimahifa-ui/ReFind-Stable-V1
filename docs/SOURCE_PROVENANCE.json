@@ -41,5 +41,15 @@
     "vendor/jquery.min.js": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a",
     "vendor/LICENSES.txt": "56638c70277024cd0ff4a4838c8570cf225d16ab27d84e1d2131aea70dda4217",
     "vendor/README.md": "3663f648c82536a8e421b5c2b5ad107b2d994a84651de8ced382ae56c2603286"
+  },
+  "adapted_assets": {
+    "js/bm.js": {
+      "sha256": "34885c3e96d0cc6946dcfc33c5ce4fa12e981bb7e64154703ef63b813da3a739",
+      "reason": "Gate unavailable write workflows in Checkpoint 6B claim reads."
+    },
+    "js/student.js": {
+      "sha256": "9bd0c2446f32642520a0a2009a7f6506b28524456b09dba36f07c7a23b00c798",
+      "reason": "Gate unavailable write workflows in Checkpoint 6B claim reads."
+    }
   }
 }

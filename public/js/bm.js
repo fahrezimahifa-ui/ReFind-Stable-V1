@@ -1,7 +1,8 @@
 $(async function () {
   const app = window.ReFind, U = window.StudentUI, shell = window.ReFindShell;
   const params = new URLSearchParams(location.search);
-  let tab = ['claims', 'reports', 'handover'].includes(params.get('tab')) ? params.get('tab') : 'claims';
+  const claimsReadOnly = document.body.dataset.claimsReadOnly === 'true';
+  let tab = !claimsReadOnly && ['claims', 'reports', 'handover'].includes(params.get('tab')) ? params.get('tab') : 'claims';
   let selected = params.get(tab === 'claims' ? 'claim' : tab === 'reports' ? 'report' : 'handover') || null;
   let pinned = Boolean(selected), initialFocus = Boolean(selected), current = null, page = 1;
   let request = 0, detailRequest = 0, saving = false, operation = null, refs, trigger = null, timer;
@@ -35,7 +36,7 @@ $(async function () {
     if (e.status === 401) { location.replace(app.loginUrl()); return; }
     feedback(e.message || String(e)); $('#bm-retry').prop('hidden', false); $('#bm-loading').prop('hidden', true);
   }
-  const emptyDetail = (title = 'Choose a record', message = 'Select a card to see its details and next steps.') => U.empty(title, message);
+  const emptyDetail = (title = 'Choose a record', message = claimsReadOnly ? 'Select a claim to see its details.' : 'Select a card to see its details and next steps.') => U.empty(title, message);
   function setView(view) { $('.bm-layout').attr('data-mobile-view', view); }
   function syncUrl() {
     const query = {tab};
@@ -50,9 +51,10 @@ $(async function () {
     const choices = tab === 'claims' ? [['PENDING','Waiting for BM'],['NEED_MORE_INFO','Waiting for student'],['APPROVED','Approved'],['REJECTED','Rejected'],['WITHDRAWN','Withdrawn'],['all','All claims']]
       : tab === 'handover' ? [['active','Active pickups'],['PENDING','Awaiting scheduling'],['SCHEDULED','Scheduled'],['COMPLETED','Returned'],['all','All pickups']]
       : [['all','All reports'], ...refs.statuses.map(s => [s.code, U.statusNames[s.code] || s.name])];
+    if (claimsReadOnly && tab === 'claims') choices.unshift(['active','Active claims']);
     choices.forEach(([id, name]) => state.append($('<option>').val(id).text(name)));
     $('#bm-title').text('Review Queue'); // matches the nav item; the tabs and intro name the section
-    $('#bm-intro').text(tab === 'handover' ? 'Arrange pickup, update appointments, and record the return to a verified owner.' : tab === 'reports' ? 'Check reports and choose the next available step.' : 'Compare the identifying details, then record your decision.');
+    $('#bm-intro').text(tab === 'handover' ? 'Arrange pickup, update appointments, and record the return to a verified owner.' : tab === 'reports' ? 'Check reports and choose the next available step.' : claimsReadOnly ? 'Review claim details and ownership evidence.' : 'Compare the identifying details, then record your decision.');
     $('#queue-title').text(tab === 'claims' ? 'Claims' : tab === 'reports' ? 'Reports' : 'Pickups');
     $('#bm-search').attr('placeholder', tab === 'claims' ? 'Search item, claimant or area' : tab === 'reports' ? 'Search item, reporter or area' : 'Search item, claimant or pickup area');
     $('[data-bm-tab]').each(function () { const active = $(this).attr('data-bm-tab') === tab; $(this).toggleClass('active', active).attr('aria-pressed', String(active)); });
@@ -81,7 +83,8 @@ $(async function () {
   }
   // Switch tab and record in place instead of reloading the page.
   async function openRecord(nextTab, id, afterSave = false) {
-    if (saving && !afterSave) return; clearTimeout(timer); ++request; ++detailRequest;
+    if (claimsReadOnly && nextTab !== 'claims' || saving && !afterSave) return;
+    clearTimeout(timer); ++request; ++detailRequest;
     tab = nextTab; selected = String(id); pinned = true; initialFocus = true; page = 1; current = null;
     $('#bm-search').val(''); switchState(); setView('detail'); syncUrl(); await loadQueue(1, true);
   }
@@ -101,6 +104,7 @@ $(async function () {
     if (claim.lost) box.append($('<section>').addClass('bm-audit').append(block('Linked Lost identifying detail',claim.lost.verification_clue,true), evidence(claim.lost.ownership_photos,'Private Lost evidence'), U.navAction('Open linked report',U.itemUrl(claim.lost.item_id))));
     if (claim.review_note) box.append($('<div>').addClass('bm-outcome').text(claim.review_note + (claim.reviewed_at ? '\nReviewed ' + U.date(claim.reviewed_at,true) : '')));
     if (claim.approval_blocked) box.append($('<p>').addClass('bm-locked-note').text(claim.approval_blocked));
+    if (claimsReadOnly) return box;
     const actions = $('<div>').addClass('bm-detail-actions'), order = ['approved','need_more_info','rejected'];
     [...claim.decisions].sort((a, b) => order.indexOf(a) - order.indexOf(b)).forEach(action => actions.append(actionButton(action,{kind:'claim',id:claim.claim_id,revision:claim.revision,record:claim})));
     if (claim.handover_id) actions.append($('<button>').addClass('btn btn-primary').attr('type','button').text('Open handover').on('click', () => openRecord('handover', claim.handover_id)));
@@ -278,7 +282,7 @@ $(async function () {
   }
   $('#bm-back').on('click',() => { if (history.state?.bmDetail) history.back(); else showQueue(); });
   window.addEventListener('popstate', () => {
-    if (saving || document.querySelector('#operation-dialog').open) { history.pushState({bmDetail:true}, '', location.href); return; }
+    if (saving || document.querySelector('#operation-dialog')?.open) { history.pushState({bmDetail:true}, '', location.href); return; }
     const id = new URLSearchParams(location.search).get(paramKey());
     if (history.state?.bmDetail && id) { selected = id; setView('detail'); loadDetail(true); } else showQueue();
   });
@@ -350,7 +354,7 @@ $(async function () {
   }
   $('#operation-form').on('submit',async function (event) {
     event.preventDefault();
-    if (saving || !operation) return;
+    if (claimsReadOnly || saving || !operation) return;
     const action = operation.action, note = $('#operation-note').val().trim();
     $('[data-bm-error],#operation-feedback').prop('hidden',true);
     if (!validateOperation(note)) return;
@@ -394,7 +398,9 @@ $(async function () {
   });
   try {
     const state = await shell.ready; if (!state.authenticated) return;
-    refs = await app.request('references.php'); U.fillSelect('#operation-location',refs.locations,'Select pickup campus area');
+    if (!claimsReadOnly) {
+      refs = await app.request('references.php'); U.fillSelect('#operation-location',refs.locations,'Select pickup campus area');
+    }
     setView(selected ? 'detail' : 'queue'); switchState();
     $('#bm-search').on('input',() => { if (saving) return; clearTimeout(timer); resetSelection(); timer = setTimeout(() => loadQueue(1),200); });
     $('#bm-state').on('change',() => { if (saving) return; clearTimeout(timer); resetSelection(); loadQueue(1); });

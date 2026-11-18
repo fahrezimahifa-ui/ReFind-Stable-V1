@@ -35,10 +35,8 @@ final class PageController
         if ($user && ($route === 'login.html' || ($route === 'index.html' && $u->role === 'BUILDING_MANAGEMENT'))) {
             return redirect($route === 'login.html' ? $urls->safeReturn($r->query('return', ''), $user) : $urls->landingUrl($user));
         }
-        if ($route === 'my-reports.html' && $r->query('tab') === 'claims') {
-            return response()->view('message', ['TITLE' => 'Claims are not available yet', 'MESSAGE' => 'Reporting is available. Claim and pickup workflows will be added in a later release.', 'BACK_URL' => '/my-reports.html', 'BASE_PATH' => '/'], 501, Contract::headers(false));
-        }
-        if (! in_array($def['page'], ['home.html', 'login.html', 'browse.html', 'item.html', 'report.html', 'my-reports.html'], true)) {
+        $unsupportedBmTab = $route === 'admin.html' && in_array($r->query('tab'), ['reports', 'handover'], true);
+        if ($unsupportedBmTab || ! in_array($def['page'], ['home.html', 'login.html', 'browse.html', 'item.html', 'report.html', 'my-reports.html', 'bm.html'], true)) {
             return response()->view('message', ['TITLE' => 'Not available in this proof of concept', 'MESSAGE' => 'This workflow is reserved for a later reviewed migration phase.', 'BACK_URL' => $u->role === 'BUILDING_MANAGEMENT' ? '/browse.html' : '/index.html', 'BASE_PATH' => '/'], 501, Contract::headers(false));
         }
 

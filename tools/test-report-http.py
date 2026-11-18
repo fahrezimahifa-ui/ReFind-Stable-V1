@@ -40,7 +40,7 @@ code,_,_,_=a.call('/api/items.php',payload|{'action':'update','id':id,'title':'U
 check('replaced photo ID no longer served',a.call('/api/photos.php?kind=item&id='+str(public))[0]==404)
 check('retained evidence still private and present',bm.call('/api/photos.php?kind=item&id='+str(proof))[0]==200)
 check('updated report appears in My Reports',any(x['item_id']==id for x in a.call('/api/items.php?mine=1&active=1&limit=48')[1]['items']))
-check('report view enabled',a.call('/report.html')[0]==200);check('My Reports view enabled',a.call('/my-reports.html')[0]==200);check('claims tab explicitly unavailable',a.call('/my-reports.html?tab=claims')[0]==501)
+check('report view enabled',a.call('/report.html')[0]==200);check('My Reports view enabled',a.call('/my-reports.html')[0]==200);check('claims tab read view enabled',a.call('/my-reports.html?tab=claims')[0]==200);check('claim form remains pending',a.call('/claim.html')[0]==501)
 code,obj,_,_=a.call('/api/items.php',{'action':'delete','id':id});check('eligible delete contract',code==200 and obj=={'ok':True,'id':id,'action':'delete'})
 check('deleted report read is 404',a.call('/api/items.php?id='+id)[0]==404);check('deleted private photo gone',bm.call('/api/photos.php?kind=item&id='+str(proof))[0]==404)
 fixture=json.loads((ROOT/'state/academic-test/phase5-eligibility.json').read_text());check('closed claim report can delete',a.call('/api/items.php',{'action':'delete','id':'4'})[0]==200);check('cascaded closed claim media cleaned',not (ROOT/'state/academic-test/app/private/refind'/fixture['claim_photo']).exists())

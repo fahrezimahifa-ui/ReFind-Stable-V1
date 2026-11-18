@@ -69,7 +69,12 @@ try:
  control.start('academic-test',True);command('session-concurrency',[sys.executable,'-B',APP/'tools/test-concurrency.py'])
  control.stop('academic-test');control.start('academic-test');control.preflight();command('browser-ui',[sys.executable,'-B',APP/'tools/test-ui.py'])
  command('report-browser-ui',[sys.executable,'-B',APP/'tools/test-report-ui.py'])
- control.stop('academic-test');php('restore-after-browser','tools/phase5-fixtures.php',['restore',snapshot])
+ control.stop('academic-test')
+ try:
+  php('claim-read-browser-fixture','tools/phase5-fixtures.php',['claim-read-browser'])
+  control.start('academic-test');command('claim-read-browser',[sys.executable,'-B',APP/'tools/test-claim-read-ui.py'])
+ finally:
+  control.stop('academic-test');php('restore-after-browser','tools/phase5-fixtures.php',['restore',snapshot])
  after=json.loads(php('poc-database-after','tools/poc-database-fingerprint.php'));before=json.loads((ROOT/'state/phase4-poc-database-before.json').read_text())
  if before!=after:raise RuntimeError('SAFETY GATE FAILED: original PoC databases differ')
  results['original-poc-databases-unchanged']={'pass':True,'connection_credentials':'original SELECT-only identities','tables_per_schema':15}

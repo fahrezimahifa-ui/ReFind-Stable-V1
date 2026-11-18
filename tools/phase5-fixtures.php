@@ -23,6 +23,12 @@ try {
             throw new RuntimeException('Matching fixtures require synthetic B-test.');
         }
         echo json_encode(['active_category_ids' => $admin->query('SELECT category_id FROM categories WHERE is_active=1 ORDER BY category_id')->fetchAll(PDO::FETCH_COLUMN)], JSON_THROW_ON_ERROR);
+    } elseif ($action === 'claim-read-browser') {
+        if (Workspace::profile()['profile'] !== 'academic-test') {
+            throw new RuntimeException('Claim read fixtures require synthetic B-test.');
+        }
+        $admin->exec("INSERT INTO claims(item_id,claimant_user_id,ownership_answer,claim_status,review_note) VALUES (4,2,'Synthetic terminal ownership answer.','WITHDRAWN','Synthetic terminal review note.')");
+        echo json_encode(['synthetic_claim_read_browser_fixture' => true]);
     } elseif ($action === 'eligibility') {
         $admin->exec("INSERT INTO item_matches(lost_item_id,found_item_id,match_score,match_status,confirmed_by_user_id,confirmed_at)VALUES(6,7,100,'CONFIRMED',3,UTC_TIMESTAMP())");
         $admin->exec("INSERT INTO claims(item_id,claimant_user_id,ownership_answer,claim_status,reviewed_by_user_id,review_note,reviewed_at)VALUES(4,2,'Synthetic closed claim ownership proof.','REJECTED',3,'Synthetic rejection.',UTC_TIMESTAMP())");

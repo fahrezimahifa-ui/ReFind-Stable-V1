@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ClaimReadController;
 use App\Http\Controllers\DiscoveryController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\PageController;
@@ -25,7 +26,9 @@ $api('avatar.php', ['GET'], [MediaController::class, 'avatar']);
 foreach (['claims.php' => 'STUDENT', 'staff.php' => 'BUILDING_MANAGEMENT', 'handovers.php' => 'BUILDING_MANAGEMENT', 'account.php' => 'authenticated', 'notifications.php' => 'authenticated', 'register.php' => 'registration'] as $path => $access) {
     $api($path, ['POST'], [DiscoveryController::class, 'unavailable'], $access);
 }
-foreach (['claims.php' => 'authenticated', 'staff.php' => 'BUILDING_MANAGEMENT', 'handovers.php' => 'authenticated', 'account.php' => 'authenticated'] as $path => $access) {
+$api('claims.php', ['GET'], [ClaimReadController::class, 'claims'], 'authenticated');
+$api('staff.php', ['GET'], [ClaimReadController::class, 'staff'], 'BUILDING_MANAGEMENT');
+foreach (['handovers.php' => 'authenticated', 'account.php' => 'authenticated'] as $path => $access) {
     $api($path, ['GET'], [DiscoveryController::class, 'unavailable'], $access);
 }
 $api('visual-search.php', ['POST'], [DiscoveryController::class, 'visual'], 'STUDENT');

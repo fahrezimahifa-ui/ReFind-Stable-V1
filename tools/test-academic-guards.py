@@ -28,11 +28,24 @@ for key in ['database','username','password','key']:
  check('independent '+key,len({p[key] for p in profiles})==4)
 check('independent B cookies',profiles[2]['cookie']!=profiles[3]['cookie'] and all(p['cookie'] not in ['refind_v1','refind_test','refind_laravel_dev','refind_laravel_test'] for p in profiles[2:]))
 check('original checkpoint branch unchanged',subprocess.check_output(['git','rev-parse','migration/laravel13'],cwd=APP,text=True).strip()=='ac03a9dae33c5d03318ac357fdb0c31abcaffa75')
-check('academic branch selected',subprocess.check_output(['git','branch','--show-current'],cwd=APP,text=True).strip()=='migration/phase6-6a')
+check('academic branch selected',subprocess.check_output(['git','branch','--show-current'],cwd=APP,text=True).strip()=='migration/phase6-6b')
+check('accepted 6A ref unchanged',subprocess.check_output(['git','rev-parse','migration/phase6-6a'],cwd=APP,text=True).strip()=='b70b711a4246b4427f15a5eb5edd6b1daf45bc7a')
 check('no remote',not subprocess.check_output(['git','remote'],cwd=APP,text=True).strip())
 check('canonical academic launcher matches',(APP/'tools/workspace/academic-control.py').read_bytes()==(ROOT/'launchers/academic-control.py').read_bytes())
 denied('unowned process refused',lambda:b.checked_process({'exe':psutil.Process().exe(),'required_args':[],'pid':os.getpid(),'created':psutil.Process().create_time()}))
 provenance=json.loads((APP/'docs/SOURCE_PROVENANCE.json').read_text())
-for rel,digest in provenance['source_files'].items():check('preserved frontend '+rel,hashlib.sha256((APP/'public'/rel).read_bytes()).hexdigest()==digest)
+adapted=provenance['adapted_assets']
+native=ROOT/'native-reference'
+pinned='47eea8648d2d47faa895d855fe6da53e6b1a3087'
+check('pinned frontend reference',provenance['commit']==pinned and subprocess.check_output(['git','rev-parse','HEAD'],cwd=native,text=True).strip()==pinned)
+check('6B frontend adaptations limited to claim views',set(adapted)=={'js/bm.js','js/student.js'} and set(adapted)<=set(provenance['source_files']))
+for rel,digest in provenance['source_files'].items():
+ installed=hashlib.sha256((APP/'public'/rel).read_bytes()).hexdigest()
+ if rel in adapted:
+  original=subprocess.check_output(['git','show',pinned+':'+rel],cwd=native)
+  check('pinned original frontend '+rel,hashlib.sha256(original).hexdigest()==digest)
+  check('verified 6B frontend adaptation '+rel,installed==adapted[rel]['sha256'])
+ else:
+  check('preserved frontend '+rel,installed==digest)
 receipt={'passed':len(checks),'checks':checks,'native_connections':False,'original_profile_files_modified':False};(ROOT/'evidence/phase5/guard-results.json').write_text(json.dumps(receipt,indent=2),encoding='utf-8');print(json.dumps({'academic_guard_checks_passed':len(checks)}))
 complete_receipt(len(checks), receipt)
