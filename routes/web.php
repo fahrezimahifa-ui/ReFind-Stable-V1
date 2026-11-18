@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ClaimController;
 use App\Http\Controllers\ClaimReadController;
 use App\Http\Controllers\DiscoveryController;
 use App\Http\Controllers\MediaController;
@@ -23,7 +24,9 @@ $api('items.php', ['POST'], [ReportController::class, 'mutate'], 'STUDENT');
 $api('notifications.php', ['GET'], [DiscoveryController::class, 'notifications']);
 $api('photos.php', ['GET'], [MediaController::class, 'photo']);
 $api('avatar.php', ['GET'], [MediaController::class, 'avatar']);
-foreach (['claims.php' => 'STUDENT', 'staff.php' => 'BUILDING_MANAGEMENT', 'handovers.php' => 'BUILDING_MANAGEMENT', 'account.php' => 'authenticated', 'notifications.php' => 'authenticated', 'register.php' => 'registration'] as $path => $access) {
+// Phase 6 claim commands: each controller fails closed (501) unless ClaimStages enables its stage.
+$api('claims.php', ['POST'], [ClaimController::class, 'mutate'], 'STUDENT');
+foreach (['staff.php' => 'BUILDING_MANAGEMENT', 'handovers.php' => 'BUILDING_MANAGEMENT', 'account.php' => 'authenticated', 'notifications.php' => 'authenticated', 'register.php' => 'registration'] as $path => $access) {
     $api($path, ['POST'], [DiscoveryController::class, 'unavailable'], $access);
 }
 $api('claims.php', ['GET'], [ClaimReadController::class, 'claims'], 'authenticated');

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exceptions\ContractError;
 use App\Services\AuthService;
 use App\Services\SafeReturnUrl;
+use App\Support\ClaimStages;
 use App\Support\Contract;
 use Illuminate\Http\Request;
 
@@ -36,10 +37,12 @@ final class PageController
             return redirect($route === 'login.html' ? $urls->safeReturn($r->query('return', ''), $user) : $urls->landingUrl($user));
         }
         $unsupportedBmTab = $route === 'admin.html' && in_array($r->query('tab'), ['reports', 'handover'], true);
-        if ($unsupportedBmTab || ! in_array($def['page'], ['home.html', 'login.html', 'browse.html', 'item.html', 'report.html', 'my-reports.html', 'bm.html'], true)) {
+        // The claim form exists only where the Phase 6 Student stage is enabled (fail closed elsewhere).
+        $served = array_merge(['home.html', 'login.html', 'browse.html', 'item.html', 'report.html', 'my-reports.html', 'bm.html'], ClaimStages::has('student') ? ['claim.html'] : []);
+        if ($unsupportedBmTab || ! in_array($def['page'], $served, true)) {
             return response()->view('message', ['TITLE' => 'Not available in this proof of concept', 'MESSAGE' => 'This workflow is reserved for a later reviewed migration phase.', 'BACK_URL' => $u->role === 'BUILDING_MANAGEMENT' ? '/browse.html' : '/index.html', 'BASE_PATH' => '/'], 501, Contract::headers(false));
         }
 
-        return response()->view(basename($def['page'], '.html'), ['BASE_PATH' => '/'], 200, Contract::headers(false));
+        return response()->view(basename($def['page'], '.html'), ['BASE_PATH' => '/', 'CLAIMS_READ_ONLY' => ClaimStages::has('student') ? 'false' : 'true', 'BM_DECISIONS' => implode(' ', ClaimStages::decisions())], 200, Contract::headers(false));
     }
 }

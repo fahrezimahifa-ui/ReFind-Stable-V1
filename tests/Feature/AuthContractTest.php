@@ -98,7 +98,9 @@ final class AuthContractTest extends TestCase
 
     public function test_business_mutation_remains_unavailable_after_valid_guards(): void
     {
-        $this->authenticated()->withHeaders(['X-CSRF-Token' => $this->token()])->post('/api/claims.php', ['action' => 'submit'])->assertStatus(501)->assertJsonPath('code', 'feature_pending');
+        // Accepted profiles keep 501; the disposable phase6-dev profile reaches native validation (missing item ID).
+        $enabled = \App\Support\ClaimStages::has('student');
+        $this->authenticated()->withHeaders(['X-CSRF-Token' => $this->token()])->post('/api/claims.php', ['action' => 'submit'])->assertStatus($enabled ? 400 : 501)->assertJsonPath('code', $enabled ? 'invalid_id' : 'feature_pending');
     }
 
     public function test_no_head_expansion_for_api(): void

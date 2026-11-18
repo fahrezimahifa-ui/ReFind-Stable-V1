@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use App\Services\AuthService;
+use App\Support\ClaimStages;
 use App\Support\ReportQueryCounter;
 use App\Support\Workspace;
 use Illuminate\Testing\TestResponse;
@@ -21,7 +22,8 @@ final class ClaimReadContractTest extends TestCase
         $this->postJson('/api/claims.php', ['action' => 'withdraw'])->assertUnauthorized();
         $this->get('/my-reports.html?tab=claims&claim=1')->assertRedirect('/login.html?return=%2Fmy-reports.html%3Ftab%3Dclaims%26claim%3D1');
 
-        $this->assertSame('academic-test', Workspace::profile()['profile']);
+        // Runs unchanged on accepted academic-test (writes gated) and on the disposable phase6-dev profile.
+        $this->assertContains(Workspace::profile()['profile'], ['academic-test', 'phase6-dev']);
         require_once base_path('tools/AcademicSnapshot.php');
         $admin = \AcademicSnapshot::admin();
         $before = hash('sha256', json_encode(\AcademicSnapshot::capture($admin), JSON_THROW_ON_ERROR));
@@ -97,9 +99,9 @@ final class ClaimReadContractTest extends TestCase
         $this->get('/api/photos.php?kind=claim&id='.$fixture['proof'])->assertForbidden();
         $this->get('/my-reports.html?tab=claims&claim='.$claims[0])->assertOk()->assertSee('data-activity="claims"', false);
         $this->get('/admin.html?tab=claims&claim='.$claims[0])->assertForbidden();
-        $this->get('/claim.html?id='.$claims[0])->assertStatus(501);
+        $this->get('/claim.html?id='.$claims[0])->assertStatus(ClaimStages::has('student') ? 200 : 501);
         $this->postJson('/api/claims.php', ['action' => 'withdraw'])->assertForbidden()->assertJsonPath('code', 'csrf_invalid');
-        $this->postJson('/api/claims.php', ['action' => 'withdraw'], ['X-CSRF-Token' => self::TOKEN])->assertStatus(501)->assertJsonPath('code', 'feature_pending');
+        $this->postJson('/api/claims.php', ['action' => 'withdraw'], ['X-CSRF-Token' => self::TOKEN])->assertStatus(ClaimStages::has('student') ? 400 : 501)->assertJsonPath('code', ClaimStages::has('student') ? 'invalid_id' : 'feature_pending');
     }
 
     private function staffReads(PDO $admin, array $fixture): void
@@ -153,11 +155,12 @@ final class ClaimReadContractTest extends TestCase
         $this->assertNotSame($state, $evidence);
         $this->getJson($path.$id)->assertOk()->assertJsonPath('claim.revision', $evidence);
 
-        $this->get('/admin.html?tab=claims&claim='.$fixture['claims'][0])->assertOk()->assertDontSee('id="operation-form"', false);
+        $page = $this->get('/admin.html?tab=claims&claim='.$fixture['claims'][0])->assertOk();
+        ClaimStages::decisions() ? $page->assertSee('id="operation-form"', false) : $page->assertDontSee('id="operation-form"', false);
         $this->get('/admin.html?tab=reports')->assertStatus(501);
         $this->getJson('/api/handovers.php')->assertStatus(501);
         $this->postJson('/api/staff.php', ['action' => 'review'])->assertForbidden()->assertJsonPath('code', 'csrf_invalid');
-        $this->postJson('/api/staff.php', ['action' => 'review'], ['X-CSRF-Token' => self::TOKEN])->assertStatus(501);
+        $this->postJson('/api/staff.php', ['action' => 'review'], ['X-CSRF-Token' => self::TOKEN])->assertStatus(ClaimStages::decisions() ? 400 : 501);
         $this->postJson('/api/handovers.php', ['action' => 'schedule'], ['X-CSRF-Token' => self::TOKEN])->assertStatus(501);
     }
 

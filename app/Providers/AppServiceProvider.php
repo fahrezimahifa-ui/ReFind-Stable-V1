@@ -7,6 +7,7 @@ use App\Foundation\WriteCoordinator;
 use App\Services\AuthService;
 use App\Services\ReportEffects;
 use App\Services\RuleMatcher;
+use App\Services\WorkflowEffects;
 use App\Session\ReFindSessionManager;
 use App\Support\ReportQueryCounter;
 use App\Support\Workspace;
@@ -49,6 +50,7 @@ final class AppServiceProvider extends ServiceProvider
         $this->app->scoped(ReportQueryCounter::class);
         $this->app->scoped(WriteCoordinator::class, fn () => new WriteCoordinator(DB::connection()));
         $this->app->scoped(ReportEffects::class, fn ($app) => new ReportEffects(DB::connection(), $app->make(RuleMatcher::class)));
+        $this->app->scoped(WorkflowEffects::class, fn ($app) => new WorkflowEffects(DB::connection(), $app->make(RuleMatcher::class)));
 
     }
 

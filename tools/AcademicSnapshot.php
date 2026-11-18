@@ -38,14 +38,28 @@ final class AcademicSnapshot
         $container = class_exists(\Illuminate\Container\Container::class) ? \Illuminate\Container\Container::getInstance() : null;
         if ($container && $container->resolved('db')) {
             foreach ($container->make('db')->getConnections() as $connection) {
-                $own[] = (int) $connection->selectOne('SELECT CONNECTION_ID() AS id')->id;
+                // Never (re)connect here: only an already open PDO identifies this process's own session.
+                $raw = method_exists($connection, 'getRawPdo') ? $connection->getRawPdo() : null;
+                if ($raw instanceof PDO) {
+                    try {
+                        $own[] = (int) $raw->query('SELECT CONNECTION_ID()')->fetchColumn();
+                    } catch (Throwable) {/* A killed or closed session is not live. */
+                    }
+                }
             }
         }
+        // Idle pooled sessions of earlier in-process test applications cannot interfere; any app session that is
+        // executing, holds an InnoDB transaction, or holds the workflow advisory lock blocks restoration.
         $marks = implode(',', array_fill(0, count($own), '?'));
-        $s = $pdo->prepare('SELECT COUNT(*) FROM information_schema.PROCESSLIST WHERE USER=? AND ID<>CONNECTION_ID() AND ID NOT IN ('.$marks.')');
+        $s = $pdo->prepare("SELECT COUNT(*) FROM information_schema.PROCESSLIST p WHERE p.USER=? AND p.ID<>CONNECTION_ID() AND p.ID NOT IN ($marks) AND (p.COMMAND<>'Sleep' OR EXISTS (SELECT 1 FROM information_schema.INNODB_TRX t WHERE t.trx_mysql_thread_id=p.ID))");
         $s->execute([Workspace::profile()['username'], ...$own]);
         if ((int) $s->fetchColumn() !== 0) {
-            throw new RuntimeException('phase6-dev application connections are still live; restore refused.');
+            throw new RuntimeException('phase6-dev application sessions are active; restore refused.');
+        }
+        $s = $pdo->prepare('SELECT IS_USED_LOCK(?)');
+        $s->execute(['refind-matching-'.Workspace::profile()['database']]);
+        if ($s->fetchColumn() !== null) {
+            throw new RuntimeException('The phase6-dev workflow lock is held; restore refused.');
         }
     }
 
@@ -173,7 +187,7 @@ final class AcademicSnapshot
                 foreach ($snapshot['rows'] as $row) {
                     $columns = array_keys($row);
                     foreach ($columns as $column) {
-                        if (! preg_match('/^[a-z_]+$/D', $column)) {
+                        if (! preg_match('/^[a-z_][a-z0-9_]*$/D', $column)) { // e.g. _write_operations.manifest_sha256
                             throw new RuntimeException('Unexpected column.');
                         }
                     }$s = $pdo->prepare('INSERT INTO `'.$table.'` (`'.implode('`,`', $columns).'`) VALUES('.implode(',', array_fill(0, count($columns), '?')).')');
