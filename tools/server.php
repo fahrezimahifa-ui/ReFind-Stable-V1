@@ -1,6 +1,8 @@
 <?php
 
-if (! in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true) || ! preg_match('/^(?:127\.0\.0\.1|localhost):801[345]$/i', $_SERVER['HTTP_HOST'] ?? '')) {
+// phase6-dev workers listen on 8016/8017; the accepted academic profiles keep 8013-8015.
+$ports = getenv('REFIND_PROFILE') === 'phase6-dev' ? '801[67]' : '801[345]';
+if (! in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true) || ! preg_match('/^(?:127\.0\.0\.1|localhost):'.$ports.'$/i', $_SERVER['HTTP_HOST'] ?? '')) {
     http_response_code(403);
     header('Content-Type: application/json');
     echo '{"ok":false,"code":"forbidden","message":"Local isolated access only."}';

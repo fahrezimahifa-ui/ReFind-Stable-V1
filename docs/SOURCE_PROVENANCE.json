@@ -44,12 +44,12 @@
   },
   "adapted_assets": {
     "js/bm.js": {
-      "sha256": "34885c3e96d0cc6946dcfc33c5ce4fa12e981bb7e64154703ef63b813da3a739",
-      "reason": "Gate unavailable write workflows in Checkpoint 6B claim reads."
+      "sha256": "6de076447c93e2a019f9ce471a0ad60c80e0be202f59b72de399493d1eb9e3da",
+      "reason": "Phase 6 (unaccepted): claims-only queue; BM decisions rendered only for stages enabled on phase6-dev; handover/report tabs and pickup shortcut stay gated."
     },
     "js/student.js": {
-      "sha256": "9bd0c2446f32642520a0a2009a7f6506b28524456b09dba36f07c7a23b00c798",
-      "reason": "Gate unavailable write workflows in Checkpoint 6B claim reads."
+      "sha256": "4259e5592aead5899732490fc391c95983afeda4cf2f6b5258a5f1e5b5530c77",
+      "reason": "Phase 6 (unaccepted): claim/withdraw gated by the Student stage; handover reads and the BM reports tab stay gated; approved claims show the pending-pickup note."
     }
   }
 }

@@ -7,6 +7,7 @@ use App\Support\Workspace;
  *   save                  snapshot DB rows + private media, prints the id
  *   restore <id>          exact restore (refuses while phase6-dev workers or app sessions are live)
  *   state                 SELECT-only JSON summary used by concurrency/HTTP suites
+ *   seed-students         add synthetic student_c/student_d (credentials in private tmp state)
  *   hold-lock <seconds>   hold the shared workflow advisory lock to prove contention handling
  */
 require __DIR__.'/academic-bootstrap.php';
@@ -34,6 +35,19 @@ if ($action === 'save') {
     $out['claim_media_files'] = count(glob(Workspace::media().'/claims/*'));
     $out['approved_per_found'] = $q("SELECT item_id,COUNT(*) AS n FROM claims WHERE claim_status='APPROVED' GROUP BY item_id HAVING n>1");
     $out['confirmed_per_report'] = $q("SELECT id,COUNT(*) AS n FROM (SELECT lost_item_id AS id FROM item_matches WHERE match_status='CONFIRMED' UNION ALL SELECT found_item_id FROM item_matches WHERE match_status='CONFIRMED') x GROUP BY id HAVING n>1");
+} elseif ($action === 'seed-students') {
+    // Extra synthetic claimants for multi-claimant races; credentials stay in private tmp state.
+    $out['students'] = [];
+    $credentials = [];
+    foreach (['student_c', 'student_d'] as $key) {
+        $email = str_replace('_', '-', $key).'@refind-poc.invalid';
+        $password = bin2hex(random_bytes(16));
+        $s = $admin->prepare('INSERT INTO users(full_name,email,password_hash,role,is_active) VALUES (?,?,?,?,1)');
+        $s->execute(['Synthetic '.ucwords(str_replace('_', ' ', $key)), $email, password_hash($password, PASSWORD_BCRYPT, ['cost' => 10]), 'STUDENT']);
+        $credentials[$key] = ['id' => (string) $admin->lastInsertId(), 'email' => $email, 'password' => $password];
+        $out['students'][] = $key;
+    }
+    file_put_contents(Workspace::storage().'/tmp/extra-credentials.json', json_encode($credentials, JSON_PRETTY_PRINT));
 } elseif ($action === 'hold-lock') {
     $seconds = max(1, min(30, (int) ($argv[2] ?? 8)));
     $s = $admin->prepare('SELECT GET_LOCK(?,0)');
@@ -46,7 +60,7 @@ if ($action === 'save') {
     @unlink(Workspace::storage().'/tmp/lock-held.flag');
     $out['held_seconds'] = $seconds;
 } else {
-    throw new RuntimeException('Usage: phase6-dev.php save|restore <id>|state|hold-lock <seconds>');
+    throw new RuntimeException('Usage: phase6-dev.php save|restore <id>|state|seed-students|hold-lock <seconds>');
 }
 echo json_encode($out, JSON_PRETTY_PRINT);
 VerificationReceipt::complete(1, ['action' => $action]);
