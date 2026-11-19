@@ -62,6 +62,12 @@ final class AuthService
 
             return $u && $u->is_active && $password !== '' && $ok ? $u : null;
         });
+        return $this->establish($u);
+    }
+
+    /** Starts a fresh authenticated session (login and Phase 8 self-registration): new ID, token and credential binding. */
+    public function establish(User $u): User
+    {
         Auth::guard('web')->login($u, false);
         request()->session()->regenerate(true);
         $now = now()->timestamp;

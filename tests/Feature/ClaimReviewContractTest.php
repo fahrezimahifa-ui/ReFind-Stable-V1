@@ -50,7 +50,9 @@ final class ClaimReviewContractTest extends TestCase
             $this->asUser($this->bm);
             $this->assertError($this->call('POST', '/api/staff.php', $valid, [], [], ['HTTP_ACCEPT' => 'application/json']), 403, 'csrf_invalid');
             $this->assertError($this->staffPost(['action' => 'publish'] + $valid), 400, 'invalid_request', 'Invalid staff operation.');
-            $this->assertError($this->staffPost(['action' => 'status', 'id' => (string) $found, 'status' => 'OPEN', 'note' => self::NOTE, 'confirm' => '1', 'revision' => $fresh]), 501, 'feature_pending');
+            // Without the Phase 8 status stage manual status is unavailable; with it, a claim revision never matches the report.
+            $statusStage = \App\Support\ClaimStages::has('status');
+            $this->assertError($this->staffPost(['action' => 'status', 'id' => (string) $found, 'status' => 'OPEN', 'note' => self::NOTE, 'confirm' => '1', 'revision' => $fresh]), $statusStage ? 409 : 501, $statusStage ? 'state_conflict' : 'feature_pending');
             $this->assertError($this->staffPost(['extra' => '1'] + $valid), 400, 'invalid_request');
             $this->assertError($this->staffPost(['id' => 'x'] + $valid), 400, 'invalid_id');
             $this->assertError($this->staffPost(['decision' => 'maybe'] + $valid), 422, 'validation_error', null, 'decision');

@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Exceptions\ContractError;
 use App\Services\AuthService;
+use App\Services\RegistrationService;
 use App\Support\Contract;
 
 final class MutationPreconditions
@@ -19,7 +20,15 @@ final class MutationPreconditions
         $auth = app(AuthService::class);
         $access = $request->route()->defaults['access'] ?? 'none';
         if ($access === 'registration') {
-            throw new ContractError('Account creation is currently unavailable. Please log in with an existing account.', 403, 'registration_disabled');
+            // Phase 8: only the registration stage on a loopback peer opens account creation (native order).
+            if (! RegistrationService::available()) {
+                throw new ContractError('Account creation is currently unavailable. Please log in with an existing account.', 403, 'registration_disabled');
+            }
+            if ($auth->current()) {
+                throw new ContractError('You are already logged in.', 409, 'already_authenticated');
+            }
+
+            return $next($request);
         }
         if ($access === 'auth_action') {
             Contract::allowed($request->query(), []);

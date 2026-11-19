@@ -14,7 +14,7 @@ final class MediaJournal
 
     public static function scoped(string $relative): string
     {
-        if (! preg_match('~^(?:operations/(?:staging|manifests)/[a-f0-9]{32}(?:\.(?:json|lock)|-[a-f0-9]{32}\.(?:jpg|png|webp))|app/private/refind/(?:items|evidence|claims)/[a-f0-9]{32}\.(?:jpg|png|webp))$~D', $relative)) {
+        if (! preg_match('~^(?:operations/(?:staging|manifests)/[a-f0-9]{32}(?:\.(?:json|lock)|-[a-f0-9]{32}\.(?:jpg|png|webp))|app/private/refind/(?:items|evidence|claims)/[a-f0-9]{32}\.(?:jpg|png|webp)|app/private/refind/avatars/[a-f0-9]{32}\.jpg)$~D', $relative)) {
             throw new RuntimeException('Invalid academic operation path.');
         }
         $path = Workspace::storage().'/'.$relative;

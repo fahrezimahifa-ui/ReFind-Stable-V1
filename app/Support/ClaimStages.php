@@ -15,10 +15,10 @@ final class ClaimStages
         'phase7-dev' => ['student', 'review', 'approval', 'pickup'],
         // Phase 8 integration candidate: remaining native features (BM report status, notification read-marking,
         // account self-service and self-registration) on the disposable phase8-dev profile only.
-        'phase8-dev' => ['student', 'review', 'approval', 'pickup', 'status', 'notifications', 'account', 'registration'],
+        'phase8-dev' => ['student', 'review', 'approval', 'pickup', 'status', 'notifications', 'account', 'registration', 'history'],
     ];
 
-    public const ALL = ['student', 'review', 'approval', 'pickup', 'status', 'notifications', 'account', 'registration'];
+    public const ALL = ['student', 'review', 'approval', 'pickup', 'status', 'notifications', 'account', 'registration', 'history'];
 
     public static function forProfile(string $profile, string|false|null $override): array
     {

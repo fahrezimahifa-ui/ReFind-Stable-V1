@@ -108,11 +108,14 @@ final class PickupContractTest extends TestCase
             $this->assertSame(0, $this->getJson('/api/handovers.php?status=COMPLETED')->assertOk()->json('total'));
             $this->assertError($this->getJson('/api/handovers.php?status=LOST'), 400, 'validation_error', 'Invalid pickup state.');
             $this->assertError($this->getJson('/api/handovers.php?extra=1'), 400, 'invalid_request');
-            $this->get('/admin.html?tab=handover&handover='.$handover)->assertOk()->assertSee('data-bm-tab="handover"', false)->assertDontSee('data-bm-tab="reports"', false);
-            $this->get('/admin.html?tab=reports')->assertStatus(501);
+            $page = $this->get('/admin.html?tab=handover&handover='.$handover)->assertOk()->assertSee('data-bm-tab="handover"', false);
+            ClaimStages::has('status') ? $page->assertSee('data-bm-tab="reports"', false) : $page->assertDontSee('data-bm-tab="reports"', false);
+            $this->get('/admin.html?tab=reports')->assertStatus(ClaimStages::has('status') ? 200 : 501);
             $this->asUser($this->studentA);
-            $this->get('/notifications.html')->assertOk()->assertSee('data-notifications-read-only="true"', false);
-            $this->assertError($this->call('POST', '/api/notifications.php', ['action' => 'read_all'], [], [], ['HTTP_X_CSRF_TOKEN' => self::TOKEN, 'HTTP_ACCEPT' => 'application/json']), 501, 'feature_pending');
+            // Read-marking is a Phase 8 stage: read-only (501) without it, writable with it.
+            $marking = ClaimStages::has('notifications');
+            $this->get('/notifications.html')->assertOk()->assertSee('data-notifications-read-only="'.($marking ? 'false' : 'true').'"', false);
+            $this->call('POST', '/api/notifications.php', ['action' => 'read_all'], [], [], ['HTTP_X_CSRF_TOKEN' => self::TOKEN, 'HTTP_ACCEPT' => 'application/json'])->assertStatus($marking ? 200 : 501);
 
             // Narrowing the stages switches every Phase 7 surface back to the pre-Phase-7 contract.
             $previous = getenv('REFIND_PHASE6_STAGES');

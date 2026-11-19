@@ -97,10 +97,11 @@ final class MediaOperation
 
     public function stage(string $bytes, string $collection, string $extension): string
     {
-        if ($this->data['state'] !== 'prepared' || ! in_array($collection, ['items', 'evidence', 'claims'], true) || ! in_array($extension, ['jpg', 'png', 'webp'], true)) {
+        // Phase 8: one prepared JPEG avatar per operation joins the same staged/compensated media contract.
+        if ($this->data['state'] !== 'prepared' || ! in_array($collection, ['items', 'evidence', 'claims', 'avatars'], true) || ! in_array($extension, ['jpg', 'png', 'webp'], true) || ($collection === 'avatars' && $extension !== 'jpg')) {
             throw new RuntimeException('Invalid media staging operation.');
         }
-        $limit = $collection === 'items' ? 4 : 2;
+        $limit = match ($collection) { 'items' => 4, 'avatars' => 1, default => 2 };
         if (count(array_filter($this->data['new'], fn ($x) => str_starts_with($x['final'], $collection.'/'))) >= $limit) {
             throw new RuntimeException('Photo count exceeded.');
         }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\AuthService;
+use App\Services\RegistrationService;
 use App\Services\SafeReturnUrl;
 use App\Support\Contract;
 use Illuminate\Http\Request;
@@ -14,7 +15,7 @@ final class AuthController
         Contract::allowed($r->query(), []);
         $u = $auth->current();
 
-        return Contract::json(['authenticated' => $u !== null, 'user' => $u ? $auth->identity($u) : null, 'csrf' => $r->session()->token(), 'visual_search_enabled' => false, 'registration_enabled' => false, 'expires' => ['idle_seconds' => 1800, 'absolute_seconds' => 28800]]);
+        return Contract::json(['authenticated' => $u !== null, 'user' => $u ? $auth->identity($u) : null, 'csrf' => $r->session()->token(), 'visual_search_enabled' => false, 'registration_enabled' => RegistrationService::available(), 'expires' => ['idle_seconds' => 1800, 'absolute_seconds' => 28800]]);
     }
 
     public function mutate(Request $r, AuthService $auth, SafeReturnUrl $urls)

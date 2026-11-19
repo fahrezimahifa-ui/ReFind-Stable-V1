@@ -125,7 +125,7 @@ final class ClaimReadContractTest extends TestCase
             ->assertOk()->assertJsonPath('claims.0.claim_id', (string) $fixture['claims'][0]);
         $this->getJson('/api/staff.php?resource=claims&status=pending')->assertBadRequest();
         $this->getJson('/api/staff.php?resource[]=claims')->assertBadRequest();
-        $this->getJson('/api/staff.php?resource=reports')->assertStatus(501);
+        $this->getJson('/api/staff.php?resource=reports')->assertStatus(ClaimStages::has('status') ? 200 : 501);
         $this->getJson('/api/staff.php?resource=claims&id=4294967295')->assertNotFound();
 
         $path = '/api/staff.php?resource=claims&id=';
@@ -157,7 +157,7 @@ final class ClaimReadContractTest extends TestCase
 
         $page = $this->get('/admin.html?tab=claims&claim='.$fixture['claims'][0])->assertOk();
         ClaimStages::decisions() ? $page->assertSee('id="operation-form"', false) : $page->assertDontSee('id="operation-form"', false);
-        $this->get('/admin.html?tab=reports')->assertStatus(501);
+        $this->get('/admin.html?tab=reports')->assertStatus(ClaimStages::has('status') ? 200 : 501);
         $this->getJson('/api/handovers.php')->assertStatus(ClaimStages::has('pickup') ? 200 : 501);
         $this->postJson('/api/staff.php', ['action' => 'review'])->assertForbidden()->assertJsonPath('code', 'csrf_invalid');
         $this->postJson('/api/staff.php', ['action' => 'review'], ['X-CSRF-Token' => self::TOKEN])->assertStatus(ClaimStages::decisions() ? 400 : 501);

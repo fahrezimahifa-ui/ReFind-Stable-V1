@@ -12,8 +12,8 @@ use RuntimeException;
  */
 final class WorkflowEffects
 {
-    /** Phase 6/7 transitions; RESOLVED is the Phase 7 physical return. UNCLAIMED_CLOSED stays with manual status (out of scope). */
-    private const ALLOWED = ['OPEN', 'POTENTIAL_MATCH', 'VERIFICATION', 'HANDOVER', 'RESOLVED'];
+    /** Phase 6-8 transitions: claims/pickups plus Phase 8 manual BM status (UNDER_REVIEW, UNCLAIMED_CLOSED). */
+    private const ALLOWED = ['OPEN', 'UNDER_REVIEW', 'POTENTIAL_MATCH', 'VERIFICATION', 'HANDOVER', 'RESOLVED', 'UNCLAIMED_CLOSED'];
 
     public const NAMES = ['OPEN' => 'Reported', 'UNDER_REVIEW' => 'Under review', 'POTENTIAL_MATCH' => 'Possible match', 'VERIFICATION' => 'Claim review',
         'HANDOVER' => 'Ready for pickup', 'RESOLVED' => 'Returned', 'UNCLAIMED_CLOSED' => 'Never retrieved'];
@@ -48,7 +48,7 @@ final class WorkflowEffects
             return;
         }
         if (! in_array($code, self::ALLOWED, true)) {
-            throw new RuntimeException('Unsupported Phase 6/7 report status.');
+            throw new RuntimeException('Unsupported report status.');
         }
         $this->db->assertOwnedTransaction();
         $status = $this->db->selectOne('SELECT status_id FROM item_statuses WHERE status_code=?', [$code]);

@@ -157,7 +157,7 @@ final class ClaimReadRepository
         return $this->dates($claim);
     }
 
-    private function staffReport(int $id, array $user): array
+    public function staffReport(int $id, array $user): array
     {
         $raw = $this->items->findItem($id);
         $public = (array) DB::selectOne('SELECT '.$this->items->publicColumns().',u.avatar_path AS reporter_avatar_path FROM v_items_overview v JOIN users u ON u.user_id=v.reporter_user_id WHERE v.item_id=?', [$id]);

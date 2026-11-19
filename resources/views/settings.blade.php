@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script src="js/theme.js"></script>
+  <link rel="preload" href="assets/fonts/Manrope-variable.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="app-base" content="{{ $BASE_PATH }}">
+  <title>Account settings · ReFind</title><link rel="icon" type="image/svg+xml" href="assets/refind-logo-mark.svg"><link rel="icon" type="image/png" sizes="32x32" href="assets/refind-favicon-32.png"><link rel="apple-touch-icon" sizes="180x180" href="assets/refind-shortcut-180.png"><link rel="stylesheet" href="vendor/bootstrap.min.css"><link rel="stylesheet" href="css/theme.css"><link rel="stylesheet" href="css/auth.css"><link rel="stylesheet" href="css/styles.css">
+</head>
+<body data-page="settings" data-requires-auth="true">
+  @include('partials.navbar')
+  <main id="main-content" tabindex="-1" class="account-main">
+    <div class="account-heading"><h1>Make yourself at home.</h1><p>Choose your appearance, update your password, or end this session.</p></div>
+    <p class="loading-note" id="account-loading" role="status">Loading your account…</p>
+    <div class="feedback" id="account-load-error" role="alert" tabindex="-1" hidden></div><button class="btn btn-outline retry-load" id="retry-account" type="button" hidden>Retry loading account</button>
+    <div class="account-layout" id="account-content" hidden>
+      <div>
+        <section class="account-card profile-summary" aria-label="Account summary"><div class="profile-avatar" data-profile-initials aria-hidden="true"></div><h2 data-profile-name></h2><span class="role-chip" data-profile-role></span><a class="btn btn-outline navigation-action" href="profile.html">Edit profile and picture</a></section>
+        <section class="account-card appearance-card" aria-labelledby="appearance-title"><h2 id="appearance-title">Appearance</h2><div class="field"><label for="theme-preference">Color theme</label><select class="form-select" id="theme-preference" aria-describedby="appearance-help appearance-current"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select><span class="hint" id="appearance-help">Saved in this browser for all accounts. System follows your device.</span></div><p id="appearance-current"></p><div class="field motion-setting"><label class="motion-choice" for="motion-preference"><input id="motion-preference" type="checkbox" role="switch" data-motion-choice aria-describedby="settings-motion-status">Background motion</label><p class="hint" id="settings-motion-status" data-motion-status></p></div></section>
+        <section class="account-card session-card" aria-labelledby="session-title"><h2 id="session-title">Your session</h2><p>Log out when you are finished, especially on a shared device.</p><button class="btn btn-outline" id="settings-logout" type="button" data-logout>Log out</button></section>
+      </div>
+      <section class="account-card" aria-labelledby="password-title">
+        <h2 id="password-title">Change password</h2><p>Your current session stays signed in. Other sessions will need to log in again.</p>
+        <form id="password-form" novalidate>
+          <fieldset id="password-fields" disabled>
+            <div class="field"><label for="current-password">Current password</label><input class="form-control" id="current-password" type="password" autocomplete="current-password" required aria-describedby="current-password-error"><span class="field-error" id="current-password-error" hidden></span></div>
+            <div class="field"><label for="new-password">New password</label><input class="form-control" id="new-password" type="password" autocomplete="new-password" required aria-describedby="password-policy new-password-error"><span class="policy-count" id="password-policy" aria-live="polite">Use at least 10 characters.</span><span class="field-error" id="new-password-error" hidden></span></div>
+            <div class="field"><label for="confirm-password">Confirm new password</label><input class="form-control" id="confirm-password" type="password" autocomplete="new-password" required aria-describedby="confirm-password-error"><span class="field-error" id="confirm-password-error" hidden></span></div>
+            <div class="account-actions"><button class="btn btn-primary" id="password-save" type="submit">Update password</button></div>
+          </fieldset>
+          <div class="feedback" id="password-feedback" role="status" tabindex="-1" hidden></div>
+        </form>
+        <p class="account-help">Spaces at the start or end of a password count. After a change, use the new password every time you log in.</p>
+      </section>
+    </div>
+    <p class="app-version">Version 1.0.0</p>
+  </main>
+  <script src="vendor/jquery.min.js"></script><script src="js/api.js"></script><script src="js/shell.js"></script><script src="js/account-ui.js"></script>
+</body>
+</html>

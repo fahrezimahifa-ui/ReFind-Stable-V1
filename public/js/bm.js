@@ -356,7 +356,7 @@ $(async function () {
   }
   $('#operation-form').on('submit',async function (event) {
     event.preventDefault();
-    if ((claimsReadOnly && !handoversAvailable) || saving || !operation) return;
+    if ((claimsReadOnly && !handoversAvailable && !reportsAvailable) || saving || !operation) return;
     const action = operation.action, note = $('#operation-note').val().trim();
     $('[data-bm-error],#operation-feedback').prop('hidden',true);
     if (!validateOperation(note)) return;
