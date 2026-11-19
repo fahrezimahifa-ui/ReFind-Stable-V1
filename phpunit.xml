@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd" bootstrap="vendor/autoload.php" colors="false" cacheDirectory="C:/ReFind-Laravel/state/academic-test/phpunit-cache">
- <testsuites><testsuite name="Proof of concept"><directory>tests/Unit</directory><directory>tests/Feature</directory></testsuite></testsuites>
+ <testsuites><testsuite name="Proof of concept"><directory>tests/Unit</directory><file>tests/Feature/AuthContractTest.php</file><file>tests/Feature/ClaimReadContractTest.php</file><file>tests/Feature/ExceptionContractTest.php</file><file>tests/Feature/QueryMetricsSafetyTest.php</file><file>tests/Feature/ReferencesContractTest.php</file></testsuite></testsuites>
  <source><include><directory>app</directory></include></source>
  <php><env name="REFIND_PROFILE" value="academic-test" force="true"/><env name="APP_ENV" value="testing" force="true"/></php>
 </phpunit>

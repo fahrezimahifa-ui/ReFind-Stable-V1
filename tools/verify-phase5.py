@@ -5,6 +5,11 @@ ROOT=Path('C:/ReFind-Laravel');APP=ROOT/'laravel';PHP=ROOT/'runtime/php85/php.ex
 spec=importlib.util.spec_from_file_location('b',ROOT/'launchers/academic-control.py');control=importlib.util.module_from_spec(spec);spec.loader.exec_module(control)
 parser=argparse.ArgumentParser();parser.add_argument('--checkpoint',choices=['crud','matching'],required=True);CHECKPOINT=parser.parse_args().checkpoint
 RUN_ID=uuid.uuid4().hex
+def source_identity():
+ g=lambda *a:subprocess.run(['git','-C',str(APP),*a],capture_output=True,text=True,check=True).stdout.strip()
+ return {'branch':g('rev-parse','--abbrev-ref','HEAD'),'commit':g('rev-parse','HEAD'),'tree':g('rev-parse','HEAD^{tree}'),'uncommitted':g('status','--porcelain').splitlines()}
+SOURCE=source_identity()
+if SOURCE['uncommitted']:raise SystemExit('Refusing to verify: the canonical checkout has uncommitted changes')
 run=datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ');OUT=ROOT/'evidence/phase5'/('verification-'+CHECKPOINT+'-'+run+'-'+RUN_ID[:8]);OUT.mkdir();SUITES=OUT/'suites';SUITES.mkdir()
 env=os.environ.copy();env.update(REFIND_PROFILE='academic-test',REFIND_QUERY_METRICS='1',PYTHONOPTIMIZE='0',PHP_INI_SCAN_DIR=str(ROOT/'runtime/empty-ini-scan'),COMPOSER_HOME=str(ROOT/'state/academic-runtime/composer-home'),COMPOSER_CACHE_DIR=str(ROOT/'state/academic-runtime/composer-cache'))
 base=[str(PHP),'-c',str(INI),'-d','error_log='+str(ROOT/'state/academic-test/php-error.log')]
@@ -90,7 +95,9 @@ finally:
   results['final-owned-processes-stopped']={'pass':True}
  except Exception as e:failure=failure or str(e)
  done.set();thread.join(timeout=2)
- summary={'schema_version':1,'run_id':RUN_ID,'phase':5,'checkpoint':CHECKPOINT,'completed':failure is None,'passed':failure is None,'failure':failure,'results':results,'resources':resources,'receipt_directory':str(OUT),'timestamp_utc':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+ source_after=source_identity()
+ if (source_after['commit'],source_after['tree'])!=(SOURCE['commit'],SOURCE['tree']):failure=failure or 'source changed during verification'
+ summary={'source':SOURCE,'source_after':source_after,'schema_version':1,'run_id':RUN_ID,'phase':5,'checkpoint':CHECKPOINT,'completed':failure is None,'passed':failure is None,'failure':failure,'results':results,'resources':resources,'receipt_directory':str(OUT),'timestamp_utc':datetime.datetime.now(datetime.timezone.utc).isoformat()}
  (OUT/'summary.json').write_text(json.dumps(summary,indent=2),encoding='utf-8');(ROOT/'evidence/phase5/latest-verification.json').write_text(json.dumps(summary,indent=2),encoding='utf-8')
 print(json.dumps({'phase5_checkpoint_passed':failure is None,'receipt_directory':str(OUT),'failure':failure}),flush=True)
 sys.exit(0 if failure is None else 1)
