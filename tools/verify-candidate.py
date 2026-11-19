@@ -127,12 +127,12 @@ def main():
             auth_backup = {f.name: f.read_bytes() for f in (state / 'auth').glob('*.json')}
             run('seed-students', php('tools/phase6-dev.php', 'seed-students'), profile, out)
             ctl('start'); ctl('start', '--second')
-            for suite in ('test-phase6-http.py', 'test-phase7-http.py', 'test-phase8-http.py'):
+            for suite in ('test-phase6-http.py', 'test-phase7-http.py', 'test-phase8-http.py', 'test-security-probes.py'):
                 if (APP / 'tools' / suite).exists():
                     run(suite[:-3], [sys.executable, '-B', str(APP / 'tools' / suite)], profile, out, parse_json=True)
             if a.browser:
                 ctl('stop'); ctl('start')
-                for suite in ('test-phase6-ui.py', 'test-phase7-ui.py'):
+                for suite in ('test-phase6-ui.py', 'test-phase7-ui.py', 'test-phase8-ui.py'):
                     run(suite[:-3], [sys.executable, '-B', str(APP / 'tools' / suite)], profile, out, parse_json=True)
             ctl('stop')
             run('snapshot-restore', php('tools/phase6-dev.php', 'restore', snapshot), profile, out); snapshot = None
