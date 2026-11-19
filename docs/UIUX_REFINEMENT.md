@@ -266,3 +266,79 @@ An earlier attempt on the same commit (`candidate-20261119T141936Z`) passed ever
 | Protection | Academic grants match the 6B evidence, 6B archive `c1f4bde6…`, 19/19 canonical files, accepted refs unchanged |
 
 The reviewed candidate before batch 3 is kept unchanged as `migration/uiux-rc1-verified` (`73c10fe`). The deferred acceptance gates in [QA_RELEASE_READINESS.md](QA_RELEASE_READINESS.md) and the automatic-expiry decision above remain open.
+
+## Batch 4: app-wide visual hierarchy and guidance (P05 expansion, 19 November 2026)
+
+The owner's review of the dark-mode phone BM claim detail found that field labels such as "Claimant" and "Claimant email" read much weaker than their values. The professor asked for an interface that explains itself. This batch audited the whole app for hierarchy, labelling, grouping and guidance.
+
+**Owner choices for this batch:**
+- "Pickup" everywhere in the UI;
+- two private-detail terms app-wide: **private clue** (the finder's secret detail) and **ownership details** (a Lost owner's private detail), with evidence called **private photos**;
+- a compact no-photo placeholder on phones.
+
+**Commits:**
+- `2e447c8` (4A, hierarchy CSS);
+- `8630caa` (4B, BM clarity);
+- `3140c61` (4C, Student and shared clarity).
+
+**Pages examined**, at 390 px dark and 1440 px light:
+- BM claim, report and pickup detail, and every pickup and claim dialog;
+- the item page (own Lost report, and a Found report from a claimant's view);
+- the report form (new and edit) and the claim form;
+- My Activity (Active reports, Claims, Closed), Notifications, History and Explore;
+- Profile, Settings, Register and Login.
+
+**Confirmed issues and changes:**
+
+| Severity | Issue | Change | Files |
+|---|---|---|---|
+| High | Field labels (`.detail-meta dt`, muted 14 px) read as decoration, and sat 8 px from their value but only 12 px from the next value | A new `--label` token (light `#33405a`, dark `#d3dcef`). Labels now sit 2 px above their value with 16 px between pairs; values are 15 px/600 ink. Label contrast rose from 9.5 to 12 in dark mode and from 8 to 10.4 in light mode, and the record title stays dominant (24/32 px). | `polish.css` |
+| High | The claimant answer and the private clue (the decision content) were muted 14 px under 20 px headings | The box heading is a 14 px label and the content is 15 px ink, start-aligned in the narrow compare columns. Batch 2's justification of these boxes was withdrawn, because it spread the words unevenly. | `polish.css` |
+| High | BM section headings (20 px) competed with the 24 px record title on phones | 17 px | `polish.css` |
+| High | Unlabelled BM blocks, and BM labels vaguer than the Student ones | Labelled "Public description", "Review note", "Pickup note" and "Your previous request". The labels "Found at", "Last seen at", "Date found / lost" and "Linked Lost report" now match the Student pages. | `bm.js`, `polish.css` |
+| High | "Handover" and "Pickup" mixed in BM | The tab and links say Pickups / Open pickup, the approval dialog says it "creates one pickup", and the notification link says "View pickup". `?tab=handover` and `data-bm-tab="handover"` are unchanged. | `bm.blade.php`, `bm.js`, `student.js` |
+| High | The claim filter said "Waiting for BM / student" while the cards said "Pending review / More info requested" | The filter uses the card names (`U.claimNames`) | `bm.js` |
+| High | The private detail had six names | Aligned to private clue, ownership details and private photos on the claim form, report form, My Activity and BM | `claim.blade.php`, `report.blade.php`, `student.js`, `bm.js` |
+| Medium | Generic dialog intros | Request more info, status, schedule and reschedule now say what happens. Every statement was checked in the services: the claimant can update the same claim; reporters can't edit while Under review (`can_edit` covers Reported and Possible match only); the claimant is notified and sees the time and place in My Activity. | `bm.js` |
+| Medium | Submit disabled until the box is ticked, with no reason | "Saving is enabled once you tick this box." linked by `aria-describedby` | `bm.blade.php` |
+| Medium | "Both reports become available again" even without a linked Lost report | "the report and any linked Lost report" | `bm.js` |
+| Medium | Limits enforced but not shown | Item name at least 3 characters (`ReportService`). Private clue at least 8 (`ReportService`). Private photos up to 2 per report or claim (`files(..., 2)`); JPEG, PNG or WebP files up to 10 MB each, which the browser prepares as copies of at most 250 KB (`uploads.js`, `UploadStager`). Display name up to 120, with `maxlength` (`AccountService::profileName`). The Explore date filter matches one day (`ItemReadRepository`). | `report.blade.php`, `claim.blade.php`, `register.blade.php`, `browse.blade.php` |
+| Medium | Silent states on the report form | Lost reports get "After you submit" guidance, reusing the existing journey statement that ReFind notifies the owner of similar Found reports. Edit mode states that the type is fixed. Switching to Found with private photos chosen states they were removed (the server rule: "Found reports use a private clue, not Lost ownership photos"). | `report.blade.php`, `student.js` |
+| Medium | Journey notes pointed to claim buttons that read-only claims mode hides | The notes are conditional on that mode | `student.js` |
+| Medium | Pickup notifications read "ownership stays approved by {name}", and an optional schedule note was labelled "Reason:" | "Appointment cancelled by {name}. Ownership stays approved." An optional note is labelled "Note:" (client-rendered; the server text is unchanged). | `student-common.js` |
+| Low | "Queue is clear" shown for a search with no results; vague Closed-tab and "Verified report pair." wording; the "Asia/Jakarta" field label | "No matching records" for searches; "Reports that were returned or never retrieved appear here."; "Linked to a verified matching report."; "WIB (campus time)" | `bm.js`, `student.js`, `bm.blade.php` |
+| Low | The journey "Now" marker and journey note were rounded like controls | Square status shape | `polish.css` |
+| Low | Full-height empty no-photo frame on phones | A compact labelled strip below 680 px; desktop grids are unchanged | `polish.css` |
+
+**Already compliant (unchanged):**
+- Page titles outrank intros, and batch 1 had already fixed the notification hierarchy.
+- Form labels and hints share the `.field label` and `.hint` styles.
+- Muted text already passed AA contrast: about 7.9:1 in light and 9:1 in dark mode.
+- Every action shows a success message.
+- Navigation `aria-current`, focus rings and `aria-pressed` tabs are in place.
+- The single page scroll, pickup sections and full-width phone segments from batch 3 are preserved.
+
+**Documented, not changed** (product or server decisions):
+- Login has no forgot-password flow.
+- Self-registered students have no student ID, so BM sees "Not specified".
+- Status labels are kept by rule: "Under review", "Claim review", "Pending review".
+- Server-generated text is unchanged: notification titles, the generic "Check the {key} field." and the approval notification.
+- The status chips have no legend.
+- An empty password on login is reported in the banner, not under the field.
+
+**Tests updated:**
+- `tools/test-phase7-ui.py`: the release feedback text.
+- `tools/test-phase6-ui.py`: "1 private photo".
+- `tools/test-academic-guards.py`: `js/student-common.js` added to the adapted-asset set.
+
+**Provenance:** `docs/SOURCE_PROVENANCE.json` has new hashes and reasons for `bm.js`, `student.js` and `polish.css`, and records `student-common.js` as a new adapted asset.
+
+**Focused checks.** Each ran on `phase8-dev` and restored exactly. Evidence is in `C:\ReFind-Laravel\planning\professor-uiux\after\batch4\{before,tune,after}`; the runs are `batch4-before-20261119T152554Z` and `batch4-after-20261119T153924Z`.
+- **Before and after capture:** the same fixtures, on 18 pages at 390 px dark and 1440 px light, plus every BM dialog, opened and closed only. The fixtures were a Found report with a photo, a Lost report with ownership photos and a linked pending claim, an overdue pickup, a returned item, and an editable Lost report without a photo. The overdue time was moved into the past in the disposable schema, because the API accepts future times only.
+- **Accessibility:** no form control without an accessible name on any captured page, and the new hints are linked by `aria-describedby`. No inner scroll areas, sideways overflow or JavaScript errors.
+- **Regression guards:** 21 checks at 360, 768 and 1024 px on BM claim and pickup, Explore, My Activity, Notifications, History and the report form. No inner scroll areas, no sideways overflow, and equal full-row segments on phones.
+- **Browser suites after 4B and after 4C:** Phase 6 / 7 / 8 at 17 / 22 / 14 both times.
+
+**Not tested:**
+- real devices, screen readers and forced-colors mode;
+- formal contrast measurement on translucent glass panels (the script approximates the effective background).
