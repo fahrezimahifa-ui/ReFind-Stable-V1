@@ -29,7 +29,7 @@ trait Phase6Harness
     /** Runs $body between an exact snapshot and its verified restoration. */
     protected function withSnapshot(callable $body): void
     {
-        $this->assertSame('phase6-dev', Workspace::profile()['profile'], 'Phase 6 suites run only on the disposable profile');
+        $this->assertContains(Workspace::profile()['profile'], Workspace::DEV_PROFILES, 'Phase 6/7 suites run only on a disposable profile');
         require_once base_path('tools/AcademicSnapshot.php');
         $this->admin = \AcademicSnapshot::admin();
         $before = hash('sha256', json_encode(\AcademicSnapshot::capture($this->admin), JSON_THROW_ON_ERROR));

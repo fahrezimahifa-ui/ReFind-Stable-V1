@@ -11,7 +11,8 @@ try {
     $grantee = "'".$p['username']."'@'127.0.0.1'";
     $test = $p['profile'] === 'academic-test';
     // phase6-dev is the disposable Phase 6 profile; its exact expected set adds the reviewed claim grants.
-    $p6 = $p['profile'] === 'phase6-dev';
+    $p6 = in_array($p['profile'], Workspace::DEV_PROFILES, true);
+    $p7 = $p['profile'] === 'phase7-dev'; // adds the reviewed Phase 7 pickup grants
     $active = $test || config('refind.report_effects');
     $schema = array_map(fn ($r) => (array) $r, $db->select('SELECT TABLE_SCHEMA,PRIVILEGE_TYPE,IS_GRANTABLE FROM information_schema.SCHEMA_PRIVILEGES WHERE GRANTEE=?', [$grantee]));
     if ($schema !== [['TABLE_SCHEMA' => $p['database'], 'PRIVILEGE_TYPE' => 'SELECT', 'IS_GRANTABLE' => 'NO']]) {
@@ -52,6 +53,9 @@ try {
         $add('item_matches', 'UPDATE', 'match_score,match_status,confirmed_by_user_id,confirmed_at');
         $add('handovers', 'INSERT', 'claim_id,pickup_location_id,handled_by_user_id,notes');
     }
+    if ($p7) {
+        $add('handovers', 'UPDATE', 'handover_status,pickup_location_id,scheduled_at,completed_at,handled_by_user_id,notes');
+    }
     $columns = array_map(fn ($r) => (array) $r, $db->select('SELECT TABLE_SCHEMA,TABLE_NAME,COLUMN_NAME,PRIVILEGE_TYPE,IS_GRANTABLE FROM information_schema.COLUMN_PRIVILEGES WHERE GRANTEE=?', [$grantee]));
     $actual = [];
     foreach ($columns as $c) {
@@ -77,6 +81,8 @@ try {
         $expected[] = 'item_matches|DELETE';
     }if ($p6) {
         $expected[] = 'claim_photos|DELETE';
+    }if ($p7) {
+        $expected[] = 'handovers|DELETE';
     }sort($expected);
     $tables = array_map(fn ($r) => (array) $r, $db->select('SELECT TABLE_SCHEMA,TABLE_NAME,PRIVILEGE_TYPE,IS_GRANTABLE FROM information_schema.TABLE_PRIVILEGES WHERE GRANTEE=?', [$grantee]));
     $actual = [];
@@ -88,7 +94,7 @@ try {
     if ($actual !== $expected) {
         throw new RuntimeException('SAFETY GATE FAILED: table privileges differ');
     }
-    foreach (['refind_laravel_dev', 'refind_laravel_test', ...($p6 ? ['refind_laravel_b_dev', 'refind_laravel_b_test'] : [$test ? 'refind_laravel_b_dev' : 'refind_laravel_b_test']), 'refind_db_0_2_0', 'refind_db_0_2_0_test'] as $foreign) {
+    foreach (['refind_laravel_dev', 'refind_laravel_test', ...($p7 ? ['refind_laravel_b_dev', 'refind_laravel_b_test', 'refind_laravel_p6_dev'] : ($p6 ? ['refind_laravel_b_dev', 'refind_laravel_b_test'] : [$test ? 'refind_laravel_b_dev' : 'refind_laravel_b_test'])), 'refind_db_0_2_0', 'refind_db_0_2_0_test'] as $foreign) {
         foreach (['SELECT * FROM `'.$foreign.'`.users LIMIT 0', 'UPDATE `'.$foreign.'`.users SET full_name=full_name WHERE 1=0'] as $sql) {
             try {
                 $db->statement($sql);
@@ -100,7 +106,7 @@ try {
             }
         }
     }
-    $protected = $p6 ? ['UPDATE users SET full_name=full_name WHERE 1=0', 'UPDATE items SET reporter_user_id=reporter_user_id WHERE 1=0', 'UPDATE items SET item_type=item_type WHERE 1=0', 'UPDATE item_matches SET lost_item_id=lost_item_id WHERE 1=0', 'UPDATE item_matches SET found_item_id=found_item_id WHERE 1=0', 'UPDATE notifications SET is_read=is_read WHERE 1=0', 'DELETE FROM _write_operations WHERE 1=0', 'UPDATE claims SET claimant_user_id=claimant_user_id WHERE 1=0', 'UPDATE claims SET item_id=item_id WHERE 1=0', 'DELETE FROM claims WHERE 1=0', 'DELETE FROM handovers WHERE 1=0', 'UPDATE handovers SET handover_status=handover_status WHERE 1=0', 'DELETE FROM notifications WHERE 1=0'] : ['UPDATE users SET full_name=full_name WHERE 1=0', 'UPDATE items SET reporter_user_id=reporter_user_id WHERE 1=0', 'UPDATE items SET item_type=item_type WHERE 1=0', 'UPDATE item_matches SET match_status=match_status WHERE 1=0', 'UPDATE item_matches SET match_score=match_score WHERE 1=0', 'UPDATE item_matches SET lost_item_id=lost_item_id WHERE 1=0', 'UPDATE item_matches SET found_item_id=found_item_id WHERE 1=0', 'UPDATE notifications SET is_read=is_read WHERE 1=0', 'DELETE FROM _write_operations WHERE 1=0'];
+    $protected = $p6 ? ['UPDATE users SET full_name=full_name WHERE 1=0', 'UPDATE items SET reporter_user_id=reporter_user_id WHERE 1=0', 'UPDATE items SET item_type=item_type WHERE 1=0', 'UPDATE item_matches SET lost_item_id=lost_item_id WHERE 1=0', 'UPDATE item_matches SET found_item_id=found_item_id WHERE 1=0', 'UPDATE notifications SET is_read=is_read WHERE 1=0', 'DELETE FROM _write_operations WHERE 1=0', 'UPDATE claims SET claimant_user_id=claimant_user_id WHERE 1=0', 'UPDATE claims SET item_id=item_id WHERE 1=0', 'DELETE FROM claims WHERE 1=0', ...($p7 ? ['UPDATE handovers SET claim_id=claim_id WHERE 1=0', 'UPDATE handovers SET created_at=created_at WHERE 1=0'] : ['DELETE FROM handovers WHERE 1=0', 'UPDATE handovers SET handover_status=handover_status WHERE 1=0']), 'DELETE FROM notifications WHERE 1=0'] : ['UPDATE users SET full_name=full_name WHERE 1=0', 'UPDATE items SET reporter_user_id=reporter_user_id WHERE 1=0', 'UPDATE items SET item_type=item_type WHERE 1=0', 'UPDATE item_matches SET match_status=match_status WHERE 1=0', 'UPDATE item_matches SET match_score=match_score WHERE 1=0', 'UPDATE item_matches SET lost_item_id=lost_item_id WHERE 1=0', 'UPDATE item_matches SET found_item_id=found_item_id WHERE 1=0', 'UPDATE notifications SET is_read=is_read WHERE 1=0', 'DELETE FROM _write_operations WHERE 1=0'];
     foreach ($protected as $sql) {
         try {
             $db->statement($sql);
@@ -111,7 +117,7 @@ try {
             }
         }
     }
-    echo json_encode(['profile' => $p['profile'], 'passed' => true, 'schema_grants' => $schema, 'table_grants' => $tables, 'column_grants' => $columns, 'cross_schema_select_update_denials' => $p6 ? 12 : 10, 'protected_mutation_denials' => count($protected), 'native_server_contacted' => false], JSON_PRETTY_PRINT);
+    echo json_encode(['profile' => $p['profile'], 'passed' => true, 'schema_grants' => $schema, 'table_grants' => $tables, 'column_grants' => $columns, 'cross_schema_select_update_denials' => $p7 ? 14 : ($p6 ? 12 : 10), 'protected_mutation_denials' => count($protected), 'native_server_contacted' => false], JSON_PRETTY_PRINT);
 } catch (Throwable$e) {
     fwrite(STDERR, $e->getMessage());
     exit(1);

@@ -1,6 +1,7 @@
-"""Owned launcher for the disposable, unaccepted Phase 6 development profile (phase6-dev).
+"""Owned launcher for the disposable, unaccepted development profiles (phase6-dev, phase7-dev).
 
-phase6-dev shares the migration-owned portable MariaDB on 127.0.0.1:3307 with the accepted academic
+Usage: phase6-control.py <action> [--profile phase7-dev|phase6-dev] (default phase7-dev in this branch).
+The development profiles share the migration-owned portable MariaDB on 127.0.0.1:3307 with the accepted academic
 profiles. This launcher never touches their schemas, grants, web processes or state. Every control action
 re-verifies live ownership (psutil pid/create-time/exe/cmdline, port probes and PROCESSLIST), not only the
 JSON process records.
@@ -11,14 +12,21 @@ import psutil
 
 ROOT = Path('C:/ReFind-Laravel')
 PHP = ROOT / 'runtime/php85/php.exe'; INI = ROOT / 'runtime/php85/php.ini'; DB = ROOT / 'runtime/mariadb/bin'
-APP = ROOT / 'laravel-p6'
+DEV_PROFILES = {
+    'phase6-dev': {'app': 'laravel-p6', 'ports': (8016, 8017), 'records': 'phase6-processes.json', 'database': 'refind_laravel_p6_dev', 'username': 'refind_p6_dev_app', 'cookie': 'refind_laravel_p6_dev'},
+    'phase7-dev': {'app': 'laravel-p7', 'ports': (8018, 8019), 'records': 'phase7-processes.json', 'database': 'refind_laravel_p7_dev', 'username': 'refind_p7_dev_app', 'cookie': 'refind_laravel_p7_dev'},
+}
 OWNER = ROOT / '.refind-laravel-owner.json'
 ACADEMIC = ROOT / 'state/academic-processes.json'  # shared 'db' record so the canonical launcher can still stop it
 POC = ROOT / 'state/processes.json'
-RECORD = ROOT / 'state/phase6-processes.json'
-PROFILE = 'phase6-dev'; STATE = ROOT / 'state' / PROFILE
-PORTS = (8016, 8017)
-IDENTITY = {'database': 'refind_laravel_p6_dev', 'username': 'refind_p6_dev_app', 'cookie': 'refind_laravel_p6_dev', 'url': 'http://127.0.0.1:8016'}
+APP = RECORD = PROFILE = STATE = PORTS = IDENTITY = None
+
+
+def select(profile):
+    global APP, RECORD, PROFILE, STATE, PORTS, IDENTITY
+    d = DEV_PROFILES[profile]
+    PROFILE = profile; APP = ROOT / d['app']; RECORD = ROOT / 'state' / d['records']; STATE = ROOT / 'state' / profile; PORTS = d['ports']
+    IDENTITY = {'database': d['database'], 'username': d['username'], 'cookie': d['cookie'], 'url': 'http://127.0.0.1:' + str(d['ports'][0])}
 FLAGS = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
 DIRS = ['app/private/refind/items', 'app/private/refind/evidence', 'app/private/refind/claims', 'app/private/refind/avatars',
         'app/private/refind/thumbs', 'auth', 'framework/cache/data', 'framework/sessions', 'framework/views', 'logs',
@@ -33,7 +41,7 @@ def owned_root():
     o = json.loads(OWNER.read_text(encoding='utf-8-sig'))
     if o['project'] != 'refind-laravel-poc' or Path(o['root']).resolve() != ROOT.resolve():
         raise RuntimeError('Wrong workspace owner')
-    for relative in ['state', 'runtime', 'laravel', 'laravel-p6']:
+    for relative in ['state', 'runtime', 'laravel', APP.name]:
         if redirected(ROOT / relative):
             raise RuntimeError('Redirected workspace refused')
     b = json.loads((ROOT / 'state/academic-owner.json').read_text())
@@ -70,7 +78,7 @@ def live(record):
 
 def checked_web(record):
     if Path(record['exe']).resolve() != PHP.resolve() or record.get('profile') != PROFILE or not any(record['required_args'] == php_args(port) for port in PORTS):
-        raise RuntimeError('Process command is outside the phase6-dev launch template')
+        raise RuntimeError('Process command is outside the ' + PROFILE + ' launch template')
     return live(record)
 
 
@@ -82,9 +90,9 @@ def checked_db(record):
 
 
 def other_live_web():
-    """Live web workers of other profiles (academic or PoC). Used to refuse shared-server disruption."""
+    """Live web workers of other profiles (academic, PoC or the other dev profile). Used to refuse shared-server disruption."""
     out = []
-    for path in (ACADEMIC, POC):
+    for path in (ACADEMIC, POC, *[ROOT / 'state' / d['records'] for name, d in DEV_PROFILES.items() if name != PROFILE]):
         for key, rec in load(path).items():
             if key.startswith('web-') and live(rec):
                 out.append(path.name + ':' + key)
@@ -204,7 +212,7 @@ def run_php(script, *args, env_extra=None):
     p = subprocess.run([str(PHP), '-c', str(INI), str(APP / script), *args], cwd=APP, env=env, text=True, capture_output=True, timeout=180)
     if p.returncode:
         (STATE / 'phase6-control-error.log').write_text(p.stdout + p.stderr, encoding='utf-8')
-        raise RuntimeError(script + ' failed; inspect state/phase6-dev/phase6-control-error.log')
+        raise RuntimeError(script + ' failed; inspect state/' + PROFILE + '/phase6-control-error.log')
     return p.stdout.strip()
 
 
@@ -256,8 +264,8 @@ def initialize():
 def grants(stages):
     owned_root()
     if live_web():
-        raise RuntimeError('Stop phase6-dev web workers before changing grants')
-    print(run_php('tools/grant-reporting.php', 'matching'))
+        raise RuntimeError('Stop ' + PROFILE + ' web workers before changing grants')
+    print(run_php('tools/grant-reporting.php', 'matching'))  # accepted reporting set first
     for stage in stages:
         print(run_php('tools/grant-claims.php', stage))
 
@@ -279,7 +287,7 @@ def start(second=False):
     port_free(port)
     rec = spawn(RECORD, key, PHP, php_args(port), PROFILE)
     wait_port(rec, port, checked_web)
-    print('Started owned phase6-dev server at http://127.0.0.1:' + str(port) + '/')
+    print('Started owned ' + PROFILE + ' server at http://127.0.0.1:' + str(port) + '/')
 
 
 def stop(db=False):
@@ -294,7 +302,7 @@ def stop(db=False):
         if port_open(port):
             raise RuntimeError('A listener remains on ' + str(port) + ' after stopping owned workers')
     if not db:
-        print('phase6-dev web workers stopped; database and other profiles untouched.'); return
+        print(PROFILE + ' web workers stopped; database and other profiles untouched.'); return
     others = other_live_web()
     if others:
         raise RuntimeError('Other profiles are serving (' + ', '.join(others) + '); shared database left running')
@@ -311,7 +319,7 @@ def stop(db=False):
             raise RuntimeError('Graceful owned database shutdown failed; no force stop attempted')
         p.wait(timeout=20)
     a = load(ACADEMIC); a.pop('db', None); save(ACADEMIC, a)
-    print('phase6-dev workers and the idle owned database stopped; private data preserved.')
+    print(PROFILE + ' workers and the idle owned database stopped; private data preserved.')
 
 
 def status():
@@ -330,8 +338,12 @@ if __name__ == '__main__':
     parser.add_argument('action', choices=['init', 'grants', 'start', 'stop', 'status', 'preflight'])
     parser.add_argument('--second', action='store_true')
     parser.add_argument('--db', action='store_true')
-    parser.add_argument('--stages', default='student,review,approval')
+    parser.add_argument('--profile', choices=sorted(DEV_PROFILES), default='phase7-dev')
+    parser.add_argument('--stages', default=None)
     a = parser.parse_args()
+    select(a.profile)
+    if a.stages is None:
+        a.stages = 'student,review,approval,pickup' if a.profile == 'phase7-dev' else 'student,review,approval'
     try:
         owned_root()
         if a.action == 'init': initialize()

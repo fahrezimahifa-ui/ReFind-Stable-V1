@@ -1,7 +1,7 @@
 <?php
 
-// phase6-dev workers listen on 8016/8017; the accepted academic profiles keep 8013-8015.
-$ports = getenv('REFIND_PROFILE') === 'phase6-dev' ? '801[67]' : '801[345]';
+// phase6-dev workers listen on 8016/8017, phase7-dev on 8018/8019; the accepted academic profiles keep 8013-8015.
+$ports = match (getenv('REFIND_PROFILE')) { 'phase6-dev' => '801[67]', 'phase7-dev' => '801[89]', default => '801[345]' };
 if (! in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true) || ! preg_match('/^(?:127\.0\.0\.1|localhost):'.$ports.'$/i', $_SERVER['HTTP_HOST'] ?? '')) {
     http_response_code(403);
     header('Content-Type: application/json');

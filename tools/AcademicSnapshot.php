@@ -8,7 +8,7 @@ final class AcademicSnapshot
 
     private static function synthetic(): bool
     {
-        return in_array(Workspace::profile()['profile'], ['academic-dev', 'academic-test', 'phase6-dev'], true);
+        return in_array(Workspace::profile()['profile'], ['academic-dev', 'academic-test', ...Workspace::DEV_PROFILES], true);
     }
 
     /**
@@ -17,16 +17,16 @@ final class AcademicSnapshot
      */
     private static function assertPhase6Quiescent(PDO $pdo): void
     {
-        if (Workspace::profile()['profile'] !== 'phase6-dev') {
+        if (! Workspace::isDev()) {
             return;
         }
-        $record = Workspace::ROOT.'/state/phase6-processes.json';
+        $record = Workspace::ROOT.'/state/'.Workspace::definition()['records'];
         foreach (is_file($record) ? json_decode(file_get_contents($record), true, 32, JSON_THROW_ON_ERROR) : [] as $name => $value) {
             if (str_starts_with($name, 'web-')) {
                 throw new RuntimeException('Stop phase6-dev web processes before snapshot restoration.');
             }
         }
-        foreach ([8016, 8017] as $port) {
+        foreach (Workspace::definition()['ports'] as $port) {
             $socket = @fsockopen('127.0.0.1', $port, $code, $message, 0.3);
             if ($socket) {
                 fclose($socket);

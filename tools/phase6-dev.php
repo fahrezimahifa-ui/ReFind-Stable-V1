@@ -3,7 +3,7 @@
 use App\Support\Workspace;
 
 /*
- * phase6-dev helper (disposable synthetic profile only).
+ * phase6-dev / phase7-dev helper (disposable synthetic profiles only).
  *   save                  snapshot DB rows + private media, prints the id
  *   restore <id>          exact restore (refuses while phase6-dev workers or app sessions are live)
  *   state                 SELECT-only JSON summary used by concurrency/HTTP suites
@@ -13,8 +13,8 @@ use App\Support\Workspace;
 require __DIR__.'/academic-bootstrap.php';
 require_once __DIR__.'/AcademicSnapshot.php';
 
-if (Workspace::profile()['profile'] !== 'phase6-dev') {
-    throw new RuntimeException('phase6-dev only.');
+if (! Workspace::isDev()) {
+    throw new RuntimeException('Disposable development profiles only.');
 }
 $action = $argv[1] ?? '';
 $admin = AcademicSnapshot::admin();

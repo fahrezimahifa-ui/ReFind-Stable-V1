@@ -4,15 +4,15 @@ use App\Support\Workspace;
 
 /*
  * Reviewed, reversible Phase 6 claim grant deltas.
- *   php tools/grant-claims.php <student|review|approval> [--revoke]
- * Applied only to the disposable phase6-dev principal. Activating these grants for academic-dev or
+ *   php tools/grant-claims.php <student|review|approval|pickup> [--revoke]
+ * Applied only to the disposable phase6-dev/phase7-dev principals (pickup: phase7-dev only). Activating these grants for academic-dev or
  * academic-test requires a separately reviewed change to ACTIVATION below (fail closed until then).
- * Revoke in reverse order (approval, review, student); a stage cannot be revoked while a later stage is live.
+ * Revoke in reverse order (pickup, approval, review, student); a stage cannot be revoked while a later stage is live.
  */
 require __DIR__.'/academic-bootstrap.php';
 
-const ACTIVATION = ['phase6-dev'];
-const ORDER = ['student', 'review', 'approval'];
+const ACTIVATION = ['student' => ['phase6-dev', 'phase7-dev'], 'review' => ['phase6-dev', 'phase7-dev'], 'approval' => ['phase6-dev', 'phase7-dev'], 'pickup' => ['phase7-dev']];
+const ORDER = ['student', 'review', 'approval', 'pickup'];
 const STAGES = [
     'student' => [
         ['claims', 'INSERT', 'item_id,related_lost_item_id,claimant_user_id,ownership_answer'],
@@ -28,6 +28,11 @@ const STAGES = [
         ['item_matches', 'INSERT', 'match_status,confirmed_by_user_id,confirmed_at'],
         ['item_matches', 'UPDATE', 'match_score,match_status,confirmed_by_user_id,confirmed_at'],
         ['handovers', 'INSERT', 'claim_id,pickup_location_id,handled_by_user_id,notes'],
+    ],
+    // Phase 7 pickup operations: schedule/reschedule/cancel/complete update the handover; native release deletes it.
+    'pickup' => [
+        ['handovers', 'UPDATE', 'handover_status,pickup_location_id,scheduled_at,completed_at,handled_by_user_id,notes'],
+        ['handovers', 'DELETE', null],
     ],
 ];
 
@@ -66,17 +71,17 @@ try {
     $revoke = in_array('--revoke', array_slice($argv, 2), true);
     $p = Workspace::profile();
     if (! isset(STAGES[$stage]) || array_diff(array_slice($argv, 2), ['--revoke'])) {
-        throw new RuntimeException('Usage: grant-claims.php <student|review|approval> [--revoke]');
+        throw new RuntimeException('Usage: grant-claims.php <student|review|approval|pickup> [--revoke]');
     }
-    if (! in_array($p['profile'], ACTIVATION, true)) {
+    if (! in_array($p['profile'], ACTIVATION[$stage], true)) {
         throw new RuntimeException('Claim grants are not activated for this profile.');
     }
-    // Live quiescence: no phase6-dev listener and no connected app-principal session.
-    foreach ([8016, 8017] as $port) {
+    // Live quiescence: no listener on this profile's ports and no connected app-principal session.
+    foreach (Workspace::definition()['ports'] as $port) {
         $socket = @fsockopen('127.0.0.1', $port, $code, $message, 0.3);
         if ($socket) {
             fclose($socket);
-            throw new RuntimeException('Stop phase6-dev web workers before changing grants.');
+            throw new RuntimeException('Stop the web workers of this profile before changing grants.');
         }
     }
     $secret = json_decode(file_get_contents(Workspace::ROOT.'/state/owner-credentials.json'), true, 16, JSON_THROW_ON_ERROR);

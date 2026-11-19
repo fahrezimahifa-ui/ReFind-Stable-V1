@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd" bootstrap="vendor/autoload.php" colors="false" cacheDirectory="C:/ReFind-Laravel/state/phase7-dev/phpunit-cache">
+ <testsuites><testsuite name="Phase 7 development (phase7-dev only)"><directory>tests/Unit</directory><directory>tests/Feature</directory></testsuite></testsuites>
+ <source><include><directory>app</directory></include></source>
+ <php><env name="REFIND_PROFILE" value="phase7-dev" force="true"/><env name="APP_ENV" value="testing" force="true"/></php>
+</phpunit>

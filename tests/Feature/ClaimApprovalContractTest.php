@@ -104,10 +104,12 @@ final class ClaimApprovalContractTest extends TestCase
             $this->asUser($this->studentA);
             $this->getJson('/api/claims.php?id='.$winner)->assertOk()->assertJsonPath('claims.0.claim_status', 'APPROVED')->assertJsonPath('claims.0.can_withdraw', false);
             $this->assertError($this->submit(['action' => 'withdraw', 'itemId' => (string) $found]), 409, 'state_conflict');
-            // Pickup endpoints remain outside Phase 6.
-            $this->asUser($this->bm);
-            $this->call('POST', '/api/handovers.php', ['action' => 'schedule', 'id' => $handover], [], [], ['HTTP_X_CSRF_TOKEN' => self::TOKEN, 'HTTP_ACCEPT' => 'application/json'])->assertStatus(501);
-            $this->getJson('/api/handovers.php')->assertStatus(501);
+            // Pickup endpoints stay unavailable unless the Phase 7 pickup stage is enabled.
+            if (! \App\Support\ClaimStages::has('pickup')) {
+                $this->asUser($this->bm);
+                $this->call('POST', '/api/handovers.php', ['action' => 'schedule', 'id' => $handover], [], [], ['HTTP_X_CSRF_TOKEN' => self::TOKEN, 'HTTP_ACCEPT' => 'application/json'])->assertStatus(501);
+                $this->getJson('/api/handovers.php')->assertStatus(501);
+            }
         });
     }
 

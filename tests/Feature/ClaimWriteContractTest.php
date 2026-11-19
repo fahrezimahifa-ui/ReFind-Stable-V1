@@ -25,21 +25,27 @@ final class ClaimWriteContractTest extends TestCase
                 $this->assertSame([], ClaimStages::forProfile($profile, $override), "$profile must never enable claim writes");
             }
         }
-        $this->assertSame(ClaimStages::ALL, ClaimStages::forProfile('phase6-dev', false));
+        $this->assertSame(['student', 'review', 'approval'], ClaimStages::forProfile('phase6-dev', false));
+        $this->assertSame(ClaimStages::ALL, ClaimStages::forProfile('phase7-dev', false));
         $this->assertSame(['review'], ClaimStages::forProfile('phase6-dev', 'review'));
-        $this->assertSame([], ClaimStages::forProfile('phase6-dev', ''));
-        $this->assertSame(['approval'], ClaimStages::forProfile('phase6-dev', 'bogus, approval'));
+        $this->assertSame([], ClaimStages::forProfile('phase6-dev', 'pickup'), 'pickup can never be enabled on phase6-dev');
+        $this->assertSame([], ClaimStages::forProfile('phase7-dev', ''));
+        $this->assertSame(['approval', 'pickup'], ClaimStages::forProfile('phase7-dev', 'bogus, approval,pickup'));
         // The unaccepted checkout cannot even boot an accepted profile, and vice versa.
         $this->assertFalse(Workspace::permitted('academic-test'));
         $this->assertFalse(Workspace::permitted('academic-dev'));
-        $this->assertTrue(Workspace::permitted('phase6-dev'));
+        $this->assertTrue(Workspace::permitted(Workspace::profile()['profile']));
         $this->assertTrue(Workspace::permitted('academic-test', 'C:/ReFind-Laravel/laravel'));
         $this->assertFalse(Workspace::permitted('phase6-dev', 'C:/ReFind-Laravel/laravel'));
+        $this->assertTrue(Workspace::permitted('phase6-dev', 'C:/ReFind-Laravel/laravel-p6'));
+        $this->assertFalse(Workspace::permitted('phase7-dev', 'C:/ReFind-Laravel/laravel-p6'));
+        $this->assertFalse(Workspace::permitted('phase7-dev', 'C:/ReFind-Laravel/laravel'));
         $this->assertFalse(Workspace::permitted('unknown-profile'));
 
         $this->withSnapshot(function () {
             $found = $this->item($this->studentB, 'FOUND');
-            putenv('REFIND_PHASE6_STAGES=');
+            $previous = getenv('REFIND_PHASE6_STAGES');
+            putenv('REFIND_PHASE6_STAGES=none'); // matches no stage on every platform
             try {
                 $this->asUser($this->studentA);
                 $this->assertError($this->submit(['action' => 'submit', 'itemId' => (string) $found, 'answer' => 'Blue sticker on the lid.']), 501, 'feature_pending', 'This operation is not available in the proof of concept.');
@@ -52,7 +58,7 @@ final class ClaimWriteContractTest extends TestCase
                 putenv('REFIND_PHASE6_STAGES=student,review');
                 $this->assertError($this->staffPost(['action' => 'review', 'id' => '1', 'decision' => 'approved', 'note' => 'Synthetic gate note', 'revision' => str_repeat('a', 64), 'confirm' => '1']), 501, 'feature_pending');
             } finally {
-                putenv('REFIND_PHASE6_STAGES');
+                putenv($previous === false ? 'REFIND_PHASE6_STAGES' : 'REFIND_PHASE6_STAGES='.$previous);
             }
             $this->assertSame(0, (int) $this->admin->query('SELECT COUNT(*) FROM claims WHERE item_id='.$found)->fetchColumn(), 'Gated requests write nothing');
         });

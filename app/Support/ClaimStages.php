@@ -3,27 +3,29 @@
 namespace App\Support;
 
 /**
- * Phase 6 claim write gates. Fail closed: only the disposable phase6-dev profile can ever enable a stage.
- * REFIND_PHASE6_STAGES may only narrow the phase6-dev set (for gate testing); it can never enable a
+ * Phase 6/7 claim and pickup write gates. Fail closed: only the disposable phase6-dev/phase7-dev profiles can
+ * enable a stage. REFIND_PHASE6_STAGES may only narrow that profile's set (for gate testing); it can never enable a
  * stage in academic-dev, academic-test or any other profile, and it is deliberately not read from config.
  */
 final class ClaimStages
 {
-    public const PROFILE = 'phase6-dev';
+    /** Hard-wired per disposable profile; every other profile (including both academic ones) gets none. */
+    public const PROFILES = [
+        'phase6-dev' => ['student', 'review', 'approval'],
+        'phase7-dev' => ['student', 'review', 'approval', 'pickup'],
+    ];
 
-    public const ALL = ['student', 'review', 'approval'];
+    public const ALL = ['student', 'review', 'approval', 'pickup'];
 
     public static function forProfile(string $profile, string|false|null $override): array
     {
-        if ($profile !== self::PROFILE) {
-            return [];
-        }
-        if ($override === false || $override === null) {
-            return self::ALL;
+        $base = self::PROFILES[$profile] ?? [];
+        if ($base === [] || $override === false || $override === null) {
+            return $base;
         }
         $requested = array_map('trim', explode(',', $override));
 
-        return array_values(array_intersect(self::ALL, $requested));
+        return array_values(array_intersect($base, $requested));
     }
 
     public static function enabled(): array

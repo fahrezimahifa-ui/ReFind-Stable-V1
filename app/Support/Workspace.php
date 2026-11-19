@@ -13,10 +13,24 @@ final class Workspace
      * (laravel-p6) can therefore only reach its own disposable schema, never the accepted academic ones.
      */
     public const PROFILES = [
-        'academic-dev' => ['database' => 'refind_laravel_b_dev', 'username' => 'refind_b_dev_app', 'cookie' => 'refind_laravel_b_dev', 'port' => 8013, 'app' => 'laravel'],
-        'academic-test' => ['database' => 'refind_laravel_b_test', 'username' => 'refind_b_test_app', 'cookie' => 'refind_laravel_b_test', 'port' => 8014, 'app' => 'laravel'],
-        'phase6-dev' => ['database' => 'refind_laravel_p6_dev', 'username' => 'refind_p6_dev_app', 'cookie' => 'refind_laravel_p6_dev', 'port' => 8016, 'app' => 'laravel-p6'],
+        'academic-dev' => ['database' => 'refind_laravel_b_dev', 'username' => 'refind_b_dev_app', 'cookie' => 'refind_laravel_b_dev', 'port' => 8013, 'ports' => [8013], 'app' => 'laravel'],
+        'academic-test' => ['database' => 'refind_laravel_b_test', 'username' => 'refind_b_test_app', 'cookie' => 'refind_laravel_b_test', 'port' => 8014, 'ports' => [8014, 8015], 'app' => 'laravel'],
+        'phase6-dev' => ['database' => 'refind_laravel_p6_dev', 'username' => 'refind_p6_dev_app', 'cookie' => 'refind_laravel_p6_dev', 'port' => 8016, 'ports' => [8016, 8017], 'app' => 'laravel-p6', 'records' => 'phase6-processes.json'],
+        'phase7-dev' => ['database' => 'refind_laravel_p7_dev', 'username' => 'refind_p7_dev_app', 'cookie' => 'refind_laravel_p7_dev', 'port' => 8018, 'ports' => [8018, 8019], 'app' => 'laravel-p7', 'records' => 'phase7-processes.json'],
     ];
+
+    /** Disposable, unaccepted development profiles (never the accepted academic ones). */
+    public const DEV_PROFILES = ['phase6-dev', 'phase7-dev'];
+
+    public static function isDev(): bool
+    {
+        return in_array(self::profile()['profile'], self::DEV_PROFILES, true);
+    }
+
+    public static function definition(): array
+    {
+        return self::PROFILES[self::profile()['profile']];
+    }
 
     private static ?array $profile = null;
 
