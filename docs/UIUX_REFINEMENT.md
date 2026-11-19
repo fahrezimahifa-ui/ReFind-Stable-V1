@@ -105,8 +105,8 @@ Where the plan left a visual choice open, the conservative option recorded in th
 | P04 | Flags in Explore and History cards, the item page header, the BM record header and My Activity cards span the full width as a strip of square flags. | Option A, the segmented strip, was used. It needs no markup change; option B, a band under the image, was not used. |
 | P02 | Long body copy (item description, BM claim and report description, claimant answer and finder clue, notification message) is justified with hyphenation from 768 px up. | Discovery cards contain only a title and short meta lines, so no card text is justified. Phones stay start-aligned to avoid uneven word spacing. |
 | P06 | The numbered lists ("What happens after you submit", BM status and pickup history) are indented 2.5 em, so items start 35–40 px inside the heading. | |
-| P09 | On phones (479 px and narrower), a group of four or more view tabs becomes one labelled native select that drives the same buttons, handlers and URL. Only History has such a group. | Explore already used a Filters disclosure. BM, My Activity and Notifications have two or three tabs, which fit on one row. |
-| P11 | On desktop (1100 px and wider), `bm.js` sizes the Review Queue panes to the space under the heading, so the page itself no longer scrolls. The queue and the detail each scroll independently, and nothing scrolls inside a scrolling page. Smaller screens keep one page scroll. | The two-pane review layout keeps the queue position and the decision bar in view. Removing the panes' own scrolling would lose both. Panes are at least 400 px tall, so very short windows still scroll the page. |
+| P09 | On phones (479 px and narrower), a group of four or more view tabs becomes one labelled native select that drives the same buttons, handlers and URL. Only History has such a group. | Explore already used a Filters disclosure. BM, My Activity and Notifications have two or three tabs, which fit on one row. Batch 3 extended the select to 767 px. |
+| P11 | On desktop (1100 px and wider), `bm.js` sizes the Review Queue panes to the space under the heading, so the page itself no longer scrolls. The queue and the detail each scroll independently, and nothing scrolls inside a scrolling page. Smaller screens keep one page scroll. | The two-pane review layout keeps the queue position and the decision bar in view. Removing the panes' own scrolling would lose both. Panes are at least 400 px tall, so very short windows still scroll the page. **Superseded by batch 3 after owner review:** the page is now the only scroller. |
 | P13 | A static background layer of soft pools runs the full document height, above the fixed wash. Two tile heights that don't divide each other (1700 and 1100 px) make the placement look irregular. It is hidden for reduced transparency and forced colours. | "Random" is read as varied placement, not as a pattern that changes on each load. Full-page screenshots still show the fixed wash only in the first screen height; that is how they draw fixed layers. In a real scrolling window the wash always covers the screen. |
 
 **Tests updated:**
@@ -145,7 +145,7 @@ A pending pickup is scheduled with Schedule pickup. Batch 1 made Reschedule the 
 
 Passive information is now non-interactive: the passed-appointment note in the BM detail and in the Student's My Activity card, and the "Time passed" flag in the BM queue. Each is flat text with a clock icon, with no button role, pointer cursor, fill or pill shape.
 
-The genuine workflow action, Release pickup, is unchanged in authority. It appears whenever the API offers it, for pending and scheduled pickups, as a red text button that opens the reason and confirmation dialog. Nothing in the UI releases a pickup automatically when its time passes, and the server has no expiry rule.
+The genuine workflow action, Release pickup, is unchanged in authority. It appears whenever the API offers it, for pending and scheduled pickups, and opens the reason and confirmation dialog. Since batch 3 it is a red outline button in its own labelled section, "If the owner never collects". Nothing in the UI releases a pickup automatically when its time passes, and the server has no expiry rule.
 
 **Unresolved:** the professor's note "Release pickup expire" does not say whether it also asks for an automatic expiry or release policy. No such rule exists natively, and "Never retrieved" does not set a disposal policy. Adding one would be a new business rule, so it is documented here rather than invented.
 
@@ -164,10 +164,73 @@ The genuine workflow action, Release pickup, is unchanged in authority. It appea
 | Synthetic state after restore | identical |
 | Protection | Academic grants match the 6B evidence, 6B archive `c1f4bde6…`, 19/19 canonical files, accepted refs unchanged |
 
-Any commit after `b94bb60` on this branch only records these results. The deferred acceptance gates in [QA_RELEASE_READINESS.md](QA_RELEASE_READINESS.md) are unchanged:
+This run verified `b94bb60`. Batch 3, below, changed code after it, so the batch 3 regression supersedes this run. The deferred acceptance gates in [QA_RELEASE_READINESS.md](QA_RELEASE_READINESS.md) are unchanged:
 - independent native HTTP parity;
 - the full inherited matrix with fresh receipts;
 - fresh-Windows qualification;
 - academic activation;
 - rubric evidence;
 - owner sign-offs.
+
+## Batch 3: owner review corrections (P07, P11, empty space)
+
+The owner's manual review on 19 November 2026 superseded the earlier readings of P07 and P11.
+
+**Corrected interpretations:**
+- **P11:** the browser's page scrollbar is the only ordinary scroller on the BM dashboard. Two independently scrolling panes still count as double scrolling. Dialogs may scroll internally.
+- **P07:** the two prominent pickup actions depend on the state. Cancel appointment and Release pickup belong in their own clearly labelled, lower-priority places. They are never hidden to meet a button count.
+
+| Item | Change | Files |
+|---|---|---|
+| P11 | From 1100 px wide, the queue and detail columns keep their natural height. The fixed height and inner `overflow-y` are overridden, so only the page scrolls. The detail column is sticky and moves with the page until one of its edges reaches the window, so a tall record reads top to bottom while the queue keeps its place. Selecting a card shows the record from its top without moving the page; the page moves only when the record's start can't be shown in place, at the very end of a long queue. The decision bar sticks to the window bottom. Below 1100 px nothing changed: one page scroll with a queue or detail view. The existing 24-per-page queue paging with Previous/Next stays as the pagination, so search and filter semantics are unchanged. | `public/js/bm.js` (`placeDetail`, `revealDetail`; batch 2's `fitPanes` removed), `public/css/polish.css` |
+| P07 | Pickup main row: **pending** shows Schedule pickup (primary) and Confirm item returned; **scheduled and overdue** show Reschedule pickup (primary) and Confirm item returned. Below the row, an **Appointment** section holds Cancel appointment, with the note that ownership stays approved, and an **"If the owner never collects"** section holds Release pickup, with what it does and the existing reason and confirmation dialog. Every operation the API offers is still rendered with the same `data-bm-action`, handler, dialog, permissions and server checks. Claim decisions are unchanged: Approve, Reject, and "Request more info" as a text button. | `public/js/bm.js` (`handoverDetail`, `actionButton` style argument), `public/css/polish.css` |
+| Segmented controls | Below 768 px, view-tab groups of two or three are full-width rows of equal segments: Explore All/Lost/Found inside the filter card, My Activity, Notifications and the BM workflow tabs. Borders, active state, `aria-pressed` and focus are unchanged. Wider screens keep their compact left-aligned tabs. | `public/css/polish.css` |
+| Empty-space audit | History's five-tab group now becomes its labelled select up to 767 px, not 479 px, so it no longer wraps onto a half-empty second row on small tablets. | `public/css/polish.css` |
+
+**Empty-space audit, phones and tablets:**
+- **Checked and already fine:** the report form's Lost/Found switch (already full width), the Explore search and Filters row, the result-count and Clear filters row, the claim and activity card footers, the BM claim action bar and the pager.
+- **Noted, not changed:** the large "No public photo provided" box on cards and the item page when a report has no photo. It is a deliberate native placeholder that keeps the card rhythm. Making it compact on phones is a design decision for the owner.
+
+**Tests updated:**
+- `tools/test-phase7-ui.py`:
+  - each pickup state shows its two main actions in order;
+  - Cancel appointment sits in the Appointment section;
+  - Release sits in its own section and stays enabled;
+  - all four scheduled operations are still present.
+- `tools/test-phase8-ui.py`: the BM desktop layout has no inner scroll areas.
+
+**Focused checks** (`C:\ReFind-Laravel\evidence\uiux\batch3-check-20261119T141327Z`; screenshots and metrics in `planning\professor-uiux\after\batch3\`). The run passed 118 checks and restored exactly to the verified baseline. The fixtures were created through the normal API, with one exception: the overdue appointment's stored time was moved into the past in the disposable schema. They were 26 approved pickups (two queue pages), one with five reschedules and long reasons, one overdue appointment, and a claim with a long answer and two evidence photos.
+
+The checks covered:
+- At 360, 390, 768, 1024 and 1440 px, on BM Reports, BM Handover queue and detail, a long BM claim, Explore, My Activity, Notifications and History: no inner scroll areas, no horizontal overflow, and on phones every segmented group fills its row with equal segments.
+- At 1440 px:
+  - a deep link leaves the page at the top;
+  - the tall pickup record can be read to its end with the page scroll;
+  - the decision bar never strands below the window;
+  - selecting the 21st queue card keeps the page exactly where it was (scroll position 3447 before and after), with the record's top just under the header;
+  - arrow-key queue navigation keeps the focused card in view.
+- Pending, scheduled and overdue pickups at 390 and 1440 px show the expected main row and sections, and the overdue note is flat status.
+- No JavaScript errors.
+
+## Automatic pickup expiry: decision needed (not implemented)
+
+**Findings:**
+1. **Native `47eea86`:** nothing happens when a scheduled time passes. The past-due indicator is "Display only; offers existing confirm-return/reschedule. No no-show policy" (`docs/V1_RELEASE_CANDIDATE.md`). Release is the manual BM operation "for no-shows or revoked ownership" (`docs/V025_REPORT.md`). A disposal or no-show policy is listed as excluded, pending stakeholder decisions.
+2. **Phase 7 Laravel:** the same. There is no scheduler, console job or expiry rule; a passed time changes only the display.
+3. **Roadmap:** it proposes approved retention, display and reminder rules but does not specify them. It warns that "approximate one week is insufficient for an automatic timer" (`docs/REQUIREMENTS_AND_ROADMAP.md`). The project context adds that the staff account of practice "does not authorize automatic day-seven transfers" and that Never retrieved "does not authorize disposal" (`docs/PROJECT_CONTEXT.md`).
+
+**What an automatic transition would affect:**
+- **Automatic release** would reject the approved claim and revoke ownership, turn the confirmed pair to REJECTED, delete the handover and reopen both reports. It would also notify the claimant and the finder, and add history and audit rows.
+- **Automatic appointment cancellation** would keep ownership but clear the time, return the pickup to awaiting scheduling, and notify the claimant and the BMs.
+- **Either one needs:**
+  - a scheduled job, which the app doesn't have;
+  - the same advisory lock and revision checks as manual operations, to avoid racing a BM confirming a late collection;
+  - an `Asia/Jakarta` working-day rule for the grace period;
+  - idempotent replays and a test matrix.
+
+A passed appointment doesn't mean the item was returned, and it doesn't justify revoking ownership on its own.
+
+**Proposal for approval** (nothing enabled):
+- **A (recommended now):** keep release manual, as today. Optionally add a BM "Time passed" filter in the Handover queue, and an in-app reminder to the claimant when an appointment passes. Both inform without changing ownership.
+- **B:** after an approved grace period, for example two campus working days after the appointment, cancel the appointment automatically. Ownership is kept and the pickup returns to awaiting scheduling, with notifications. This needs a scheduler, an audit actor ("System") and tests.
+- **C:** automatically release after a longer approved period. This revokes ownership, so it needs an explicit campus policy, exceptions for valuables, a final BM confirmation step, and owner and stakeholder sign-off.

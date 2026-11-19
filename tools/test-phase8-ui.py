@@ -121,7 +121,7 @@ with sync_playwright() as playwright:
         expect(page.locator('#bm-feedback, .feedback').filter(has_text='Report status updated.').first).to_be_visible()
         check('BM changed a report status from the Reports tab', http.Client(BASE).login('bm').call('/api/staff.php?resource=reports&id=' + found)[1]['report']['status_code'] == 'UNDER_REVIEW')
         check('BM layout has no horizontal overflow', not overflow(page))
-        check('BM desktop page does not scroll; only its panes do', not page.evaluate('document.documentElement.scrollHeight > innerHeight + 1'))
+        check('BM desktop has no inner scroll areas; the page is the only scroller', not page.evaluate("[...document.querySelectorAll('.bm-layout, .bm-layout *')].some(e => /(auto|scroll)/.test(getComputedStyle(e).overflowY) && e.scrollHeight > e.clientHeight + 1)"))
         ctx.close()
 
         ctx, page = browser_ctx(playwright, 390, 'dark')

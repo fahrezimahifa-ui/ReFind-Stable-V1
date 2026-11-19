@@ -230,12 +230,32 @@ html:has(.sticky-form-actions),html:has(.bm-detail-actions){scroll-padding-botto
 /* Long body copy is justified on tablet and desktop widths only. Titles, labels, meta lines and phone columns stay
    start-aligned, and hyphenation keeps the word spacing even. */
 @media(min-width:768px){#item-description,.bm-detail .item-description,.bm-block p,.notification-card .notification-message{text-align:justify;text-justify:inter-word;-webkit-hyphens:auto;hyphens:auto}}
-/* Review Queue on desktop: bm.js sizes the two panes to the space under the heading, so each pane scrolls on its own
-   and the page does not scroll as well. The earlier fixed calculation stays as the fallback. */
-@media(min-width:1100px){.bm-layout{height:var(--bm-pane-height,calc(var(--usable-height,100dvh) - var(--app-header-height,70px) - 32px))}}
-/* Phones: a group of four or more view tabs becomes one labelled select that drives the same buttons (student.js). */
+/* Review Queue on desktop: the page is the only scroller. Queue and detail keep their natural height; bm.js keeps the
+   detail column sticky so the selected record stays in view, and the decision bar sticks to the window's bottom. */
+@media(min-width:1100px){
+  .bm-layout{height:auto;align-items:start}
+  .bm-queue,.bm-detail{height:auto}
+  .bm-queue{display:block;overflow:visible}
+  .bm-queue #bm-queue-list{overflow:visible;padding-right:0;scrollbar-gutter:auto}
+  .bm-detail{position:sticky;top:calc(var(--app-header-height,70px) + 16px);overflow:visible;scrollbar-gutter:auto;overscroll-behavior:auto;scroll-padding-bottom:0}
+  .bm-detail .bm-detail-actions{bottom:calc(var(--space-2) + env(safe-area-inset-bottom))}
+}
+/* Pickup detail: appointment changes and release sit in labelled sections below the two main actions. */
+.bm-action-section{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.bm-detail .bm-action-section h3{margin:0;font-size:15px;font-weight:700}
+.bm-action-section p{margin:4px 0 8px;font-size:14px;color:var(--muted)}
+.bm-action-section .text-button{padding:8px 0}
+.bm-action-section .btn{min-width:200px}
+@media(max-width:679px){.bm-action-section .btn{width:100%}}
+/* Segmented view tabs on phones: equal segments across the full row. History's larger group uses its select. */
+@media(max-width:767px){
+  .type-tabs:not(.has-compact-select):not(.report-type-switch){display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}
+  .type-tabs:not(.has-compact-select):not(.report-type-switch)>.type-tab{min-width:0;padding-inline:8px}
+}
+/* Phones and small tablets: a group of four or more view tabs becomes one labelled select driving the same buttons
+   (student.js), matching the full-width segmented rule below 768px. */
 .compact-tabs{display:none}
-@media(max-width:479px){.type-tabs.has-compact-select{display:none}.compact-tabs{display:block;min-height:48px;margin:12px 0;border-color:var(--control);border-radius:var(--radius-control)}}
+@media(max-width:767px){.type-tabs.has-compact-select{display:none}.compact-tabs{display:block;min-height:48px;margin:12px 0;border-color:var(--control);border-radius:var(--radius-control)}}
 /* Background: a scrolling layer of soft pools runs the full length of every page above the fixed wash. Two tile heights
    that do not divide each other make the placement look irregular. Static: nothing animates. */
 body{position:relative}

@@ -15,18 +15,31 @@ $(async function () {
   const terminalStatuses = ['RESOLVED','UNCLAIMED_CLOSED'];
   const get = (endpoint, query = {}) => app.request(endpoint + '?' + new URLSearchParams(Object.entries(query).filter(([, v]) => v !== '' && v !== null && v !== undefined)));
   const mobile = () => innerWidth < 1100;
-  // Desktop: size the two panes to the space left under the heading, so the panes scroll and the page does not.
-  const layoutBox = document.querySelector('.bm-layout'), mainBox = document.querySelector('.bm-main');
-  function fitPanes() {
-    const root = document.documentElement;
-    if (mobile() || !layoutBox || !mainBox) { root.style.removeProperty('--bm-pane-height'); return; }
-    const box = layoutBox.getBoundingClientRect(), main = mainBox.getBoundingClientRect(), style = getComputedStyle(mainBox);
-    const below = main.bottom - box.bottom + parseFloat(style.marginBottom || 0);
-    const height = Math.max(400, Math.floor((window.visualViewport?.height || innerHeight) - (box.top + scrollY) - below)) + 'px';
-    if (root.style.getPropertyValue('--bm-pane-height') !== height) root.style.setProperty('--bm-pane-height', height);
+  // Desktop: the page is the only scroller. The detail column is sticky and moves with the page until one of its edges
+  // reaches the window, so a tall record reads top to bottom while the queue keeps its place.
+  const detailBox = document.querySelector('#bm-detail');
+  let detailTop = null, lastScroll = scrollY, scrollFrame = 0;
+  const headerOffset = () => (document.querySelector('.app-header')?.getBoundingClientRect().height || 70) + 16;
+  function placeDetail(reset = false) {
+    if (!detailBox) return;
+    if (mobile()) { detailBox.style.removeProperty('top'); detailTop = null; lastScroll = scrollY; return; }
+    const high = headerOffset(), low = Math.min(high, (window.visualViewport?.height || innerHeight) - detailBox.offsetHeight - 16);
+    const delta = scrollY - lastScroll; lastScroll = scrollY;
+    detailTop = reset || detailTop === null ? high : Math.min(high, Math.max(low, detailTop - delta));
+    detailBox.style.top = Math.round(detailTop) + 'px';
   }
-  if (mainBox && window.ResizeObserver) new ResizeObserver(fitPanes).observe(mainBox);
-  addEventListener('resize', fitPanes);
+  // A new selection shows the record from its top without moving the page; the page moves only when the record's
+  // start cannot be shown in place (at the very end of a long queue).
+  function revealDetail() {
+    if (mobile()) { U.focusRecord(detailBox); return; }
+    placeDetail(true);
+    if (!detailBox.hasAttribute('tabindex')) detailBox.setAttribute('tabindex', '-1');
+    detailBox.focus({preventScroll: true});
+    if (detailBox.getBoundingClientRect().top < headerOffset() - 2) U.focusRecord(detailBox);
+  }
+  addEventListener('scroll', () => { if (!scrollFrame) scrollFrame = requestAnimationFrame(() => { scrollFrame = 0; placeDetail(); }); }, {passive: true});
+  addEventListener('resize', () => placeDetail());
+  if (detailBox && window.ResizeObserver) new ResizeObserver(() => placeDetail()).observe(detailBox);
   $('#bm-queue-list').on('keydown', '.bm-queue-card', function (event) {
     if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
     const cards = $('#bm-queue-list .bm-queue-card:not(:disabled)'), index = cards.index(this);
@@ -83,24 +96,20 @@ $(async function () {
   }
   function block(title, text, priv = false) { return $('<div>').addClass('bm-block' + (priv ? ' private' : '')).append($('<h3>').text(title), $('<p>').text(text || 'No identifying detail recorded.')); }
   function meta(values) { const list = $('<dl>').addClass('detail-meta'); values.forEach(([title, value]) => list.append($('<div>').append($('<dt>').text(title), $('<dd>').append(value instanceof jQuery ? value : document.createTextNode(String(value || 'Not specified')))))); return list; }
-  // At most one primary and one outline button per decision area. The other authorised operations stay available as
-  // labelled text buttons with the same data-bm-action, handler and dialog. Once an appointment time has passed,
-  // Reschedule becomes the primary pickup action.
-  function actionStyle(action, record) {
-    if (action === 'release') return 'text-button danger-text';
-    if (action === 'need_more_info' || action === 'cancel_schedule') return 'text-button';
+  // Claims and reports: at most one primary and one outline button. Request more info is a text button with the same
+  // dialog. Pickups lay out their own rows and sections in handoverDetail.
+  function actionStyle(action) {
+    if (action === 'need_more_info') return 'text-button';
     if (action === 'rejected') return 'btn btn-danger-outline';
-    const primaryPickup = U.pickupPastDue(record) ? 'reschedule' : 'complete';
-    if (['approved','schedule','status'].includes(action) || action === primaryPickup && record.handover_status === 'SCHEDULED') return 'btn btn-primary';
-    return 'btn btn-outline';
+    return ['approved','status'].includes(action) ? 'btn btn-primary' : 'btn btn-outline';
   }
-  // Buttons first (primary, then outline), then text actions, with the destructive one last.
-  function actionRank(action, record) {
-    const style = actionStyle(action, record);
-    return style.includes('btn-primary') ? 0 : style.startsWith('btn ') ? 1 : style.includes('danger') ? 3 : 2;
+  // Buttons first (primary, then outline), then text actions.
+  function actionRank(action) {
+    const style = actionStyle(action);
+    return style.includes('btn-primary') ? 0 : style.startsWith('btn ') ? 1 : 2;
   }
-  function actionButton(action, snapshot) {
-    return $('<button>').addClass(actionStyle(action, snapshot.record)).attr({type:'button','data-bm-action':action}).text(labels[action]).on('click', function () {
+  function actionButton(action, snapshot, style = actionStyle(action)) {
+    return $('<button>').addClass(style).attr({type:'button','data-bm-action':action}).text(labels[action]).on('click', function () {
       if (saving || !current || selected !== String(snapshot.id) || current.revision !== snapshot.revision) return;
       openOperation(action, snapshot, this);
     });
@@ -169,9 +178,22 @@ $(async function () {
     if (notes) box.append($('<div>').addClass('bm-outcome').text(notes));
     // Display only: a passed appointment is flagged, but its state changes only through the operations below.
     if (U.pickupPastDue(record)) box.append($('<p>').addClass('past-due-note').text('The scheduled time has passed. If the owner collected the item, confirm the return; otherwise reschedule with them.'));
+    // Main row: the two likeliest next steps for this state. Appointment changes and release have their own labelled
+    // sections below, so every operation the API offers stays visible without crowding the decision.
+    const snapshot = {kind:'handover',id:record.handover_id,revision:record.revision,record}, ops = record.operations || [];
+    const main = (scheduled ? ['reschedule','complete'] : ['schedule','complete']).filter(action => ops.includes(action));
     const actions = $('<div>').addClass('bm-detail-actions');
-    [...record.operations].sort((a, b) => actionRank(a, record) - actionRank(b, record)).forEach(action => actions.append(actionButton(action,{kind:'handover',id:record.handover_id,revision:record.revision,record})));
-    box.append(actions,$('<p>').addClass('bm-locked-note').text(returned ? 'Returned record · read-only.' : scheduled ? 'Cancelling the appointment keeps ownership approved. You can schedule the same pickup again.' : 'Schedule a time with the claimant, or confirm the return if they collect the item now. Release the pickup if the owner never comes.'));
+    main.forEach((action, index) => actions.append(actionButton(action, snapshot, index === 0 ? 'btn btn-primary' : 'btn btn-outline')));
+    const section = (key, title, text, control) => $('<section>').addClass('bm-action-section bm-action-section--' + key).attr('aria-labelledby', 'bm-section-' + key)
+      .append($('<h3>').attr('id', 'bm-section-' + key).text(title), text ? $('<p>').text(text) : null, control);
+    const more = [];
+    if (ops.includes('cancel_schedule')) more.push(section('appointment', 'Appointment', 'Cancelling keeps ownership approved. You can schedule the same pickup again.', actionButton('cancel_schedule', snapshot, 'text-button')));
+    ops.filter(action => !main.includes(action) && !['cancel_schedule','release'].includes(action)).forEach(action => more.push(section(action, labels[action], '', actionButton(action, snapshot, 'text-button'))));
+    if (ops.includes('release')) more.push(section('release', 'If the owner never collects', 'Releasing closes this claim as rejected and makes both reports available again. You will be asked for a reason and a confirmation.', actionButton('release', snapshot, 'btn btn-danger-outline')));
+    if (main.length) box.append(actions);
+    if (returned || !ops.length) box.append($('<p>').addClass('bm-locked-note').text(returned ? 'Returned record · read-only.' : 'No pickup operation is available for this record.'));
+    else if (!scheduled) box.append($('<p>').addClass('bm-locked-note').text('Schedule a time with the claimant, or confirm the return if they collect the item now.'));
+    box.append(more);
     const audit = $('<ol>');
     (record.audit || []).forEach(event => {
       const entry = $('<li>').append($('<strong>').text(event.title),$('<p>').text(U.date(event.at,true)));
@@ -193,7 +215,7 @@ $(async function () {
       if(focus)document.querySelector('#bm-detail').scrollTop=0;
       $('.bm-queue-card').each(function () { const active = $(this).attr('data-record-id') === selected; $(this).toggleClass('selected',active).attr('aria-pressed',String(active)); });
       if (focus) setView('detail');
-      syncUrl(); if (focus) U.focusRecord(document.querySelector('#bm-detail'));
+      syncUrl(); if (focus) revealDetail();
     } catch (e) {
       if (sequence !== detailRequest) return;
       if (e.status === 401) location.replace(app.loginUrl());

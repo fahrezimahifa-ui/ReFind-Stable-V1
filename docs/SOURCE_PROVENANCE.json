@@ -44,16 +44,16 @@
   },
   "adapted_assets": {
     "js/bm.js": {
-      "sha256": "7e0e9bd6ef64a81ca0d1c0895cfc909f8ee2508c2faa02e8745b4b1f3d8a86c3",
-      "reason": "Phase 6-8 (unaccepted): decisions follow enabled stages; Claims, Reports (status stage) and Handover (pickup stage) tabs with native operations. Professor UI refinement batch 1 (unaccepted): at most two decision buttons per bar, Request more info, Cancel appointment and Release pickup as text buttons, Reschedule primary once the time has passed, passed time shown as flat status. Batch 2: on desktop the two Review Queue panes are sized to the space under the heading so the page does not scroll as well."
+      "sha256": "bc56e1b41f62b2817f31761a61d148b0892d131db15a7b4ae4b415049c87b348",
+      "reason": "Phase 6-8 (unaccepted): decisions follow enabled stages; Claims, Reports (status stage) and Handover (pickup stage) tabs with native operations. Professor UI refinement batch 1 (unaccepted): at most two decision buttons per bar, Request more info, Cancel appointment and Release pickup as text buttons, Reschedule primary once the time has passed, passed time shown as flat status. Batch 3 (owner review): the page is the only scroller on desktop, with a sticky detail column; pickup main row by state, with Appointment and Release sections."
     },
     "js/student.js": {
       "sha256": "7ac5080f03b73f364a1e097dc3ca879094090c41ff0561212da0f557a3344824",
       "reason": "Phase 6/7 (unaccepted): claim/withdraw follow the Student stage; pickup details follow the pickup stage; notifications page read-only (read-marking is a separate, unapproved write). Professor UI refinement batch 2 (unaccepted): on phones a group of four or more view tabs (History) becomes one labelled select driving the same buttons."
     },
     "css/polish.css": {
-      "sha256": "0cbdf2dcf6f190e8797d55e58d81f0e32c4def09508bd579daf77e130e11fbb9",
-      "reason": "Professor UI refinement batch 1 (unaccepted): notification message smaller than its title; text buttons inside decision bars; passed pickup time as flat status text with a clock icon instead of a filled box or chip. Batch 2: square status flags and notes, full-width flag strips, card previews filling their frame on phones, indented numbered lists, long body copy justified from 768px, BM pane height, phone tab select, and a full-length static background layer."
+      "sha256": "ee4f8dd2726c3e8e82a81fdf1e24a4ce410bc32f06e284dc8cb0d974f275271b",
+      "reason": "Professor UI refinement batch 1 (unaccepted): notification message smaller than its title; text buttons inside decision bars; passed pickup time as flat status text with a clock icon instead of a filled box or chip. Batch 2: square status flags and notes, full-width flag strips, card previews filling their frame on phones, indented numbered lists, long body copy justified from 768px, BM pane height, phone tab select, and a full-length static background layer. Batch 3: BM panes keep natural height (no inner scroll), pickup action sections, full-width equal segmented tabs below 768px, History select up to 767px."
     }
   }
 }
