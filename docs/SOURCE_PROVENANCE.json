@@ -44,8 +44,8 @@
   },
   "adapted_assets": {
     "js/bm.js": {
-      "sha256": "980b9b958e7178a806ccd2a3f0ae7a5d6d6a2a5873a87f368030c774cb792f60",
-      "reason": "Phase 6/7 (unaccepted): decisions follow enabled stages; Claims and Handover tabs (pickup stage) with native pickup operations; Reports tab stays gated."
+      "sha256": "e471180a69e1a2ee486f614873e0d52e7d5a9bb437bf79e72415f17f994fbb7c",
+      "reason": "Phase 6-8 (unaccepted): decisions follow enabled stages; Claims, Reports (status stage) and Handover (pickup stage) tabs with native operations."
     },
     "js/student.js": {
       "sha256": "b8d1d7c8c713a6249786975cba0a8a9c24e8ac128809d06802a85f3fb7f4f22c",
