@@ -15,6 +15,18 @@ $(async function () {
   const terminalStatuses = ['RESOLVED','UNCLAIMED_CLOSED'];
   const get = (endpoint, query = {}) => app.request(endpoint + '?' + new URLSearchParams(Object.entries(query).filter(([, v]) => v !== '' && v !== null && v !== undefined)));
   const mobile = () => innerWidth < 1100;
+  // Desktop: size the two panes to the space left under the heading, so the panes scroll and the page does not.
+  const layoutBox = document.querySelector('.bm-layout'), mainBox = document.querySelector('.bm-main');
+  function fitPanes() {
+    const root = document.documentElement;
+    if (mobile() || !layoutBox || !mainBox) { root.style.removeProperty('--bm-pane-height'); return; }
+    const box = layoutBox.getBoundingClientRect(), main = mainBox.getBoundingClientRect(), style = getComputedStyle(mainBox);
+    const below = main.bottom - box.bottom + parseFloat(style.marginBottom || 0);
+    const height = Math.max(400, Math.floor((window.visualViewport?.height || innerHeight) - (box.top + scrollY) - below)) + 'px';
+    if (root.style.getPropertyValue('--bm-pane-height') !== height) root.style.setProperty('--bm-pane-height', height);
+  }
+  if (mainBox && window.ResizeObserver) new ResizeObserver(fitPanes).observe(mainBox);
+  addEventListener('resize', fitPanes);
   $('#bm-queue-list').on('keydown', '.bm-queue-card', function (event) {
     if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
     const cards = $('#bm-queue-list .bm-queue-card:not(:disabled)'), index = cards.index(this);

@@ -88,6 +88,15 @@ with sync_playwright() as playwright:
         page.locator('#password-save').click()
         expect(page.locator('#password-feedback')).to_contain_text('Password updated')
         check('profile name and password changed through the UI', True)
+        # Phone History: the five views are one labelled select that drives the same tab buttons.
+        page.goto(BASE + '/history.html'); ready(page)
+        compact = page.locator('select.compact-tabs')
+        expect(compact).to_be_visible()
+        check('phone history views are one labelled select', compact.get_attribute('aria-label') == 'History type' and page.locator('[data-history="returned"]').is_hidden())
+        compact.select_option(label='Returned')
+        expect(page.locator('[data-history="returned"]')).to_have_attribute('aria-pressed', 'true')
+        ready(page)
+        check('history select changes the view', page.locator('#history-results').count() == 1)
         ctx.close()
         ctx, page = browser_ctx(playwright, 1440, 'light')
         login(page, email, newpw, 'index.html')
@@ -112,6 +121,7 @@ with sync_playwright() as playwright:
         expect(page.locator('#bm-feedback, .feedback').filter(has_text='Report status updated.').first).to_be_visible()
         check('BM changed a report status from the Reports tab', http.Client(BASE).login('bm').call('/api/staff.php?resource=reports&id=' + found)[1]['report']['status_code'] == 'UNDER_REVIEW')
         check('BM layout has no horizontal overflow', not overflow(page))
+        check('BM desktop page does not scroll; only its panes do', not page.evaluate('document.documentElement.scrollHeight > innerHeight + 1'))
         ctx.close()
 
         ctx, page = browser_ctx(playwright, 390, 'dark')

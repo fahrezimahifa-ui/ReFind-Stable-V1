@@ -93,3 +93,58 @@ Nothing here replaces the final `verify-candidate.py --browser` run, or the defe
 The new test was not run against the old code. With the old string, both assertions would fail.
 
 The only other occurrence in the repository is `docs/verification/phase4/search-regression.txt`, a recorded Phase 4 test log whose "…" ellipses were garbled when the log was written. It is a historical record, so it is left as recorded.
+
+## Batch 2: remaining Wave A and B notes (P01–P04, P06, P09, P11, P13)
+
+Where the plan left a visual choice open, the conservative option recorded in the plan was used. Each choice can be reversed on its own.
+
+| Note | Change | Decision recorded |
+|---|---|---|
+| P01 | Status flags (`.item-chip`) and information notes (`.context-note`, `.bm-outcome`, `.feedback`, `.desk-card`, `.report-visibility`) are square (3 px). Buttons, tabs and fields keep the 11 px control radius. | Controls were not made pill-shaped, because the existing rounded radius already reads as pressable and keeps the brand. Panels and cards keep their 18 px radius as containers. |
+| P03 | Card previews use `object-fit: cover` at every width; previously phones letterboxed them. The item page still shows the whole photo. | A preview can crop the edges of a portrait photo. The full photo is one tap away. |
+| P04 | Flags in Explore and History cards, the item page header, the BM record header and My Activity cards span the full width as a strip of square flags. | Option A, the segmented strip, was used. It needs no markup change; option B, a band under the image, was not used. |
+| P02 | Long body copy (item description, BM claim and report description, claimant answer and finder clue, notification message) is justified with hyphenation from 768 px up. | Discovery cards contain only a title and short meta lines, so no card text is justified. Phones stay start-aligned to avoid uneven word spacing. |
+| P06 | The numbered lists ("What happens after you submit", BM status and pickup history) are indented 2.5 em, so items start 35–40 px inside the heading. | |
+| P09 | On phones (479 px and narrower), a group of four or more view tabs becomes one labelled native select that drives the same buttons, handlers and URL. Only History has such a group. | Explore already used a Filters disclosure. BM, My Activity and Notifications have two or three tabs, which fit on one row. |
+| P11 | On desktop (1100 px and wider), `bm.js` sizes the Review Queue panes to the space under the heading, so the page itself no longer scrolls. The queue and the detail each scroll independently, and nothing scrolls inside a scrolling page. Smaller screens keep one page scroll. | The two-pane review layout keeps the queue position and the decision bar in view. Removing the panes' own scrolling would lose both. Panes are at least 400 px tall, so very short windows still scroll the page. |
+| P13 | A static background layer of soft pools runs the full document height, above the fixed wash. Two tile heights that don't divide each other (1700 and 1100 px) make the placement look irregular. It is hidden for reduced transparency and forced colours. | "Random" is read as varied placement, not as a pattern that changes on each load. Full-page screenshots still show the fixed wash only in the first screen height; that is how they draw fixed layers. In a real scrolling window the wash always covers the screen. |
+
+**Tests updated:**
+- `tools/test-phase8-ui.py`: the phone History select is labelled, changes the view and syncs the tab state; the BM desktop page does not scroll.
+- `tests/Feature/PickupContractTest.php`: a passed appointment keeps all four operations and can be rescheduled to a new future time (P10).
+
+**Focused checks, 19 November 2026.** Each ran on `phase8-dev` and restored exactly to the verified baseline:
+
+| Check | Result |
+|---|---|
+| Before/after measurement | 17 page and size combinations each run. Evidence in `C:\ReFind-Laravel\planning\professor-uiux\after\batch2\{before,after}`, run `measure-after-20261119T112226Z`. |
+| `test-phase8-ui.py` | 14 checks passed |
+| `PickupContractTest` | 5 tests, 555 assertions |
+
+**Measured before → after:**
+- flag row filled: 15–55% → 100%;
+- empty bands in phone previews: up to 58% → 0%;
+- list indent: 20 px → 35–40 px;
+- History tabs at 390 px: two rows → one select;
+- BM desktop page scroll: 1,108 px document in a 900 px window → 900 px, at 1280×720, 1366×768, 1440×900 and 1920×1080;
+- no horizontal overflow and no JavaScript errors at any measured size.
+
+## P10: pickup rescheduling (verified)
+
+Phase 7 already provides BM rescheduling, the same as native `47eea86`:
+- It applies to a SCHEDULED pickup and needs a new future Asia/Jakarta time and an active area.
+- It needs a reason of 8–250 characters and refuses a request that changes nothing.
+- It checks the displayed revision, and is race-tested against cancellation.
+- It notifies the claimant and the other BMs, and records the change in the private pickup history.
+
+A pending pickup is scheduled with Schedule pickup. Batch 1 made Reschedule the primary action once an appointment time has passed. The new contract test confirms that a passed appointment can be rescheduled.
+
+**Remaining gap:** there is no student-initiated reschedule request. Students see "contact Building Management to arrange a new time". Adding one is a new workflow with its own business rules, data and tests, and needs separate approval (plan Wave C). No placeholder control was added.
+
+## P12: passed pickup information and the Release action
+
+Passive information is now non-interactive: the passed-appointment note in the BM detail and in the Student's My Activity card, and the "Time passed" flag in the BM queue. Each is flat text with a clock icon, with no button role, pointer cursor, fill or pill shape.
+
+The genuine workflow action, Release pickup, is unchanged in authority. It appears whenever the API offers it, for pending and scheduled pickups, as a red text button that opens the reason and confirmation dialog. Nothing in the UI releases a pickup automatically when its time passes, and the server has no expiry rule.
+
+**Unresolved:** the professor's note "Release pickup expire" does not say whether it also asks for an automatic expiry or release policy. No such rule exists natively, and "Never retrieved" does not set a disposal policy. Adding one would be a new business rule, so it is documented here rather than invented.

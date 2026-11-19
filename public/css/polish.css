@@ -213,3 +213,36 @@ html:has(.sticky-form-actions),html:has(.bm-detail-actions){scroll-padding-botto
   #item-chips{order:1}#item-title{order:2}#item-description{order:3}#item-actions{order:4}#item-notice{order:5}.detail-card>.detail-meta{order:6}
   #item-actions{margin-top:4px}
 }
+
+/* ---- Professor UI/UX refinements, batch 2. These differ from native 47eea86 on purpose; see docs/UIUX_REFINEMENT.md. ---- */
+/* Shape carries meaning: controls stay rounded, status flags and information notes are square, and panels keep their
+   radius as containers. The text label still carries the meaning, never shape or colour alone. */
+:root{--radius-status:3px}
+.item-chip,.context-note,.bm-outcome,.feedback,.desk-card,.report-visibility{border-radius:var(--radius-status)}
+/* Status flags span the card or record header instead of sitting as small pills in an empty row. */
+.discovery-card .chips,#item-chips,.bm-record-heading .chips{gap:4px}
+.discovery-card .chips>.item-chip,#item-chips>.item-chip,.bm-record-heading .chips>.item-chip{flex:1 1 auto;justify-content:center;text-align:center}
+.activity-card>.item-chip{align-self:stretch;justify-content:center}
+/* Card previews fill their frame at every width; the item page still shows the whole photo. */
+@media(max-width:679px){.card-media img{object-fit:cover}}
+/* Numbered lists: markers are indented from the heading above them. */
+.claim-next ol,.bm-audit ol{padding-left:2.5em}
+/* Long body copy is justified on tablet and desktop widths only. Titles, labels, meta lines and phone columns stay
+   start-aligned, and hyphenation keeps the word spacing even. */
+@media(min-width:768px){#item-description,.bm-detail .item-description,.bm-block p,.notification-card .notification-message{text-align:justify;text-justify:inter-word;-webkit-hyphens:auto;hyphens:auto}}
+/* Review Queue on desktop: bm.js sizes the two panes to the space under the heading, so each pane scrolls on its own
+   and the page does not scroll as well. The earlier fixed calculation stays as the fallback. */
+@media(min-width:1100px){.bm-layout{height:var(--bm-pane-height,calc(var(--usable-height,100dvh) - var(--app-header-height,70px) - 32px))}}
+/* Phones: a group of four or more view tabs becomes one labelled select that drives the same buttons (student.js). */
+.compact-tabs{display:none}
+@media(max-width:479px){.type-tabs.has-compact-select{display:none}.compact-tabs{display:block;min-height:48px;margin:12px 0;border-color:var(--control);border-radius:var(--radius-control)}}
+/* Background: a scrolling layer of soft pools runs the full length of every page above the fixed wash. Two tile heights
+   that do not divide each other make the placement look irregular. Static: nothing animates. */
+body{position:relative}
+body::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:
+  radial-gradient(ellipse 34% 360px at 86% 540px,rgb(var(--blue-rgb) / calc(var(--wash-alpha) * var(--pool-strength) * 0.55)),transparent 100%) 0 0/100% 1700px repeat-y,
+  radial-gradient(ellipse 30% 330px at 10% 1180px,rgb(var(--lilac-rgb) / calc(var(--wash-alpha) * var(--pool-strength) * 0.6)),transparent 100%) 0 0/100% 1700px repeat-y,
+  radial-gradient(ellipse 26% 280px at 62% 1380px,rgb(var(--cyan-rgb) / calc(var(--wash-alpha) * var(--pool-strength) * 0.5)),transparent 100%) 0 0/100% 1700px repeat-y,
+  radial-gradient(ellipse 30% 300px at 24% 760px,rgb(var(--pink-rgb) / calc(var(--wash-alpha) * var(--pool-strength) * 0.55)),transparent 100%) 0 0/100% 1100px repeat-y,
+  radial-gradient(ellipse 28% 280px at 90% 330px,rgb(var(--orange-rgb) / calc(var(--wash-alpha) * var(--pool-strength) * 0.6)),transparent 100%) 0 0/100% 1100px repeat-y}
+@media(prefers-reduced-transparency:reduce),(forced-colors:active){body::after{display:none}}

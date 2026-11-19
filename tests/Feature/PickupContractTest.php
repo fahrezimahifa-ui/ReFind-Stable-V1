@@ -240,6 +240,24 @@ final class PickupContractTest extends TestCase
         });
     }
 
+    /** P10: a passed appointment keeps every operation, and BM can reschedule it to a new future time. */
+    public function test_passed_appointment_keeps_operations_and_can_be_rescheduled(): void
+    {
+        $this->withSnapshot(function () {
+            [, , , $handover] = $this->approvedPickup();
+            [$local] = self::jakarta('+2 days', '10:30');
+            $this->op($handover, 'schedule', ['pickup_location_id' => '36', 'scheduled_at' => $local])->assertOk();
+            // Time passes. The API accepts future times only, so the stored appointment is moved into the past directly.
+            $this->admin->exec('UPDATE handovers SET scheduled_at = UTC_TIMESTAMP() - INTERVAL 2 DAY WHERE handover_id = '.$handover);
+            $this->asUser($this->bm);
+            $this->assertSame(['reschedule', 'cancel_schedule', 'complete', 'release'], $this->getJson('/api/handovers.php?id='.$handover)->assertOk()->json('handovers.0.operations'));
+            [$next, $nextUtc] = self::jakarta('+3 days', '09:00');
+            $this->op($handover, 'reschedule', ['pickup_location_id' => '35', 'scheduled_at' => $next, 'note' => self::REASON])->assertOk()->assertJsonPath('status', 'SCHEDULED');
+            $row = $this->handoverRow($handover);
+            $this->assertSame(['SCHEDULED', '35', $nextUtc], [$row['handover_status'], (string) $row['pickup_location_id'], $row['scheduled_at']]);
+        });
+    }
+
     public function test_release_revokes_ownership_and_makes_reports_available(): void
     {
         $this->withSnapshot(function () {

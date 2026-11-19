@@ -530,3 +530,18 @@ $(async function(){
   async function homeDiscovery(){if(app.state.user?.role!=='STUDENT')return;try{const data=await get('items.php',{limit:4,active:'1'});showList('#home-reports',data.items,'No reports yet','Create a Lost or Found report to get started.');}catch(e){$('#home-reports').empty().append(U.empty('Recent reports could not load','Refresh the page to try again.'));}$('#home-discovery').prop('hidden',false);document.body.dataset.studentReady='true';}
   try{const state=await shell.ready;U.showFlash();$('[data-student-only]').prop('hidden',state.user?.role!=='STUDENT');if(page==='home'){await homeDiscovery();return;}if(!state.authenticated)return;visualEnabled=state.visual_search_enabled===true;refs=await app.request('references.php');const controllers={browse:discovery,item:itemDetail,report:reportForm,claim:claimForm,'my-reports':activity,notifications,history:historyPage};if(controllers[page])await controllers[page]();}catch(e){failed(e);$('#retry-page').off('click.student').on('click.student',()=>location.reload());}
 });
+
+// Phones: a group of four or more view tabs becomes one labelled select. It drives the same buttons, so every page
+// keeps its own handlers, URL and state; the CSS shows it only on narrow screens.
+$(function(){
+  document.querySelectorAll('.type-tabs').forEach(group=>{
+    const tabs=[...group.querySelectorAll('button.type-tab')];
+    if(tabs.length<4)return;
+    const select=$('<select>').addClass('form-select compact-tabs').attr('aria-label',group.getAttribute('aria-label')||'View');
+    tabs.forEach((tab,index)=>select.append($('<option>').val(String(index)).text(tab.textContent.trim())));
+    const sync=()=>select.val(String(Math.max(0,tabs.findIndex(tab=>tab.classList.contains('active')))));
+    select.on('change',()=>tabs[Number(select.val())].click());
+    tabs.forEach(tab=>new MutationObserver(sync).observe(tab,{attributes:true,attributeFilter:['class','aria-pressed']}));
+    group.classList.add('has-compact-select');$(group).after(select);sync();
+  });
+});
