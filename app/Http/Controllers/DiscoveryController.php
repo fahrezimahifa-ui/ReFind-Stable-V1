@@ -28,7 +28,7 @@ final class DiscoveryController
         $categories = $rows('SELECT category_id AS id,category_name AS name FROM categories WHERE is_active=1 ORDER BY display_order');
         $areas = $rows("SELECT location_id AS id,location_code AS code,location_name AS name FROM campus_locations WHERE location_kind='AREA' AND is_active=1 ORDER BY display_order");
 
-        return Contract::json(['categories' => $categories, 'locations' => $areas, 'statuses' => array_map(fn ($s) => ['code' => $s['code'], 'name' => $repo->uiStatusName($s['code'])], $rows('SELECT status_code AS code FROM item_statuses ORDER BY display_order')), 'filter_categories' => $categories, 'filter_locations' => array_map(fn ($l) => ['id' => $l['id'], 'name' => $l['name']], $areas), 'pickup_desk' => ['name' => 'Building Management service desk', 'location' => 'Gedung A lobby, ground floor', 'hours' => 'Mondayâ€“Friday, 08:00â€“16:00 WIB', 'contact' => 'bm@refind-poc.invalid'], 'campus_today' => $repo->campusToday(), 'timezone' => 'Asia/Jakarta']);
+        return Contract::json(['categories' => $categories, 'locations' => $areas, 'statuses' => array_map(fn ($s) => ['code' => $s['code'], 'name' => $repo->uiStatusName($s['code'])], $rows('SELECT status_code AS code FROM item_statuses ORDER BY display_order')), 'filter_categories' => $categories, 'filter_locations' => array_map(fn ($l) => ['id' => $l['id'], 'name' => $l['name']], $areas), 'pickup_desk' => ['name' => 'Building Management service desk', 'location' => 'Gedung A lobby, ground floor', 'hours' => 'Monday–Friday, 08:00–16:00 WIB', 'contact' => 'bm@refind-poc.invalid'], 'campus_today' => $repo->campusToday(), 'timezone' => 'Asia/Jakarta']);
     }
 
     public function notifications(Request $r, AuthService $auth)

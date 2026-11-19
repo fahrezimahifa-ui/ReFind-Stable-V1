@@ -72,6 +72,24 @@ Each screenshot comes in three variants on the same data:
 
 Nothing here replaces the final `verify-candidate.py --browser` run, or the deferred acceptance gates in QA_RELEASE_READINESS.md.
 
-## Defect found, not changed
+## Parity fix: service-desk hours text (approved 19 November 2026)
 
-`app/Http/Controllers/DiscoveryController.php` (the `references.php` response) has carried a double-encoded service-desk hours string since the foundation commit `ac03a9d`. The page shows "Mondayâ€“Friday, 08:00â€“16:00 WIB", where native shows "Monday–Friday, 08:00–16:00 WIB". It appears in My Activity and on the claim page. The text is part of the accepted API response, so it is left for a separately approved fix.
+`app/Http/Controllers/DiscoveryController.php` (the guest `references.php` response) had carried a double-encoded service-desk hours string since the foundation commit `ac03a9d`. Pages showed "Mondayâ€“Friday, 08:00â€“16:00 WIB", where native shows "Monday–Friday, 08:00–16:00 WIB". The text appears in My Activity and on the claim page.
+
+**The fix:** the string now uses UTF-8 en dashes (`e2 80 93`), identical to native `app/config.php`. The other desk fields are unchanged, including the synthetic contact address `bm@refind-poc.invalid`. The accepted checkpoints also carry the old text, so the academic profiles get this correction only when this branch is integrated.
+
+**Regression test:** `tests/Feature/ReferencesContractTest.php` asserts the exact desk text and that the decoded payload contains no double-encoding markers (`Ã`, `Â`, `â€`).
+
+**Verification**, on `phase8-dev` with an exact restore (evidence `C:\ReFind-Laravel\evidence\uiux\references-text-20261119T110817Z`):
+
+| Check | Result |
+|---|---|
+| Static checks (123 PHP files) | passed |
+| Full PHPUnit, `phpunit.phase8.xml` | 45 tests, 2,970 assertions, 0 failures |
+| Live guest GET of `references.php` | hours text identical to native, no double-encoding markers |
+| Synthetic state after restore | identical |
+| Protection | passed |
+
+The new test was not run against the old code. With the old string, both assertions would fail.
+
+The only other occurrence in the repository is `docs/verification/phase4/search-regression.txt`, a recorded Phase 4 test log whose "…" ellipses were garbled when the log was written. It is a historical record, so it is left as recorded.
