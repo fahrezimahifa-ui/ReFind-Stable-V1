@@ -331,6 +331,22 @@ final class Phase8ContractTest extends TestCase
         }));
     }
 
+    public function test_pages_show_native_text_when_features_are_enabled(): void
+    {
+        $this->withSnapshot(function () {
+            $this->asUser($this->studentA);
+            $this->get('/my-reports.html')->assertOk()->assertSee('Follow your reports, claim notes and pickup status.', false);
+            $this->asUser($this->bm);
+            $this->get('/admin.html')->assertOk()->assertSee('Compare the identifying details, then record your decision.', false);
+            $this->stages('student', function () {
+                $this->asUser($this->studentA);
+                $this->get('/my-reports.html')->assertOk()->assertSee('Follow your reports and claim notes.', false);
+                $this->asUser($this->bm);
+                $this->get('/admin.html')->assertOk()->assertSee('Review claim details and ownership evidence.', false);
+            });
+        });
+    }
+
     public function test_history_page_is_stage_gated(): void
     {
         $this->withSnapshot(function () {
