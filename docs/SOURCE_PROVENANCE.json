@@ -44,12 +44,16 @@
   },
   "adapted_assets": {
     "js/bm.js": {
-      "sha256": "e471180a69e1a2ee486f614873e0d52e7d5a9bb437bf79e72415f17f994fbb7c",
-      "reason": "Phase 6-8 (unaccepted): decisions follow enabled stages; Claims, Reports (status stage) and Handover (pickup stage) tabs with native operations."
+      "sha256": "f34b9a648b345d5a6fa0b44061a34a7122dfd4f16eacdbc867b84fff0484fe21",
+      "reason": "Phase 6-8 (unaccepted): decisions follow enabled stages; Claims, Reports (status stage) and Handover (pickup stage) tabs with native operations. Professor UI refinement batch 1 (unaccepted): at most two decision buttons per bar, Request more info, Cancel appointment and Release pickup as text buttons, Reschedule primary once the time has passed, passed time shown as flat status."
     },
     "js/student.js": {
       "sha256": "b8d1d7c8c713a6249786975cba0a8a9c24e8ac128809d06802a85f3fb7f4f22c",
       "reason": "Phase 6/7 (unaccepted): claim/withdraw follow the Student stage; pickup details follow the pickup stage; notifications page read-only (read-marking is a separate, unapproved write)."
+    },
+    "css/polish.css": {
+      "sha256": "9d657bfd1dd78eee8b9a51021372216c2df95bce35e0755e2476969d25c0de3d",
+      "reason": "Professor UI refinement batch 1 (unaccepted): notification message smaller than its title; text buttons inside decision bars; passed pickup time as flat status text with a clock icon instead of a filled box or chip."
     }
   }
 }

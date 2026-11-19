@@ -102,7 +102,12 @@ with sync_playwright() as playwright:
         bm.goto(BASE + '/admin.html?tab=claims&claim=' + claim_id); ready(bm)
         actions = bm.locator('[data-bm-action]')
         expect(actions).to_have_count(3)
-        bm.locator('[data-bm-action="need_more_info"]').click()
+        # Two decision buttons; Request more info is a text button with the same dialog, opened here by keyboard.
+        bar = bm.locator('.bm-detail-actions')
+        check('claim decisions show two buttons, Approve first', bar.locator('.btn').count() == 2 and actions.first.get_attribute('data-bm-action') == 'approved')
+        more = bm.locator('[data-bm-action="need_more_info"]')
+        check('Request more info is a text button', more.evaluate("e => e.tagName === 'BUTTON' && e.classList.contains('text-button') && !e.classList.contains('btn')"))
+        more.focus(); bm.keyboard.press('Enter')
         expect(bm.locator('#operation-dialog')).to_be_visible()
         bm.locator('#operation-note').fill('Please describe what is inside the front pocket.')
         bm.locator('#operation-submit').click()

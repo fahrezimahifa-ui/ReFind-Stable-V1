@@ -71,14 +71,24 @@ $(async function () {
   }
   function block(title, text, priv = false) { return $('<div>').addClass('bm-block' + (priv ? ' private' : '')).append($('<h3>').text(title), $('<p>').text(text || 'No identifying detail recorded.')); }
   function meta(values) { const list = $('<dl>').addClass('detail-meta'); values.forEach(([title, value]) => list.append($('<div>').append($('<dt>').text(title), $('<dd>').append(value instanceof jQuery ? value : document.createTextNode(String(value || 'Not specified')))))); return list; }
+  // At most one primary and one outline button per decision area. The other authorised operations stay available as
+  // labelled text buttons with the same data-bm-action, handler and dialog. Once an appointment time has passed,
+  // Reschedule becomes the primary pickup action.
   function actionStyle(action, record) {
-    if (action === 'rejected' || action === 'release') return 'btn-danger-outline';
-    if (action === 'cancel_schedule') return 'btn-warning-outline';
-    if (['approved','schedule','status'].includes(action) || action === 'complete' && record.handover_status === 'SCHEDULED') return 'btn-primary';
-    return 'btn-outline';
+    if (action === 'release') return 'text-button danger-text';
+    if (action === 'need_more_info' || action === 'cancel_schedule') return 'text-button';
+    if (action === 'rejected') return 'btn btn-danger-outline';
+    const primaryPickup = U.pickupPastDue(record) ? 'reschedule' : 'complete';
+    if (['approved','schedule','status'].includes(action) || action === primaryPickup && record.handover_status === 'SCHEDULED') return 'btn btn-primary';
+    return 'btn btn-outline';
+  }
+  // Buttons first (primary, then outline), then text actions, with the destructive one last.
+  function actionRank(action, record) {
+    const style = actionStyle(action, record);
+    return style.includes('btn-primary') ? 0 : style.startsWith('btn ') ? 1 : style.includes('danger') ? 3 : 2;
   }
   function actionButton(action, snapshot) {
-    return $('<button>').addClass('btn ' + actionStyle(action, snapshot.record)).attr({type:'button','data-bm-action':action}).text(labels[action]).on('click', function () {
+    return $('<button>').addClass(actionStyle(action, snapshot.record)).attr({type:'button','data-bm-action':action}).text(labels[action]).on('click', function () {
       if (saving || !current || selected !== String(snapshot.id) || current.revision !== snapshot.revision) return;
       openOperation(action, snapshot, this);
     });
@@ -107,8 +117,8 @@ $(async function () {
     if (claim.review_note) box.append($('<div>').addClass('bm-outcome').text(claim.review_note + (claim.reviewed_at ? '\nReviewed ' + U.date(claim.reviewed_at,true) : '')));
     if (claim.approval_blocked) box.append($('<p>').addClass('bm-locked-note').text(claim.approval_blocked));
     if (claimsReadOnly) return box;
-    const actions = $('<div>').addClass('bm-detail-actions'), order = ['approved','need_more_info','rejected'];
-    [...claim.decisions].filter(action => decisionsAllowed.includes(action)).sort((a, b) => order.indexOf(a) - order.indexOf(b)).forEach(action => actions.append(actionButton(action,{kind:'claim',id:claim.claim_id,revision:claim.revision,record:claim})));
+    const actions = $('<div>').addClass('bm-detail-actions');
+    [...claim.decisions].filter(action => decisionsAllowed.includes(action)).sort((a, b) => actionRank(a, claim) - actionRank(b, claim)).forEach(action => actions.append(actionButton(action,{kind:'claim',id:claim.claim_id,revision:claim.revision,record:claim})));
     if (claim.handover_id && handoversAvailable) actions.append($('<button>').addClass('btn btn-primary').attr('type','button').text('Open handover').on('click', () => openRecord('handover', claim.handover_id)));
     if (!claim.decisions.length) box.append($('<p>').addClass('bm-locked-note').text(claim.claim_status === 'APPROVED' ? 'Ownership is approved. Continue to handover for pickup or the return record.' : claim.claim_status === 'WITHDRAWN' ? 'The claimant withdrew this claim. They may send a new one while the item is available.' : claim.claim_status === 'REJECTED' ? 'This claim was rejected. A rejection is final for this item.' : 'This decision is saved.'));
     return box.append(actions);
@@ -148,7 +158,7 @@ $(async function () {
     // Display only: a passed appointment is flagged, but its state changes only through the operations below.
     if (U.pickupPastDue(record)) box.append($('<p>').addClass('past-due-note').text('The scheduled time has passed. If the owner collected the item, confirm the return; otherwise reschedule with them.'));
     const actions = $('<div>').addClass('bm-detail-actions');
-    record.operations.forEach(action => actions.append(actionButton(action,{kind:'handover',id:record.handover_id,revision:record.revision,record})));
+    [...record.operations].sort((a, b) => actionRank(a, record) - actionRank(b, record)).forEach(action => actions.append(actionButton(action,{kind:'handover',id:record.handover_id,revision:record.revision,record})));
     box.append(actions,$('<p>').addClass('bm-locked-note').text(returned ? 'Returned record · read-only.' : scheduled ? 'Cancelling the appointment keeps ownership approved. You can schedule the same pickup again.' : 'Schedule a time with the claimant, or confirm the return if they collect the item now. Release the pickup if the owner never comes.'));
     const audit = $('<ol>');
     (record.audit || []).forEach(event => {
@@ -200,8 +210,8 @@ $(async function () {
         const label = tab === 'claims' ? U.claimNames[code] : tab === 'reports' ? U.statusNames[code] : U.pickupNames[code];
         const detail = tab === 'claims' ? record.claimant_name + ' · ' + U.plural(record.proof_count, 'supporting image') : tab === 'reports' ? (record.item_type === 'LOST' ? 'Lost · ' : 'Found · ') + U.locationText(record) : record.claimant_name + ' · ' + (code === 'COMPLETED' ? 'Returned' : record.scheduled_at ? U.date(record.scheduled_at,true) : 'Not scheduled yet');
         const summary=$('<p>').text(detail);
-        if(tab!=='reports'){const extra=tab==='claims'?U.plural(record.proof_count,'supporting image'):code==='COMPLETED'?'Returned':record.scheduled_at?U.date(record.scheduled_at,true)+(U.pickupPastDue(record)?' · time passed':''):'Not scheduled yet';summary.empty().addClass('bm-queue-person').append(shell.identity(record.claimant_name,record.claimant_avatar_url),$('<span>').text(extra));}
-        box.append($('<button>').addClass('bm-queue-card').toggleClass('selected',id === selected).attr({type:'button','data-record-id':id,'aria-pressed':String(id === selected)}).append(U.stateChip(code,label),tab==='handover'&&U.pickupPastDue(record)?U.chip('Time passed','state attention'):null,$('<h3>').attr('title',record.title).text(U.titleParts(record.title).display),U.demoChip(record.title),summary).on('click',async function () {
+        if(tab!=='reports'){const extra=tab==='claims'?U.plural(record.proof_count,'supporting image'):code==='COMPLETED'?'Returned':record.scheduled_at?U.date(record.scheduled_at,true):'Not scheduled yet';summary.empty().addClass('bm-queue-person').append(shell.identity(record.claimant_name,record.claimant_avatar_url),$('<span>').text(extra));}
+        box.append($('<button>').addClass('bm-queue-card').toggleClass('selected',id === selected).attr({type:'button','data-record-id':id,'aria-pressed':String(id === selected)}).append(U.stateChip(code,label),tab==='handover'&&U.pickupPastDue(record)?$('<span>').addClass('past-due-flag').text('Time passed'):null,$('<h3>').attr('title',record.title).text(U.titleParts(record.title).display),U.demoChip(record.title),summary).on('click',async function () {
           if (saving) return; selected = id; pinned = false; $('#bm-selection-note').prop('hidden',true);
           // On phones the detail is its own step, so the system Back button returns to the list.
           if (mobile() && !history.state?.bmDetail) history.pushState({bmDetail:true}, '', app.base + 'admin.html?' + new URLSearchParams({tab, [paramKey()]: id}));

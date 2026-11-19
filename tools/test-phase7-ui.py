@@ -2,6 +2,7 @@
 releases from the Handover tab; the Student follows pickups in My Activity and the read-only notifications page.
 Synthetic data only; the caller restores the phase7-dev snapshot afterwards.
 """
+from datetime import datetime, timedelta, timezone
 from importlib import import_module
 from pathlib import Path
 import json, os, sys
@@ -86,9 +87,36 @@ with sync_playwright() as playwright:
         expect(bm.locator('[data-bm-tab="handover"]')).to_have_attribute('aria-pressed', 'true')
         check('Reports tab follows the Phase 8 status stage', bm.locator('[data-bm-tab="reports"]').count() == (1 if http.PHASE8 else 0))
         expect(bm.locator('[data-bm-action]')).to_have_count(3)
+        bar = bm.locator('.bm-detail-actions')
+        check('pending pickup shows two buttons, Schedule first', bar.locator('.btn').count() == 2 and bar.locator('[data-bm-action]').first.get_attribute('data-bm-action') == 'schedule')
+        check('Release pickup stays an enabled text action', 'text-button' in (bar.locator('[data-bm-action="release"]').get_attribute('class') or '') and bar.locator('[data-bm-action="release"]').is_enabled())
         bm_operation(bm, handover, 'schedule', 'Pickup scheduled.', location='36', when=when)
         check('BM scheduled the pickup from the Handover tab', True)
         check('BM layout has no horizontal overflow', not bm.evaluate('document.documentElement.scrollWidth > window.innerWidth + 1'))
+        ctx.close()
+
+        # Passed appointment: only the browser clock moves past the slot (no data change). The passed time is flat
+        # status text, Reschedule leads, and every authorised operation stays available.
+        flat_js = '''n => { const s = getComputedStyle(n); return n.tagName === 'P' && !n.closest('button, a') && s.cursor !== 'pointer'
+            && s.backgroundColor === 'rgba(0, 0, 0, 0)' && s.borderTopWidth === '0px' && s.borderTopLeftRadius === '0px'; }'''
+        ctx, bm = phase(playwright, 1440, 'light', 'bm', 'admin.html')
+        ctx.clock.set_fixed_time(datetime.now(timezone.utc) + timedelta(days=4))
+        bm.goto(BASE + '/admin.html?tab=handover&handover=' + handover); ready(bm)
+        note = bm.locator('.bm-detail .past-due-note')
+        expect(note).to_be_visible()
+        check('BM passed-time note is flat, non-interactive status', note.evaluate(flat_js))
+        bar = bm.locator('.bm-detail-actions')
+        check('passed pickup keeps all four operations', bar.locator('[data-bm-action]').count() == 4)
+        check('passed pickup shows two buttons, Reschedule first and primary', bar.locator('.btn').count() == 2 and bar.locator('[data-bm-action]').first.get_attribute('data-bm-action') == 'reschedule' and 'btn-primary' in (bar.locator('[data-bm-action="reschedule"]').get_attribute('class') or ''))
+        check('passed pickup keeps Release as an enabled text action', 'text-button' in (bar.locator('[data-bm-action="release"]').get_attribute('class') or '') and bar.locator('[data-bm-action="release"]').is_enabled())
+        check('queue flags passed times as flat text, not chips', bm.locator('.bm-queue-card .past-due-flag').count() >= 1 and bm.locator('.bm-queue-card .item-chip.attention').count() == 0)
+        ctx.close()
+        ctx, st = phase(playwright, 390, 'dark', 'student_a', 'index.html')
+        ctx.clock.set_fixed_time(datetime.now(timezone.utc) + timedelta(days=4))
+        st.goto(BASE + '/my-reports.html?tab=claims&claim=' + claim); ready(st)
+        late = st.locator('.activity-card[data-claim-id="' + claim + '"] .past-due-note')
+        expect(late).to_be_visible()
+        check('Student passed-time note is flat, non-interactive status', late.evaluate(flat_js))
         ctx.close()
 
         # Student: My Activity shows the appointment; notifications are read-only.
@@ -100,6 +128,8 @@ with sync_playwright() as playwright:
         first = st.locator('.notification-card').first
         expect(first).to_contain_text('Pickup scheduled')
         expect(first).to_contain_text('Gedung B')
+        sizes = first.evaluate("c => ['.notification-title', '.notification-message'].map(s => parseFloat(getComputedStyle(c.querySelector(s)).fontSize))")
+        check('notification message is smaller than its title', sizes[1] < sizes[0])
         if http.PHASE8:
             check('read-marking controls available (Phase 8)', st.locator('.mark-read').count() > 0 and st.locator('#mark-all-read').is_visible())
         else:
