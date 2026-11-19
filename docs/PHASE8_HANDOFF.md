@@ -8,7 +8,7 @@
 |---|---|
 | Worktree / branch | `C:\ReFind-Laravel\laravel-p8`, `migration/phase8-integration` (local; no push, merge or deploy) |
 | Base | Phase 7 WIP `b889b80` (which contains Phase 6 `1ea27c5`). Both are preserved unchanged, with their own worktrees and profiles. |
-| WIP commits | `516311b` phase8-dev profile · `27c2ea1` remaining native features · this commit (verification workflow, docs) |
+| WIP commits | `516311b` phase8-dev profile · `27c2ea1` remaining native features · `ebc5948` verification workflow and docs · `58bc42c` live-suite stage awareness · this commit (evidence record) |
 | Profile | `phase8-dev`: `refind_laravel_p8_dev` / `refind_p8_dev_app`, ports 8020/8021, `state/phase8-dev`, bound to `laravel-p8` |
 | Phase 7 demo | The owner tested scheduling, release, return, My Activity and notifications and found no issues. The pre-demo data was restored and the demo credentials deleted. |
 
@@ -38,8 +38,9 @@
 | PHPUnit `phpunit.phase8.xml` at `27c2ea1` (real DB, exact restore) | **43 tests, 2955 assertions, OK.** Includes `Phase8ContractTest` (5 tests, 295 assertions: validation, privacy, rollback and gate narrowing for every Phase 8 feature). |
 | PHP lint / JS / Python compile | All changed files pass |
 | `phase8-dev` exact grant audit | Passed |
-| `tools/verify-candidate.py` fail-safe | Verified. Below the RAM floor it stopped at preflight, wrote `accepted:false` evidence, started nothing and left the database as found. |
-| Live HTTP, races and browser on `phase8-dev` | **Not run yet.** Available RAM stayed at about 1.3–1.4 GiB, below the 2 GiB floor; most memory is held by the owner's Chrome and the Claude app. Run `verify-candidate.py --browser` once at least 2 GiB is free. It covers the Phase 6/7 live suites as regressions and the new `test-phase8-http.py`. |
+| `tools/verify-candidate.py` fail-safe | Verified. Below the RAM floor it stopped at preflight, wrote `accepted:false` evidence, started nothing and left the database as found. A later run that failed mid-way stopped its workers, ran its emergency restore and returned the database to its prior state. |
+| **Candidate run `candidate-20261119T095326Z` on clean committed `58bc42c`** | **Passed (`accepted:false`).** The steps were: preflight; static checks (122 PHP files plus JS and Python); exact grant audit; PHPUnit 43 tests, 2955 assertions; then, on two live workers, `test-phase6-http.py` (77 checks), `test-phase7-http.py` (81) and `test-phase8-http.py` (28); browser suites `test-phase6-ui.py` (15) and `test-phase7-ui.py` (10); exact restore with an identical state dump; protection (academic grants identical to the 6B evidence, 6B archive `c1f4bde6…`, canonical 6B files 19/19, accepted refs unchanged); owned shutdown. Race orderings seen: competing approvals one-winner ×2, withdraw vs approve → APPROVED, submit vs delete → deleted, resubmit vs review → REJECTED, double schedule, complete vs release → release, reschedule vs cancel → PENDING, release vs claim → claim accepted after release. Evidence: `C:\ReFind-Laravel\evidence\phase8\candidate-20261119T095326Z\summary.json`. |
+| Test-only fixes before the passing run (`58bc42c`) | Inherited live assertions that Phase 8 features were absent are now stage-aware (manual status, read-marking, Reports tab). The Phase 8 lamp fixture was isolated from earlier suites' matching reports. No application code changed. |
 | Protection | No accepted profile, grant, native install or earlier branch was touched. The driver's protection step re-checks this. |
 
 ## Deferred gates (explicitly not passed)
@@ -61,6 +62,5 @@ These are recorded in `RELEASE_PREPARATION.md` §4 and in each driver summary:
 
 ## Next steps
 
-1. Free memory and run `verify-candidate.py --browser` on `phase8-dev` (targeted, about 5 minutes).
-2. Owner review of `migration/phase8-integration`.
-3. The coordinated final acceptance effort in `RELEASE_PREPARATION.md` §4.
+1. Owner review of `migration/phase8-integration`. The integrated candidate is functionally complete apart from the excluded AI feature, and the targeted verification passed on `58bc42c`.
+2. The coordinated final acceptance effort in `RELEASE_PREPARATION.md` §4.

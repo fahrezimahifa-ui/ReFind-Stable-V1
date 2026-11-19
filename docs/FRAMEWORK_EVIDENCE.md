@@ -42,7 +42,7 @@ ReFind's native v1.0 was procedural PHP: one script per endpoint (`api/*.php`) p
 |---|---|
 | Phase 6 WIP `1ea27c5` | PHPUnit 34 tests, 2114 assertions; HTTP and races 78 checks; browser 15 checks; owner manual test with no issues |
 | Phase 7 WIP `b889b80` | PHPUnit 38 tests, 2661 assertions; pickup HTTP and races 81 checks ×5; browser 10 + 15 checks; owner manual test with no issues |
-| Phase 8 integration (this branch) | PHPUnit 43 tests, 2955 assertions at `27c2ea1`. Live and browser results are recorded by `tools/verify-candidate.py` in `evidence/phase8/candidate-*/summary.json`. |
+| Phase 8 integration (this branch) | `tools/verify-candidate.py` on `58bc42c` passed: PHPUnit 43 tests, 2955 assertions; live HTTP and races 77 + 81 + 28 checks; browser 15 + 10 checks; exact restore; protection checks. Evidence: `evidence/phase8/candidate-20261119T095326Z/summary.json`. |
 
 The accepted academic evidence (Phases 4, 5 A and 5 B) is unchanged and lives under `C:\ReFind-Laravel\evidence`. **No Phase 6–8 checkpoint is accepted.** See `RELEASE_PREPARATION.md` for the deferred gates.
 
