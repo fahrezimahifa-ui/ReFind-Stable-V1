@@ -288,3 +288,7 @@ body::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
   .card-media .no-photo{padding:12px 16px}
   .gallery-main:disabled{height:auto;min-height:56px;aspect-ratio:auto;padding:12px 16px}
 }
+/* Labelled long values in BM records (descriptions and notes) share the record's field-label style. */
+.bm-detail .bm-field-label{margin:0;font-size:14px;font-weight:600;color:var(--label)}
+.bm-field p{margin:2px 0 0;font-size:15px;line-height:1.5;color:var(--ink);white-space:pre-line;overflow-wrap:anywhere}
+.bm-detail .bm-field:not(.bm-outcome){margin-top:16px}

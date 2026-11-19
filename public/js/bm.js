@@ -10,8 +10,8 @@ $(async function () {
   let request = 0, detailRequest = 0, saving = false, operation = null, refs, trigger = null, timer;
   const drafts = new Map();
   const labels = {approved:'Approve claim', rejected:'Reject claim', need_more_info:'Request more info', status:'Update report status', schedule:'Schedule pickup', reschedule:'Reschedule pickup', cancel_schedule:'Cancel appointment', complete:'Confirm item returned', release:'Release pickup'};
-  const done = {approved:'Claim approved.', rejected:'Claim rejected.', need_more_info:'More information requested from the claimant.', status:'Report status updated.', schedule:'Pickup scheduled.', reschedule:'Pickup rescheduled.', cancel_schedule:'Appointment cancelled. Ownership stays approved.', complete:'Item return confirmed.', release:'Pickup released. Both reports are available again.'};
-  const titles = {claims:'Review Queue', reports:'Report review', handover:'Handover'};
+  const done = {approved:'Claim approved.', rejected:'Claim rejected.', need_more_info:'More information requested from the claimant.', status:'Report status updated.', schedule:'Pickup scheduled.', reschedule:'Pickup rescheduled.', cancel_schedule:'Appointment cancelled. Ownership stays approved.', complete:'Item return confirmed.', release:'Pickup released. The report and any linked Lost report are available again.'};
+  const titles = {claims:'Review Queue', reports:'Report review', handover:'Pickups'};
   const terminalStatuses = ['RESOLVED','UNCLAIMED_CLOSED'];
   const get = (endpoint, query = {}) => app.request(endpoint + '?' + new URLSearchParams(Object.entries(query).filter(([, v]) => v !== '' && v !== null && v !== undefined)));
   const mobile = () => innerWidth < 1100;
@@ -75,7 +75,7 @@ $(async function () {
   }
   function switchState() {
     const state = $('#bm-state').empty();
-    const choices = tab === 'claims' ? [['PENDING','Waiting for BM'],['NEED_MORE_INFO','Waiting for student'],['APPROVED','Approved'],['REJECTED','Rejected'],['WITHDRAWN','Withdrawn'],['all','All claims']]
+    const choices = tab === 'claims' ? [['PENDING',U.claimNames.PENDING],['NEED_MORE_INFO',U.claimNames.NEED_MORE_INFO],['APPROVED','Approved'],['REJECTED','Rejected'],['WITHDRAWN','Withdrawn'],['all','All claims']]
       : tab === 'handover' ? [['active','Active pickups'],['PENDING','Awaiting scheduling'],['SCHEDULED','Scheduled'],['COMPLETED','Returned'],['all','All pickups']]
       : [['all','All reports'], ...refs.statuses.map(s => [s.code, U.statusNames[s.code] || s.name])];
     if (tab === 'claims') choices.unshift(['active','Active claims']);
@@ -94,6 +94,8 @@ $(async function () {
     })));
     return section.append(photos);
   }
+  // A labelled text field for long values (descriptions, notes), styled like the record's field labels.
+  function field(title, text, extra = '') { return $('<section>').addClass('bm-field ' + extra).append($('<h3>').addClass('bm-field-label').text(title), $('<p>').text(text || 'Not specified')); }
   function block(title, text, priv = false) { return $('<div>').addClass('bm-block' + (priv ? ' private' : '')).append($('<h3>').text(title), $('<p>').text(text || 'No identifying detail recorded.')); }
   function meta(values) { const list = $('<dl>').addClass('detail-meta'); values.forEach(([title, value]) => list.append($('<div>').append($('<dt>').text(title), $('<dd>').append(value instanceof jQuery ? value : document.createTextNode(String(value || 'Not specified')))))); return list; }
   // Claims and reports: at most one primary and one outline button. Request more info is a text button with the same
@@ -126,32 +128,32 @@ $(async function () {
   function claimDetail(claim) {
     const box = $('<article>').attr('data-detail-claim-id', claim.claim_id);
     box.append(recordHeading(claim.item.title,$('<div>').addClass('chips').append(U.stateChip(claim.claim_status,U.claimNames[claim.claim_status]),U.demoChip(claim.item.title))));
-    const summary = $('<div>').addClass('bm-claim-summary').append(meta([['Claimant',shell.identity(claim.claimant_name,claim.claimant_avatar_url)],['Claimant email',claim.claimant_email],['Student ID',claim.claimant_student_id],['Submitted',U.date(claim.created_at,true)],...(claim.resubmitted_at ? [['Resubmitted',U.date(claim.resubmitted_at,true)]] : []),['Location',U.locationText(claim.item)],['Related Lost',claim.lost ? U.titleParts(claim.lost.title).display : 'No linked Lost report']]));
+    const summary = $('<div>').addClass('bm-claim-summary').append(meta([['Claimant',shell.identity(claim.claimant_name,claim.claimant_avatar_url)],['Claimant email',claim.claimant_email],['Student ID',claim.claimant_student_id],['Submitted',U.date(claim.created_at,true)],...(claim.resubmitted_at ? [['Resubmitted',U.date(claim.resubmitted_at,true)]] : []),['Found at',U.locationText(claim.item)],['Linked Lost report',claim.lost ? U.titleParts(claim.lost.title).display : 'None linked']]));
     if (claim.item.photos.length) summary.append($('<button>').addClass('bm-report-photo').attr({type:'button','aria-label':'Enlarge public item photo'}).append($('<img>').attr({src:claim.item.photos[0],alt:U.titleParts(claim.item.title).display})).on('click', function () {
       trigger = this; $('#bm-evidence-title').text('Public item photo'); $('#bm-evidence-image').attr({src:claim.item.photos[0],alt:U.titleParts(claim.item.title).display}); document.querySelector('#bm-evidence-dialog').showModal();
     }));
     box.append(summary);
-    if (claim.previous_request) box.append($('<div>').addClass('bm-outcome').text('Your previous request (' + U.date(claim.previous_request.at,true) + '):\n' + claim.previous_request.note));
-    box.append($('<div>').addClass('bm-compare').append(block('Claimant answer',claim.ownership_answer), block("Finder's private clue",claim.item.verification_clue,true)), evidence(claim.ownership_photos,'Private claim evidence'));
-    box.append($('<p>').addClass('item-description bm-claim-description').text(claim.item.description));
-    if (claim.lost) box.append($('<section>').addClass('bm-audit').append(block('Linked Lost identifying detail',claim.lost.verification_clue,true), evidence(claim.lost.ownership_photos,'Private Lost evidence'), U.navAction('Open linked report',U.itemUrl(claim.lost.item_id))));
-    if (claim.review_note) box.append($('<div>').addClass('bm-outcome').text(claim.review_note + (claim.reviewed_at ? '\nReviewed ' + U.date(claim.reviewed_at,true) : '')));
+    if (claim.previous_request) box.append(field('Your previous request · ' + U.date(claim.previous_request.at,true), claim.previous_request.note, 'bm-outcome'));
+    box.append($('<div>').addClass('bm-compare').append(block('Claimant answer',claim.ownership_answer), block("Finder's private clue",claim.item.verification_clue,true)), evidence(claim.ownership_photos,"Claimant's private photos"));
+    box.append(field('Public description', claim.item.description, 'bm-claim-description'));
+    if (claim.lost) box.append($('<section>').addClass('bm-audit').append(block("Lost owner's ownership details",claim.lost.verification_clue,true), evidence(claim.lost.ownership_photos,"Lost owner's private photos"), U.navAction('Open linked report',U.itemUrl(claim.lost.item_id))));
+    if (claim.review_note) box.append(field('Review note' + (claim.reviewed_at ? ' · ' + U.date(claim.reviewed_at,true) : ''), claim.review_note, 'bm-outcome'));
     if (claim.approval_blocked) box.append($('<p>').addClass('bm-locked-note').text(claim.approval_blocked));
     if (claimsReadOnly) return box;
     const actions = $('<div>').addClass('bm-detail-actions');
     [...claim.decisions].filter(action => decisionsAllowed.includes(action)).sort((a, b) => actionRank(a, claim) - actionRank(b, claim)).forEach(action => actions.append(actionButton(action,{kind:'claim',id:claim.claim_id,revision:claim.revision,record:claim})));
-    if (claim.handover_id && handoversAvailable) actions.append($('<button>').addClass('btn btn-primary').attr('type','button').text('Open handover').on('click', () => openRecord('handover', claim.handover_id)));
-    if (!claim.decisions.length) box.append($('<p>').addClass('bm-locked-note').text(claim.claim_status === 'APPROVED' ? 'Ownership is approved. Continue to handover for pickup or the return record.' : claim.claim_status === 'WITHDRAWN' ? 'The claimant withdrew this claim. They may send a new one while the item is available.' : claim.claim_status === 'REJECTED' ? 'This claim was rejected. A rejection is final for this item.' : 'This decision is saved.'));
+    if (claim.handover_id && handoversAvailable) actions.append($('<button>').addClass('btn btn-primary').attr('type','button').text('Open pickup').on('click', () => openRecord('handover', claim.handover_id)));
+    if (!claim.decisions.length) box.append($('<p>').addClass('bm-locked-note').text(claim.claim_status === 'APPROVED' ? 'Ownership is approved. Continue to the pickup to arrange it or see the return record.' : claim.claim_status === 'WITHDRAWN' ? 'The claimant withdrew this claim. They may send a new one while the item is available.' : claim.claim_status === 'REJECTED' ? 'This claim was rejected. A rejection is final for this item.' : 'This decision is saved.'));
     return box.append(actions);
   }
   function reportDetail(report) {
-    const box = $('<article>').attr('data-detail-report-id',report.item_id).append(recordHeading(report.title,U.chips(report)), meta([['Type',report.item_type === 'LOST' ? 'Lost' : 'Found'],['Location',U.locationText(report)],['Event',U.eventDate(report)],['Reporter',shell.identity(report.reporter_name,report.reporter_avatar_url)]]), $('<p>').addClass('item-description').text(report.description), block('Private verification clue',report.verification_clue,true), evidence(report.ownership_photos,'Private report evidence'));
+    const box = $('<article>').attr('data-detail-report-id',report.item_id).append(recordHeading(report.title,U.chips(report)), meta([['Type',report.item_type === 'LOST' ? 'Lost' : 'Found'],[report.item_type === 'LOST' ? 'Last seen at' : 'Found at',U.locationText(report)],[report.item_type === 'LOST' ? 'Date lost' : 'Date found',U.eventDate(report)],['Reporter',shell.identity(report.reporter_name,report.reporter_avatar_url)]]), field('Public description', report.description), block(report.item_type === 'LOST' ? 'Ownership details' : 'Private clue',report.verification_clue,true), evidence(report.ownership_photos,'Private photos'));
     const actions = $('<div>').addClass('bm-detail-actions');
     if (report.allowed_statuses.length) actions.append(actionButton('status',{kind:'report',id:report.item_id,revision:report.revision,record:report}));
     else if (['RESOLVED','UNCLAIMED_CLOSED'].includes(report.status_code)) box.append($('<p>').addClass('bm-locked-note').text('Archived report · read-only.'));
     else {
       const lock = $('<p>').addClass('bm-locked-note').text('This report is locked while its claim or pickup is in progress. ');
-      if (report.active_handover_id) lock.append($('<button>').addClass('text-button').attr('type','button').text('Open the pickup').on('click', () => openRecord('handover', report.active_handover_id)));
+      if (report.active_handover_id) lock.append($('<button>').addClass('text-button').attr('type','button').text('Open pickup').on('click', () => openRecord('handover', report.active_handover_id)));
       else if (report.active_claim_id) lock.append($('<button>').addClass('text-button').attr('type','button').text('Open the claim').on('click', () => openRecord('claims', report.active_claim_id)));
       box.append(lock);
     }
@@ -175,7 +177,7 @@ $(async function () {
     const returned = record.handover_status === 'COMPLETED', scheduled = record.handover_status === 'SCHEDULED';
     const notes = record.notes === 'Arrange pickup with Building Management.' ? 'Awaiting a pickup appointment.' : record.notes;
     const box = $('<article>').attr({'data-detail-handover-id':record.handover_id,'data-handover-status':record.handover_status}).append(recordHeading(record.title,$('<div>').addClass('chips').append(U.stateChip(record.handover_status,U.pickupNames[record.handover_status]),U.demoChip(record.title))),$('<div>').addClass('bm-pickup-meta').append(meta([['Verified claimant',shell.identity(record.claimant_name,record.claimant_avatar_url)],['Claimant email',record.claimant_email],['Student ID',record.claimant_student_id],['Pickup area',record.pickup_location || 'Not assigned'],...(returned ? [['Returned',U.date(record.completed_at,true)],['Appointment',record.scheduled_at ? U.date(record.scheduled_at,true) : 'Collected without a scheduled appointment']] : [['Schedule',record.scheduled_at ? U.date(record.scheduled_at,true) + (U.pickupPastDue(record) ? ' · time passed' : '') : 'Not scheduled yet. Agree a time with the claimant.']])])));
-    if (notes) box.append($('<div>').addClass('bm-outcome').text(notes));
+    if (notes) box.append(field('Pickup note', notes, 'bm-outcome'));
     // Display only: a passed appointment is flagged, but its state changes only through the operations below.
     if (U.pickupPastDue(record)) box.append($('<p>').addClass('past-due-note').text('The scheduled time has passed. If the owner collected the item, confirm the return; otherwise reschedule with them.'));
     // Main row: the two likeliest next steps for this state. Appointment changes and release have their own labelled
@@ -189,7 +191,7 @@ $(async function () {
     const more = [];
     if (ops.includes('cancel_schedule')) more.push(section('appointment', 'Appointment', 'Cancelling keeps ownership approved. You can schedule the same pickup again.', actionButton('cancel_schedule', snapshot, 'text-button')));
     ops.filter(action => !main.includes(action) && !['cancel_schedule','release'].includes(action)).forEach(action => more.push(section(action, labels[action], '', actionButton(action, snapshot, 'text-button'))));
-    if (ops.includes('release')) more.push(section('release', 'If the owner never collects', 'Releasing closes this claim as rejected and makes both reports available again. You will be asked for a reason and a confirmation.', actionButton('release', snapshot, 'btn btn-danger-outline')));
+    if (ops.includes('release')) more.push(section('release', 'If the owner never collects', 'Releasing closes this claim as rejected and makes the report, and any linked Lost report, available again. You will be asked for a reason and a confirmation.', actionButton('release', snapshot, 'btn btn-danger-outline')));
     if (main.length) box.append(actions);
     if (returned || !ops.length) box.append($('<p>').addClass('bm-locked-note').text(returned ? 'Returned record · read-only.' : 'No pickup operation is available for this record.'));
     else if (!scheduled) box.append($('<p>').addClass('bm-locked-note').text('Schedule a time with the claimant, or confirm the return if they collect the item now.'));
@@ -252,7 +254,7 @@ $(async function () {
           setView('detail'); await loadDetail(true);
         }));
       });
-      if (!records.length) box.append(emptyDetail('Queue is clear','No records match this view. Change the filter to revisit outcomes.'));
+      if (!records.length) box.append(query.q ? emptyDetail('No matching records','Try another search word or clear the search.') : emptyDetail('Queue is clear','Nothing in this view needs attention. Change the filter to revisit outcomes.'));
       const pager = $('#bm-pager').empty();
       if (data.pages > 1) pager.append($('<button>').addClass('btn btn-outline').attr('type','button').prop('disabled',page <= 1).text('Previous').on('click',() => { resetSelection(); loadQueue(page - 1); }),$('<span>').text(page + ' / ' + data.pages),$('<button>').addClass('btn btn-outline').attr('type','button').prop('disabled',page >= data.pages).text('Next').on('click',() => { resetSelection(); loadQueue(page + 1); }));
       // Remove the queue loading row before focus calculates its final scroll position.
@@ -299,13 +301,13 @@ $(async function () {
       $('#operation-date').attr('min', localInput(new Date())).val(draft?.date ?? (record.scheduled_at ? localInput(record.scheduled_at) : nextWorkingSlot()));
     }
     const early = action === 'complete' && record.scheduled_at && new Date(record.scheduled_at) > new Date();
-    let intro = 'Check the selected record and your note before saving.';
+    let intro = {need_more_info:'The claimant receives your note and can update this same claim. It stays open until they reply and you decide.', status:'The reporter is notified of the new status. While a report is Under review, its reporter cannot edit it.', schedule:'The claimant is notified and sees the pickup time and place in My Activity.', reschedule:'The claimant is notified of the new time and place, with your reason.'}[action] || 'Check the selected record and your note before saving.';
     if (action === 'approved') {
-      intro = 'Approval confirms ownership, creates one handover and closes competing active claims.';
+      intro = 'Approval confirms ownership, creates one pickup to arrange and closes competing active claims.';
     } else if (action === 'complete') {
       intro = (early ? 'The appointment is on ' + U.date(record.scheduled_at,true) + '. Confirm only if the owner already collected the item early. ' : '') + 'Confirm only after the item has been handed to this verified owner. Linked reports become Returned.';
     } else if (action === 'release') {
-      intro = 'Use this when the owner never collects the item or ownership must be withdrawn. The claim is closed as rejected, and both reports become available again.';
+      intro = 'Use this when the owner never collects the item or ownership must be withdrawn. The claim is closed as rejected, and the report and any linked Lost report become available again.';
     } else if (action === 'cancel_schedule') {
       intro = 'The appointment will be cancelled. Ownership stays approved and the pickup can be scheduled again.';
     } else if (action === 'rejected') {

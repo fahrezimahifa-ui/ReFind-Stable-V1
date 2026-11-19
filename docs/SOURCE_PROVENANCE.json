@@ -44,7 +44,7 @@
   },
   "adapted_assets": {
     "js/bm.js": {
-      "sha256": "bc56e1b41f62b2817f31761a61d148b0892d131db15a7b4ae4b415049c87b348",
+      "sha256": "a06e4f77653af275467a800a222e51793cb536ac505887a54e271f4bfe849b7c",
       "reason": "Phase 6-8 (unaccepted): decisions follow enabled stages; Claims, Reports (status stage) and Handover (pickup stage) tabs with native operations. Professor UI refinement batch 1 (unaccepted): at most two decision buttons per bar, Request more info, Cancel appointment and Release pickup as text buttons, Reschedule primary once the time has passed, passed time shown as flat status. Batch 3 (owner review): the page is the only scroller on desktop, with a sticky detail column; pickup main row by state, with Appointment and Release sections."
     },
     "js/student.js": {
@@ -52,7 +52,7 @@
       "reason": "Phase 6/7 (unaccepted): claim/withdraw follow the Student stage; pickup details follow the pickup stage; notifications page read-only (read-marking is a separate, unapproved write). Professor UI refinement batch 2 (unaccepted): on phones a group of four or more view tabs (History) becomes one labelled select driving the same buttons."
     },
     "css/polish.css": {
-      "sha256": "c8e9c5646240c55be341f25b69868a80b4e0a3637bea631c997c1d3d5a7f34b9",
+      "sha256": "b43dc25ced24a2acc7cc6f25bafa0a3a62c791f68e6379ebb3ea2b7f6ba0ffc0",
       "reason": "Professor UI refinement batch 1 (unaccepted): notification message smaller than its title; text buttons inside decision bars; passed pickup time as flat status text with a clock icon instead of a filled box or chip. Batch 2: square status flags and notes, full-width flag strips, card previews filling their frame on phones, indented numbered lists, long body copy justified from 768px, BM pane height, phone tab select, and a full-length static background layer. Batch 3: BM panes keep natural height (no inner scroll), pickup action sections, full-width equal segmented tabs below 768px, History select up to 767px."
     }
   }

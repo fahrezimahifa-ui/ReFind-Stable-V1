@@ -152,7 +152,7 @@ with sync_playwright() as playwright:
         bm.goto(BASE + '/admin.html?tab=handover&handover=' + handover); ready(bm)
         expect(bm.locator('[data-bm-action]')).to_have_count(0)
         check('BM detail shows the full pickup audit', bm.locator('#bm-detail-content').inner_text().count('Pickup') >= 3)
-        bm_operation(bm, handover2, 'release', 'Pickup released. Both reports are available again.', note='Owner did not collect within the window.', tick=True)
+        bm_operation(bm, handover2, 'release', 'Pickup released. The report and any linked Lost report are available again.', note='Owner did not collect within the window.', tick=True)
         ctx.close()
 
         # Student: returned and released outcomes.
