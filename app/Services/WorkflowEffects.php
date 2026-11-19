@@ -12,8 +12,8 @@ use RuntimeException;
  */
 final class WorkflowEffects
 {
-    /** Phase 6 transitions only; RESOLVED/UNCLAIMED_CLOSED belong to the later return/closure slices. */
-    private const ALLOWED = ['OPEN', 'POTENTIAL_MATCH', 'VERIFICATION', 'HANDOVER'];
+    /** Phase 6/7 transitions; RESOLVED is the Phase 7 physical return. UNCLAIMED_CLOSED stays with manual status (out of scope). */
+    private const ALLOWED = ['OPEN', 'POTENTIAL_MATCH', 'VERIFICATION', 'HANDOVER', 'RESOLVED'];
 
     public const NAMES = ['OPEN' => 'Reported', 'UNDER_REVIEW' => 'Under review', 'POTENTIAL_MATCH' => 'Possible match', 'VERIFICATION' => 'Claim review',
         'HANDOVER' => 'Ready for pickup', 'RESOLVED' => 'Returned', 'UNCLAIMED_CLOSED' => 'Never retrieved'];
@@ -48,14 +48,15 @@ final class WorkflowEffects
             return;
         }
         if (! in_array($code, self::ALLOWED, true)) {
-            throw new RuntimeException('Unsupported Phase 6 report status.');
+            throw new RuntimeException('Unsupported Phase 6/7 report status.');
         }
         $this->db->assertOwnedTransaction();
         $status = $this->db->selectOne('SELECT status_id FROM item_statuses WHERE status_code=?', [$code]);
         if (! $status) {
             throw new RuntimeException('Unknown status.');
         }
-        $this->db->update('UPDATE items SET status_id=?,resolved_at=? WHERE item_id=?', [(int) $status->status_id, null, (int) $item['item_id']]);
+        $resolved = in_array($code, ['RESOLVED', 'UNCLAIMED_CLOSED'], true) ? gmdate('Y-m-d H:i:s') : null;
+        $this->db->update('UPDATE items SET status_id=?,resolved_at=? WHERE item_id=?', [(int) $status->status_id, $resolved, (int) $item['item_id']]);
         $item['status_id'] = $status->status_id;
         $item['status_code'] = $code;
         $this->history($item, $actor, $note);

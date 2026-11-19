@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClaimController;
 use App\Http\Controllers\ClaimReadController;
 use App\Http\Controllers\DiscoveryController;
+use App\Http\Controllers\HandoverController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ReportController;
@@ -28,12 +29,15 @@ $api('avatar.php', ['GET'], [MediaController::class, 'avatar']);
 // Phase 6 claim commands: each controller fails closed (501) unless ClaimStages enables its stage.
 $api('claims.php', ['POST'], [ClaimController::class, 'mutate'], 'STUDENT');
 $api('staff.php', ['POST'], [StaffClaimController::class, 'mutate'], 'BUILDING_MANAGEMENT');
-foreach (['handovers.php' => 'BUILDING_MANAGEMENT', 'account.php' => 'authenticated', 'notifications.php' => 'authenticated', 'register.php' => 'registration'] as $path => $access) {
+$api('handovers.php', ['POST'], [HandoverController::class, 'mutate'], 'BUILDING_MANAGEMENT');
+// Notification read-marking (POST notifications.php) is not part of the approved Phase 7 scope.
+foreach (['account.php' => 'authenticated', 'notifications.php' => 'authenticated', 'register.php' => 'registration'] as $path => $access) {
     $api($path, ['POST'], [DiscoveryController::class, 'unavailable'], $access);
 }
 $api('claims.php', ['GET'], [ClaimReadController::class, 'claims'], 'authenticated');
 $api('staff.php', ['GET'], [ClaimReadController::class, 'staff'], 'BUILDING_MANAGEMENT');
-foreach (['handovers.php' => 'authenticated', 'account.php' => 'authenticated'] as $path => $access) {
+$api('handovers.php', ['GET'], [HandoverController::class, 'index'], 'authenticated');
+foreach (['account.php' => 'authenticated'] as $path => $access) {
     $api($path, ['GET'], [DiscoveryController::class, 'unavailable'], $access);
 }
 $api('visual-search.php', ['POST'], [DiscoveryController::class, 'visual'], 'STUDENT');

@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\ContractError;
+use App\Repositories\NotificationReadRepository;
 use App\Repositories\ItemReadRepository;
 use App\Services\AuthService;
+use App\Support\ClaimStages;
 use App\Support\Contract;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -35,7 +37,18 @@ final class DiscoveryController
         Contract::allowed($r->query(), ['page', 'limit', 'count', 'unread']);
         if ($r->has('unread') && $r->query('unread') !== '1') {
             throw new ContractError('Invalid notification filter.', 400);
-        }if ($r->query('count') !== '1' || $r->hasAny(['page', 'limit'])) {
+        }
+        if (ClaimStages::has('pickup')) {
+            // Phase 7: read-only list so pickup audit messages reach the claimant and other BMs (native order).
+            if ($r->has('count')) {
+                if ($r->query('count') !== '1' || $r->hasAny(['page', 'limit'])) {
+                    throw new ContractError('Invalid count request.', 400);
+                }
+            } else {
+                return Contract::json(app(NotificationReadRepository::class)->listing($r->query(), $auth->identity($u), $r->has('unread')));
+            }
+        }
+        if ($r->query('count') !== '1' || $r->hasAny(['page', 'limit'])) {
             throw new ContractError('This operation is not available in the proof of concept.', 501, 'feature_pending');
         }
 

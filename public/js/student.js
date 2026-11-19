@@ -472,10 +472,11 @@ $(async function(){
   }
   async function notifications(){
     let currentPage=validPage(params.get('page')),restore=validId(params.get('notification'))?params.get('notification'):null,filter=params.get('filter')==='unread'?'unread':'';
+    const readOnly=document.body.dataset.notificationsReadOnly==='true'; // Phase 7: read-marking is a separate, unapproved write
     async function load(next=currentPage){currentPage=next;clearPage();loading(true);tabState('[data-note-filter]','data-note-filter',filter);
       try{const data=await get('notifications.php',{page:currentPage,limit:24,...(filter?{unread:'1'}:{})}),box=$('#notification-results').empty();let lastGroup='';
         if(data.total&&currentPage>data.pages)return load(data.pages);
-        $('#mark-all-read').prop('hidden',!data.unread_count);
+        $('#mark-all-read').prop('hidden',readOnly||!data.unread_count);
         let groupSection=null,groupIndex=0;
         for(const note of data.notifications){
           const group=U.campusDay(note.created_at)===U.campusDay()?'Today':'Earlier';
@@ -497,12 +498,12 @@ $(async function(){
           const card=$('<article>').addClass('notification-card').toggleClass('unread',!Number(note.is_read)).attr({'data-notification-id':note.notification_id,'aria-labelledby':heading.attr('id')}).append(content,$('<time>').addClass('notification-time').text(U.date(note.created_at,true)));
           const actions=$('<div>').addClass('notification-actions');
           const mark=async()=>{const result=await app.request('notifications.php',{id:note.notification_id});shell.setUnread(result.unread_count);note.is_read=1;card.removeClass('unread');card.find('.mark-read,.notification-unread').remove();$('#mark-all-read').prop('hidden',!result.unread_count);};
-          if(!Number(note.is_read))actions.append($('<button>').addClass('text-button mark-read').attr('type','button').text('Mark as read').on('click',async function(){const button=$(this).prop('disabled',true);try{await mark();const destination=card.find('a.notification-destination').first();(destination.length?destination:heading).trigger('focus');}catch(e){U.showError(e);button.prop('disabled',false);}}));
+          if(!readOnly&&!Number(note.is_read))actions.append($('<button>').addClass('text-button mark-read').attr('type','button').text('Mark as read').on('click',async function(){const button=$(this).prop('disabled',true);try{await mark();const destination=card.find('a.notification-destination').first();(destination.length?destination:heading).trigger('focus');}catch(e){U.showError(e);button.prop('disabled',false);}}));
           let target=null,label='View item';
           if(note.claim_id){if(app.state.user.role==='STUDENT'){target=app.base+'my-reports.html?tab=claims&claim='+note.claim_id;label=note.pickup_event?'View my pickup':'View my claim';}else if(note.notification_type?.startsWith('HANDOVER_')&&note.handover_id){target=app.base+'admin.html?tab=handover&handover='+note.handover_id;label='View handover';}else{target=app.base+'admin.html?tab=claims&claim='+note.claim_id;label='Review claim';}}
           else if(note.item_id)target=U.itemUrl(note.item_id)+'&'+new URLSearchParams({origin:'notifications',notification_page:currentPage,notification:note.notification_id,...(filter?{notification_filter:filter}:{})});
           // Following an unread link marks it read first; modified clicks (new tab) stay native.
-          if(target)actions.prepend($('<a>').addClass('text-link notification-destination').attr('href',target).text(label).on('click',async function(e){if(Number(note.is_read))return;if(e.ctrlKey||e.metaKey||e.shiftKey||e.button===1){mark().catch(()=>{});return;}e.preventDefault();try{await mark();}catch{}location.assign(target);}).on('auxclick',function(e){if(e.button===1&&!Number(note.is_read))mark().catch(()=>{});}));
+          if(target)actions.prepend($('<a>').addClass('text-link notification-destination').attr('href',target).text(label).on('click',async function(e){if(readOnly||Number(note.is_read))return;if(e.ctrlKey||e.metaKey||e.shiftKey||e.button===1){mark().catch(()=>{});return;}e.preventDefault();try{await mark();}catch{}location.assign(target);}).on('auxclick',function(e){if(!readOnly&&e.button===1&&!Number(note.is_read))mark().catch(()=>{});}));
           if(actions.children().length)card.append(actions);
           groupSection.append(card);
         }

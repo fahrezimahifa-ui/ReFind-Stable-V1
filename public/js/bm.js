@@ -1,9 +1,10 @@
 $(async function () {
   const app = window.ReFind, U = window.StudentUI, shell = window.ReFindShell;
   const params = new URLSearchParams(location.search);
-  const claimsOnly = document.body.dataset.handoversUnavailable === 'true';
+  const handoversAvailable = document.body.dataset.handoversUnavailable !== 'true', reportsAvailable = document.body.dataset.staffReportsUnavailable !== 'true';
+  const tabsAvailable = ['claims', ...(reportsAvailable ? ['reports'] : []), ...(handoversAvailable ? ['handover'] : [])], claimsOnly = tabsAvailable.length === 1;
   const decisionsAllowed = (document.body.dataset.bmDecisions || '').split(' ').filter(Boolean), claimsReadOnly = decisionsAllowed.length === 0;
-  let tab = !claimsOnly && ['claims', 'reports', 'handover'].includes(params.get('tab')) ? params.get('tab') : 'claims';
+  let tab = tabsAvailable.includes(params.get('tab')) ? params.get('tab') : 'claims';
   let selected = params.get(tab === 'claims' ? 'claim' : tab === 'reports' ? 'report' : 'handover') || null;
   let pinned = Boolean(selected), initialFocus = Boolean(selected), current = null, page = 1;
   let request = 0, detailRequest = 0, saving = false, operation = null, refs, trigger = null, timer;
@@ -52,7 +53,7 @@ $(async function () {
     const choices = tab === 'claims' ? [['PENDING','Waiting for BM'],['NEED_MORE_INFO','Waiting for student'],['APPROVED','Approved'],['REJECTED','Rejected'],['WITHDRAWN','Withdrawn'],['all','All claims']]
       : tab === 'handover' ? [['active','Active pickups'],['PENDING','Awaiting scheduling'],['SCHEDULED','Scheduled'],['COMPLETED','Returned'],['all','All pickups']]
       : [['all','All reports'], ...refs.statuses.map(s => [s.code, U.statusNames[s.code] || s.name])];
-    if (claimsOnly && tab === 'claims') choices.unshift(['active','Active claims']);
+    if (tab === 'claims') choices.unshift(['active','Active claims']);
     choices.forEach(([id, name]) => state.append($('<option>').val(id).text(name)));
     $('#bm-title').text('Review Queue'); // matches the nav item; the tabs and intro name the section
     $('#bm-intro').text(tab === 'handover' ? 'Arrange pickup, update appointments, and record the return to a verified owner.' : tab === 'reports' ? 'Check reports and choose the next available step.' : claimsReadOnly ? 'Review claim details and ownership evidence.' : 'Compare the identifying details, then record your decision.');
@@ -84,7 +85,7 @@ $(async function () {
   }
   // Switch tab and record in place instead of reloading the page.
   async function openRecord(nextTab, id, afterSave = false) {
-    if (claimsOnly && nextTab !== 'claims' || saving && !afterSave) return;
+    if (!tabsAvailable.includes(nextTab) || saving && !afterSave) return;
     clearTimeout(timer); ++request; ++detailRequest;
     tab = nextTab; selected = String(id); pinned = true; initialFocus = true; page = 1; current = null;
     $('#bm-search').val(''); switchState(); setView('detail'); syncUrl(); await loadQueue(1, true);
@@ -108,7 +109,7 @@ $(async function () {
     if (claimsReadOnly) return box;
     const actions = $('<div>').addClass('bm-detail-actions'), order = ['approved','need_more_info','rejected'];
     [...claim.decisions].filter(action => decisionsAllowed.includes(action)).sort((a, b) => order.indexOf(a) - order.indexOf(b)).forEach(action => actions.append(actionButton(action,{kind:'claim',id:claim.claim_id,revision:claim.revision,record:claim})));
-    if (claim.handover_id && !claimsOnly) actions.append($('<button>').addClass('btn btn-primary').attr('type','button').text('Open handover').on('click', () => openRecord('handover', claim.handover_id)));
+    if (claim.handover_id && handoversAvailable) actions.append($('<button>').addClass('btn btn-primary').attr('type','button').text('Open handover').on('click', () => openRecord('handover', claim.handover_id)));
     if (!claim.decisions.length) box.append($('<p>').addClass('bm-locked-note').text(claim.claim_status === 'APPROVED' ? 'Ownership is approved. Continue to handover for pickup or the return record.' : claim.claim_status === 'WITHDRAWN' ? 'The claimant withdrew this claim. They may send a new one while the item is available.' : claim.claim_status === 'REJECTED' ? 'This claim was rejected. A rejection is final for this item.' : 'This decision is saved.'));
     return box.append(actions);
   }
@@ -355,7 +356,7 @@ $(async function () {
   }
   $('#operation-form').on('submit',async function (event) {
     event.preventDefault();
-    if (claimsReadOnly || saving || !operation) return;
+    if ((claimsReadOnly && !handoversAvailable) || saving || !operation) return;
     const action = operation.action, note = $('#operation-note').val().trim();
     $('[data-bm-error],#operation-feedback').prop('hidden',true);
     if (!validateOperation(note)) return;
@@ -369,7 +370,7 @@ $(async function () {
       const result = await app.request(endpoint,values);
       drafts.delete(draftKey(operation));
       document.querySelector('#operation-dialog').close();
-      next = action === 'approved' && result.handover_id && !claimsOnly ? $('<button>').addClass('text-button').attr('type','button').prop('disabled',true).text('Schedule pickup now').on('click',() => openRecord('handover', result.handover_id)) : null;
+      next = action === 'approved' && result.handover_id && handoversAvailable ? $('<button>').addClass('text-button').attr('type','button').prop('disabled',true).text('Schedule pickup now').on('click',() => openRecord('handover', result.handover_id)) : null;
       // A released pickup no longer exists, so show the closed claim instead.
       if (action === 'release') await openRecord('claims', operation.record.claim_id, true);
       else { pinned = true; await loadQueue(page,true); }
@@ -399,7 +400,7 @@ $(async function () {
   });
   try {
     const state = await shell.ready; if (!state.authenticated) return;
-    if (!claimsOnly) {
+    if (handoversAvailable || reportsAvailable) {
       refs = await app.request('references.php'); U.fillSelect('#operation-location',refs.locations,'Select pickup campus area');
     }
     setView(selected ? 'detail' : 'queue'); switchState();
