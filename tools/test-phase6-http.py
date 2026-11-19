@@ -7,8 +7,11 @@ from pathlib import Path
 import http.cookiejar, io, json, os, secrets, subprocess, sys, threading, urllib.error, urllib.parse, urllib.request
 from PIL import Image
 
-ROOT = Path('C:/ReFind-Laravel'); APP = ROOT / 'laravel-p6'; STATE = ROOT / 'state/phase6-dev'
-BASES = ('http://127.0.0.1:8016', 'http://127.0.0.1:8017')
+ROOT = Path('C:/ReFind-Laravel'); APP = Path(__file__).resolve().parent.parent
+PROFILE = os.environ.get('REFIND_DEV_PROFILE', 'phase7-dev' if APP.name == 'laravel-p7' else 'phase6-dev')
+STATE = ROOT / 'state' / PROFILE
+BASES = {'phase6-dev': ('http://127.0.0.1:8016', 'http://127.0.0.1:8017'), 'phase7-dev': ('http://127.0.0.1:8018', 'http://127.0.0.1:8019')}[PROFILE]
+PICKUP = PROFILE == 'phase7-dev'
 CREDS = {**json.loads((STATE / 'credentials.json').read_text()), **json.loads((STATE / 'tmp/extra-credentials.json').read_text())}
 checks = []
 
@@ -58,7 +61,7 @@ def png(seed=0):
 
 
 def state():
-    env = dict(os.environ, REFIND_PROFILE='phase6-dev', PHP_INI_SCAN_DIR=str(ROOT / 'runtime/empty-ini-scan'))
+    env = dict(os.environ, REFIND_PROFILE=PROFILE, PHP_INI_SCAN_DIR=str(ROOT / 'runtime/empty-ini-scan'))
     p = subprocess.run([str(ROOT / 'runtime/php85/php.exe'), '-c', str(ROOT / 'runtime/php85/php.ini'), str(APP / 'tools/phase6-dev.php'), 'state'], cwd=APP, env=env, capture_output=True, text=True, timeout=60)
     if p.returncode:
         raise RuntimeError('state dump failed: ' + p.stderr[-300:])
@@ -145,8 +148,12 @@ def contract():
     check('approve returns string handover ID', code == 200 and obj['status'] == 'APPROVED' and isinstance(obj['handover_id'], str), obj)
     check('Found and Lost ready for pickup', [c.call('/api/items.php?id=' + i)[1]['item']['status_code'] for c, i in ((b, found), (a, lost))] == ['HANDOVER', 'HANDOVER'])
     check('BM detail links the handover', detail(bm, cid)['handover_id'] == obj['handover_id'])
-    check('handover reads stay Phase 7', bm.call('/api/handovers.php')[0] == 501)
-    check('pickup scheduling stays Phase 7', bm.call('/api/handovers.php', dict(action='schedule', id=obj['handover_id']))[0] == 501)
+    if PICKUP:
+        check('handover reads available under the pickup stage', bm.call('/api/handovers.php')[0] == 200)
+        check('pickup validation reached under the pickup stage', bm.call('/api/handovers.php', dict(action='schedule', id=obj['handover_id']))[0] == 422)
+    else:
+        check('handover reads stay Phase 7', bm.call('/api/handovers.php')[0] == 501)
+        check('pickup scheduling stays Phase 7', bm.call('/api/handovers.php', dict(action='schedule', id=obj['handover_id']))[0] == 501)
     check('manual report status stays out of scope', bm.call('/api/staff.php', dict(action='status', id=found))[0] == 501)
     check('claimant unread count grew', a.call('/api/notifications.php?count=1')[1]['unread_count'] >= 3)
 
@@ -216,7 +223,8 @@ def concurrency():
     check('global invariant: one approved claim per Found', s['approved_per_found'] == [])
     check('global invariant: one confirmed pair per report', s['confirmed_per_report'] == [])
     check('global invariant: handovers only for approved claims', all(next(x for x in s['claims'] if x['claim_id'] == h['claim_id'])['claim_status'] == 'APPROVED' for h in s['handovers']))
-    check('global invariant: every handover pending', all(h['handover_status'] == 'PENDING' for h in s['handovers']))
+    if not PICKUP:
+        check('global invariant: every handover pending', all(h['handover_status'] == 'PENDING' for h in s['handovers']))
     return outcomes
 
 

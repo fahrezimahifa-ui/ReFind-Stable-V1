@@ -44,12 +44,12 @@
   },
   "adapted_assets": {
     "js/bm.js": {
-      "sha256": "6de076447c93e2a019f9ce471a0ad60c80e0be202f59b72de399493d1eb9e3da",
-      "reason": "Phase 6 (unaccepted): claims-only queue; BM decisions rendered only for stages enabled on phase6-dev; handover/report tabs and pickup shortcut stay gated."
+      "sha256": "980b9b958e7178a806ccd2a3f0ae7a5d6d6a2a5873a87f368030c774cb792f60",
+      "reason": "Phase 6/7 (unaccepted): decisions follow enabled stages; Claims and Handover tabs (pickup stage) with native pickup operations; Reports tab stays gated."
     },
     "js/student.js": {
-      "sha256": "4259e5592aead5899732490fc391c95983afeda4cf2f6b5258a5f1e5b5530c77",
-      "reason": "Phase 6 (unaccepted): claim/withdraw gated by the Student stage; handover reads and the BM reports tab stay gated; approved claims show the pending-pickup note."
+      "sha256": "b8d1d7c8c713a6249786975cba0a8a9c24e8ac128809d06802a85f3fb7f4f22c",
+      "reason": "Phase 6/7 (unaccepted): claim/withdraw follow the Student stage; pickup details follow the pickup stage; notifications page read-only (read-marking is a separate, unapproved write)."
     }
   }
 }

@@ -11,11 +11,10 @@ from PIL import Image
 from playwright.sync_api import expect, sync_playwright
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-os.environ.setdefault('REFIND_TEST_BASE', 'http://127.0.0.1:8016'); os.environ.setdefault('REFIND_TEST_PROFILE', 'phase6-dev')
 from importlib import import_module
 http = import_module('test-phase6-http')
 
-ROOT = Path('C:/ReFind-Laravel'); BASE = 'http://127.0.0.1:8016'; STATE = ROOT / 'state/phase6-dev'
+ROOT = Path('C:/ReFind-Laravel'); BASE = http.BASES[0]; STATE = http.STATE
 os.environ['TEMP'] = os.environ['TMP'] = str(STATE / 'tmp')
 CREDS = http.CREDS
 checks, errors, server_errors, forbidden_calls = [], [], [], []
@@ -30,7 +29,7 @@ def check(label, condition):
 def guard(route):
     url = route.request.url
     if url.startswith(('data:', 'blob:')) or url.startswith(BASE + '/'):
-        if '/api/handovers.php' in url:
+        if '/api/handovers.php' in url and not http.PICKUP:
             forbidden_calls.append(urlparse(url).path)
         route.continue_()
     else:
@@ -151,7 +150,7 @@ with sync_playwright() as playwright:
             bm.locator('#operation-note').fill('Ownership details verified by Building Management.')
         bm.locator('#operation-confirm').check(); bm.locator('#operation-submit').click()
         expect(bm.locator('#bm-feedback, .feedback').filter(has_text='Claim approved.').first).to_be_visible()
-        check('no pickup scheduling shortcut in Phase 6', bm.locator('text=Schedule pickup now').count() == 0)
+        check('pickup shortcut follows the pickup stage', (bm.locator('text=Schedule pickup now').count() > 0) == http.PICKUP)
         expect(bm.locator('[data-bm-action]')).to_have_count(0)
         check('BM layout has no horizontal overflow', not bm.evaluate('document.documentElement.scrollWidth > window.innerWidth + 1'))
         bctx.close()
@@ -160,7 +159,7 @@ with sync_playwright() as playwright:
         sctx, student = context(playwright, 390, 'dark')
         login(student, 'student_a', 'index.html')
         student.goto(BASE + '/my-reports.html?tab=claims&claim=' + claim_id); ready(student)
-        expect(student.locator('.activity-card[data-claim-id="' + claim_id + '"]')).to_contain_text('Approved. Building Management will arrange a pickup time and place with you.')
+        expect(student.locator('.activity-card[data-claim-id="' + claim_id + '"]')).to_contain_text('Approved. Building Management will arrange a pickup time and place with you.')  # pending handover
         student.goto(BASE + '/item.html?id=' + found); ready(student)
         expect(student.locator('#item-notice')).to_contain_text('Your claim: ')
         check('student sees the approved outcome', True)
