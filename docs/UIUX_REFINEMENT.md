@@ -212,7 +212,20 @@ The checks covered:
 - Pending, scheduled and overdue pickups at 390 and 1440 px show the expected main row and sections, and the overdue note is flat status.
 - No JavaScript errors.
 
-## Automatic pickup expiry: decision needed (not implemented)
+## Automatic pickup expiry: resolved as Option A (owner decision, 19 November 2026)
+
+**Decision.** The owner approved Option A for the current ReFind academic release. This is an explicit business-policy decision:
+1. A scheduled pickup becoming overdue does not automatically release the item, revoke claim approval or change ownership.
+2. The overdue ("time passed") indicator continues to appear automatically, based on the scheduled date and time.
+3. The authorized manual Release pickup operation stays, with its reason, confirmation, history, notifications and transactional safeguards.
+4. Release pickup stays visually separate from the two primary actions, Reschedule pickup and Confirm item returned.
+5. Cancel appointment stays a lower-priority action that is still discoverable and usable.
+6. No automatic release, automatic cancellation, background job or grace-period rule is implemented.
+7. The automatic-expiry question is resolved as Option A.
+
+The decision covers business policy only. It does not authorize deployment or academic-profile activation. The current code already matches it: batch 3 has no scheduler or expiry rule, shows the indicator from the stored time, and places Release and Cancel appointment in their own sections.
+
+The findings and options that informed the decision are kept below.
 
 **Findings:**
 1. **Native `47eea86`:** nothing happens when a scheduled time passes. The past-due indicator is "Display only; offers existing confirm-return/reschedule. No no-show policy" (`docs/V1_RELEASE_CANDIDATE.md`). Release is the manual BM operation "for no-shows or revoked ownership" (`docs/V025_REPORT.md`). A disposal or no-show policy is listed as excluded, pending stakeholder decisions.
@@ -230,8 +243,8 @@ The checks covered:
 
 A passed appointment doesn't mean the item was returned, and it doesn't justify revoking ownership on its own.
 
-**Proposal for approval** (nothing enabled):
-- **A (recommended now):** keep release manual, as today. Optionally add a BM "Time passed" filter in the Handover queue, and an in-app reminder to the claimant when an appointment passes. Both inform without changing ownership.
+**Options considered:**
+- **A (chosen):** keep release manual, as today. The proposal also mentioned an optional a BM "Time passed" filter in the Handover queue, and an in-app reminder to the claimant when an appointment passes. Neither optional addition was requested, so neither is implemented.
 - **B:** after an approved grace period, for example two campus working days after the appointment, cancel the appointment automatically. Ownership is kept and the pickup returns to awaiting scheduling, with notifications. This needs a scheduler, an audit actor ("System") and tests.
 - **C:** automatically release after a longer approved period. This revokes ownership, so it needs an explicit campus policy, exceptions for valuables, a final BM confirmation step, and owner and stakeholder sign-off.
 

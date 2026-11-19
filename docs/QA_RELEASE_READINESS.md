@@ -100,6 +100,8 @@ No application security, data-integrity or transaction defect was found.
 2. **Approval converting a same-pair REJECTED match to CONFIRMED.** Recommend **accepting as native parity**. Under current workflows a pair becomes REJECTED only when a pickup is released. That also makes the claimant's claim REJECTED, which is final per item and claimant, and only the Lost owner can link that Lost report. So conversion is reachable only through legacy data. The implementation keeps the pair row (locked read plus UPDATE) and needs no identity-column grant.
 3. **Shared advisory lock on Student claim writes.** Recommend **accepting**. It serializes Student writes with BM review, approval, pickup and report edits on one lock. That removes cross-writer races the native row-lock scheme leaves possible, and keeps the bounded 5-second wait with the native-style 409. No contention problems appeared in the race suites.
 
+**Resolved owner decision (19 November 2026):** automatic pickup expiry is **Option A**. Release stays manual, with no automatic release, cancellation, background job or grace period, and the overdue indicator stays automatic. This is a business-policy decision only; see `docs/UIUX_REFINEMENT.md` and `docs/RELEASE_PREPARATION.md` §6.
+
 ## 7. Outstanding mandatory qualifications (not passed)
 
 | Gate | Status |

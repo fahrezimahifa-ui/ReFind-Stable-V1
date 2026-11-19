@@ -98,3 +98,4 @@ python -B C:\ReFind-Laravel\laravel-p8\tools\verify-candidate.py --profile phase
 - **Phase 8 grants** (`notifications.is_read`, `users` profile/password/avatar UPDATE, `users` INSERT): approved for the disposable profile only. Academic activation needs explicit approval.
 - **Registration** is local-only (loopback peer, native `registration_local_only`). Native defaults to disabled; the stage keeps it off everywhere except `phase8-dev`.
 - **AI visual search** is excluded.
+- **Pickup expiry: resolved as Option A** (owner decision, 19 November 2026). An overdue pickup never releases the item, revokes approval or changes ownership automatically. The overdue indicator stays automatic, and Release pickup stays a manual, authorized operation with its reason, confirmation, history, notifications and safeguards. There is no background job or grace-period rule. See `docs/UIUX_REFINEMENT.md`.
