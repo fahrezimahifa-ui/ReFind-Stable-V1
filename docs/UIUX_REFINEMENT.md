@@ -342,3 +342,20 @@ The owner's review of the dark-mode phone BM claim detail found that field label
 **Not tested:**
 - real devices, screen readers and forced-colors mode;
 - formal contrast measurement on translucent glass panels (the script approximates the effective background).
+
+## Batch 4 integrated regression (19 November 2026)
+
+`python -B tools/verify-candidate.py --browser` ran on the clean committed candidate **`b0bba20`** (`dirty_worktree: false`), which contains batch 4 code `3140c61` plus its record. It **passed** with `accepted: false`. Evidence: `C:\ReFind-Laravel\evidence\phase8\candidate-20261119T154356Z\summary.json`. It supersedes the `63c93b0` run above.
+
+| Step | Result |
+|---|---|
+| Preflight, static checks (123 PHP files, page scripts, tools), exact grant audit | passed |
+| PHPUnit (`phpunit.phase8.xml`) | 46 tests, 2,983 assertions, 0 failures |
+| Inherited Phase 5 suites | search passed; report service 27; native matching parity 205, restore verified |
+| Live HTTP and concurrency | Phase 6: 77; Phase 7: 81; Phase 8: 28 |
+| Security probes | 75 |
+| Browser suites | Phase 6: 17; Phase 7: 22; Phase 8: 14 |
+| Synthetic state | identical to the verified baseline before and after |
+| Protection | Academic grants match the 6B evidence, 6B archive `c1f4bde6…`, 19/19 canonical files, accepted refs unchanged |
+
+**Still preserved:** `migration/uiux-rc1-verified` (`73c10fe`) and `qa-final` (`de7d8bd`). The pickup-expiry policy remains Option A. The deferred acceptance gates in [QA_RELEASE_READINESS.md](QA_RELEASE_READINESS.md) stay open. The candidate is not frozen, tagged, pushed or merged.
