@@ -75,7 +75,7 @@ No application security, data-integrity or transaction defect was found.
 | Static: Composer `validate --strict` and platform requirements; PHP lint (122 files); `node --check` on all JS; Python compile; route coverage (every native endpoint/method that native accepts is routed) | Pass |
 | `verify-candidate.py --browser` on `e12ed85` (`evidence/phase8/candidate-20261119T101158Z`) | **Pass.** Grant audit; PHPUnit 43/2955; inherited search, report service (27) and native matching parity (205); live HTTP and races 77/81/28; security probes 75; browser 15/10/11; exact restore; protection |
 | PHPUnit after fix `4eaa864` | 44 tests, 2965 assertions |
-| Final run on this report's commit | §9 |
+| **Final `verify-candidate.py --browser` on clean committed `303e9cb`** (`evidence/phase8/candidate-20261119T102106Z`) | **Pass (`accepted:false`).** Static (122 PHP files); grant audit; PHPUnit **44/2965**; inherited search, report service **27** and native matching parity **205**; live HTTP and races **77/81/28**; security probes **75**; browser **15/10/11**; exact restore (identical state); protection (academic grants identical to the 6B evidence, canonical 6B files 19/19, accepted refs unchanged); owned shutdown |
 
 ## 6. Security, privacy, transactions, concurrency, and the divergences
 
@@ -114,7 +114,7 @@ The professor confirmed that a PHP framework is required and that Laravel or Cod
 
 ## 9. Final candidate, restoration and handoff
 
-- **Final candidate:** `migration/qa-final`. The final driver run, bound to the committed SHA, is recorded below.
+- **Final candidate:** `migration/qa-final` at **`303e9cb`**, verified by `candidate-20261119T102106Z` (§5). The later commit that records this result changes documentation only.
 - **Restoration:** every run restored `phase8-dev` exactly (identical state dump) and its limiter files. Demo and test credentials were removed, and owned processes stopped.
 - **Protected state:**
   - Academic grants are identical to the 6B evidence.
