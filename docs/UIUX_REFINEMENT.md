@@ -359,3 +359,13 @@ The owner's review of the dark-mode phone BM claim detail found that field label
 | Protection | Academic grants match the 6B evidence, 6B archive `c1f4bde6…`, 19/19 canonical files, accepted refs unchanged |
 
 **Still preserved:** `migration/uiux-rc1-verified` (`73c10fe`) and `qa-final` (`de7d8bd`). The pickup-expiry policy remains Option A. The deferred acceptance gates in [QA_RELEASE_READINESS.md](QA_RELEASE_READINESS.md) stay open. The candidate is not frozen, tagged, pushed or merged.
+
+## Owner review fix: note boxes span their card (20 November 2026)
+
+**What was reported:** in the final manual review, the BM note "This linked or saved record is not in the current list…" left a gap on its right, narrower than its card.
+
+**Cause:** the native rule `p{max-width:64ch}` (`auth.css`) keeps plain paragraphs to a readable line length. It also capped bordered note boxes that are built as `<p>` elements.
+
+**Fix:** `p.context-note`, `p.journey-note` and `p.report-visibility` now span their container (`polish.css`). Plain paragraphs keep the 64ch measure. The same cause and fix also apply to the item page's journey note and the report form's "Who can see this report?" box.
+
+**Verified** on the review demo at 1440 px light and 390 px dark: each box spans its container, measured and seen in screenshots in `planning\professor-uiux\after\batch4\note-fix\`.

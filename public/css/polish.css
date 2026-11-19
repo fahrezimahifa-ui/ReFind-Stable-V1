@@ -292,3 +292,5 @@ body::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
 .bm-detail .bm-field-label{margin:0;font-size:14px;font-weight:600;color:var(--label)}
 .bm-field p{margin:2px 0 0;font-size:15px;line-height:1.5;color:var(--ink);white-space:pre-line;overflow-wrap:anywhere}
 .bm-detail .bm-field:not(.bm-outcome){margin-top:16px}
+/* Bordered note boxes built as paragraphs span their container; the native 64ch paragraph measure is for plain text. */
+p.context-note,p.journey-note,p.report-visibility{max-width:none}

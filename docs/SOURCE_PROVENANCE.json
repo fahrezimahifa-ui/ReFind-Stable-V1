@@ -52,7 +52,7 @@
       "reason": "Phase 6/7 (unaccepted): claim/withdraw follow the Student stage; pickup details follow the pickup stage; notifications page read-only (read-marking is a separate, unapproved write). Professor UI refinement batch 2 (unaccepted): on phones a group of four or more view tabs (History) becomes one labelled select driving the same buttons. Batch 4: private-term alignment, report form hints and Lost guidance, edit-mode and photo-removal notices, read-only-safe journey notes, clearer closed-reports empty state, View pickup link."
     },
     "css/polish.css": {
-      "sha256": "b43dc25ced24a2acc7cc6f25bafa0a3a62c791f68e6379ebb3ea2b7f6ba0ffc0",
+      "sha256": "85c06dcdcca4301aba5e09eb1734cfe1fd08a4e18813fb5c80cb2946f8b2b2c6",
       "reason": "Professor UI refinement batch 1 (unaccepted): notification message smaller than its title; text buttons inside decision bars; passed pickup time as flat status text with a clock icon instead of a filled box or chip. Batch 2: square status flags and notes, full-width flag strips, card previews filling their frame on phones, indented numbered lists, long body copy justified from 768px, BM pane height, phone tab select, and a full-length static background layer. Batch 3: BM panes keep natural height (no inner scroll), pickup action sections, full-width equal segmented tabs below 768px, History select up to 767px. Batch 4: --label token and grouped field labels, BM evidence as content, quieter section headings, labelled BM fields, square journey status, compact no-photo strip on phones."
     },
     "js/student-common.js": {
