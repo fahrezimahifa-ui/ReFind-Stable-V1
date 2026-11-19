@@ -38,7 +38,7 @@ adapted=provenance['adapted_assets']
 native=ROOT/'native-reference'
 pinned='47eea8648d2d47faa895d855fe6da53e6b1a3087'
 check('pinned frontend reference',provenance['commit']==pinned and subprocess.check_output(['git','rev-parse','HEAD'],cwd=native,text=True).strip()==pinned)
-check('frontend adaptations limited to the recorded files',set(adapted)=={'js/bm.js','js/student.js','css/polish.css'} and set(adapted)<=set(provenance['source_files']))
+check('frontend adaptations limited to the recorded files',set(adapted)=={'js/bm.js','js/student.js','css/polish.css','js/student-common.js'} and set(adapted)<=set(provenance['source_files']))
 for rel,digest in provenance['source_files'].items():
  installed=hashlib.sha256((APP/'public'/rel).read_bytes()).hexdigest()
  if rel in adapted:

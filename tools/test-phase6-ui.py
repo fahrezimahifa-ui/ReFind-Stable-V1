@@ -90,7 +90,7 @@ with sync_playwright() as playwright:
         student.wait_for_url(lambda u: urlparse(u).path == '/my-reports.html' and 'claim=' in u); ready(student)
         claim_id = urlparse(student.url).query.split('claim=')[1].split('&')[0]
         card = student.locator('.activity-card[data-claim-id="' + claim_id + '"]')
-        expect(card).to_be_visible(); expect(card).to_contain_text('1 private supporting photo')
+        expect(card).to_be_visible(); expect(card).to_contain_text('1 private photo')
         expect(card.locator('button', has_text='Withdraw claim')).to_be_visible()
         check('student submitted a claim with a private photo through the UI', True)
         check('student layout has no horizontal overflow', not student.evaluate('document.documentElement.scrollWidth > window.innerWidth + 1'))
@@ -127,7 +127,7 @@ with sync_playwright() as playwright:
         student.locator('#c-answer').fill('Front pocket holds a green library card and a folded campus map.')
         student.locator('#claim-submit').click()
         student.wait_for_url(lambda u: urlparse(u).path == '/my-reports.html'); ready(student)
-        expect(student.locator('.activity-card[data-claim-id="' + claim_id + '"]')).to_contain_text('1 private supporting photo')
+        expect(student.locator('.activity-card[data-claim-id="' + claim_id + '"]')).to_contain_text('1 private photo')
         check('student resubmitted on the same record keeping evidence', True)
         sctx.close()
 
