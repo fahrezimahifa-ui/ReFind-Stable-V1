@@ -234,3 +234,22 @@ A passed appointment doesn't mean the item was returned, and it doesn't justify 
 - **A (recommended now):** keep release manual, as today. Optionally add a BM "Time passed" filter in the Handover queue, and an in-app reminder to the claimant when an appointment passes. Both inform without changing ownership.
 - **B:** after an approved grace period, for example two campus working days after the appointment, cancel the appointment automatically. Ownership is kept and the pickup returns to awaiting scheduling, with notifications. This needs a scheduler, an audit actor ("System") and tests.
 - **C:** automatically release after a longer approved period. This revokes ownership, so it needs an explicit campus policy, exceptions for valuables, a final BM confirmation step, and owner and stakeholder sign-off.
+
+## Batch 3 integrated regression (19 November 2026)
+
+`python -B tools/verify-candidate.py --browser` ran on the clean committed candidate **`63c93b0`** (`dirty_worktree: false`) and **passed** with `accepted: false`. Evidence: `C:\ReFind-Laravel\evidence\phase8\candidate-20261119T142627Z\summary.json`. It supersedes the `b94bb60` run above.
+
+An earlier attempt on the same commit (`candidate-20261119T141936Z`) passed every stage up to the HTTP and security suites. The 2 GiB memory gate then refused the browser-stage worker restart; the gate was not lowered. That attempt restored its snapshot. The completed run's starting state matched the verified baseline, which confirms that restore was exact.
+
+| Step | Result |
+|---|---|
+| Preflight, static checks (123 PHP files, page scripts, tools), exact grant audit | passed |
+| PHPUnit (`phpunit.phase8.xml`) | 46 tests, 2,983 assertions, 0 failures |
+| Inherited Phase 5 suites | search passed; report service 27; native matching parity 205, restore verified |
+| Live HTTP and concurrency | Phase 6: 77; Phase 7: 81; Phase 8: 28. Every race outcome legal. |
+| Security probes | 75 |
+| Browser suites | Phase 6: 17; Phase 7: 22 (adds the pickup row and section checks); Phase 8: 14 |
+| Synthetic state | identical to the verified baseline before and after |
+| Protection | Academic grants match the 6B evidence, 6B archive `c1f4bde6…`, 19/19 canonical files, accepted refs unchanged |
+
+The reviewed candidate before batch 3 is kept unchanged as `migration/uiux-rc1-verified` (`73c10fe`). The deferred acceptance gates in [QA_RELEASE_READINESS.md](QA_RELEASE_READINESS.md) and the automatic-expiry decision above remain open.
