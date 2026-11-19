@@ -7,7 +7,7 @@
   <meta name="app-base" content="{{ $BASE_PATH }}">
   <title>Create account · ReFind</title><link rel="icon" type="image/svg+xml" href="assets/refind-logo-mark.svg"><link rel="icon" type="image/png" sizes="32x32" href="assets/refind-favicon-32.png"><link rel="apple-touch-icon" sizes="180x180" href="assets/refind-shortcut-180.png">
   <link rel="stylesheet" href="vendor/bootstrap.min.css"><link rel="stylesheet" href="css/theme.css"><link rel="stylesheet" href="css/auth.css"><link rel="stylesheet" href="css/styles.css">
-</head>
+<link rel="stylesheet" href="{{ $BASE_PATH }}css/polish.css"></head>
 <body data-page="register">
   @include('partials.navbar')
   <main id="main-content" tabindex="-1" class="auth-main">

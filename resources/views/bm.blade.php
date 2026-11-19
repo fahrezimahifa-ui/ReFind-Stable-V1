@@ -5,7 +5,7 @@
   <link rel="preload" href="assets/fonts/Manrope-variable.woff2" as="font" type="font/woff2" crossorigin="anonymous">
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="app-base" content="{{ $BASE_PATH }}">
   <title>Review Queue · ReFind</title><link rel="icon" type="image/svg+xml" href="assets/refind-logo-mark.svg"><link rel="icon" type="image/png" sizes="32x32" href="assets/refind-favicon-32.png"><link rel="apple-touch-icon" sizes="180x180" href="assets/refind-shortcut-180.png"><link rel="stylesheet" href="vendor/bootstrap.min.css"><link rel="stylesheet" href="css/theme.css"><link rel="stylesheet" href="css/auth.css"><link rel="stylesheet" href="css/styles.css"><link rel="stylesheet" href="css/student.css"><link rel="stylesheet" href="css/bm.css">
-</head>
+<link rel="stylesheet" href="{{ $BASE_PATH }}css/polish.css"></head>
 <body data-page="bm" data-claims-read-only="{{ $CLAIMS_READ_ONLY }}" data-bm-decisions="{{ $BM_DECISIONS }}" data-handovers-unavailable="{{ $HANDOVERS_UNAVAILABLE }}" data-staff-reports-unavailable="{{ $STAFF_REPORTS_UNAVAILABLE }}" data-requires-auth="true">
   @include('partials.navbar')
   <main id="main-content" tabindex="-1" class="student-main bm-main"><header class="page-heading"><div><span class="eyebrow">Building Management</span><h1 id="bm-title">Review Queue</h1><p id="bm-intro">{{ $BM_DECISIONS !== '' ? 'Compare the identifying details, then record your decision.' : 'Review claim details and ownership evidence.' }}</p></div></header>
