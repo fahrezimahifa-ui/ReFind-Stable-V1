@@ -2,7 +2,7 @@
 
 19 November 2026 · QA branch `migration/qa-final` (worktree `C:\ReFind-Laravel\laravel-p8`) · **Classification: functionally verified, with external qualifications pending.** This is not a formal acceptance.
 
-> Later work: the professor UI/UX refinement and two parity fixes are on `migration/uiux-refinement`. After the owner-review corrections and the batch 4 hierarchy and guidance pass, the integrated regression passed on `0e0f9dc` (including the owner-review note-box fix); see [UIUX_REFINEMENT.md](UIUX_REFINEMENT.md). This report describes the QA of `de7d8bd` and is otherwise unchanged.
+> Later work: the professor UI/UX refinement and two parity fixes are on `migration/uiux-refinement`. After the owner-review corrections and the batch 4 hierarchy and guidance pass, the integrated regression passed on `0e0f9dc` (including the owner-review note-box fix); see [UIUX_REFINEMENT.md](UIUX_REFINEMENT.md). The candidate is frozen as the local tag `refind-laravel-rc-2026-11-20`; its identity and the remaining formal acceptance work are in [CANDIDATE_FREEZE.md](CANDIDATE_FREEZE.md). This report describes the QA of `de7d8bd` and is otherwise unchanged.
 
 ## 1. Source and commit identities
 
