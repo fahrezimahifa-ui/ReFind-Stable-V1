@@ -22,7 +22,7 @@ function matching_query_context(string $sql, array $bindings): array
 
 function matching_capture_failure(Throwable $error, array $context): string
 {
-    if (PHP_SAPI !== 'cli' || Workspace::profile()['profile'] !== 'academic-test') {
+    if (PHP_SAPI !== 'cli' || ! in_array(Workspace::profile()['profile'], ['academic-test', ...Workspace::DEV_PROFILES], true)) {
         throw new RuntimeException('Private matching diagnostics require synthetic B-test CLI.');
     }
     $chain = [];

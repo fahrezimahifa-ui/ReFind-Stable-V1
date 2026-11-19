@@ -93,7 +93,7 @@ final class NativeMatchingOracle
     public static function database(PDO $pdo): void
     {
         $server = $pdo->query('SELECT @@port AS port,@@datadir AS datadir,DATABASE() AS db')->fetch(PDO::FETCH_ASSOC);
-        if (Workspace::profile()['profile'] !== 'academic-test' || (int) $server['port'] !== 3307 || $server['db'] !== 'refind_laravel_b_test' || Workspace::norm($server['datadir']) !== Workspace::norm(Workspace::ROOT.'/state/mariadb-data') || $pdo->query('SELECT workspace_id FROM _workspace_owner')->fetchColumn() !== Workspace::profile()['workspace_id']) {
+        if (! in_array(Workspace::profile()['profile'], ['academic-test', ...Workspace::DEV_PROFILES], true) || (int) $server['port'] !== 3307 || $server['db'] !== Workspace::profile()['database'] || Workspace::norm($server['datadir']) !== Workspace::norm(Workspace::ROOT.'/state/mariadb-data') || $pdo->query('SELECT workspace_id FROM _workspace_owner')->fetchColumn() !== Workspace::profile()['workspace_id']) {
             throw new RuntimeException('Oracle SQL must target synthetic B test only.');
         }
         self::$pdo = $pdo;

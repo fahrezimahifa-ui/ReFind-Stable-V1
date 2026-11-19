@@ -121,6 +121,10 @@ def main():
         static_checks(profile, out)
         run('grant-audit', php('tools/report-privileges.php'), profile, out)
         run('phpunit', [str(PHP), '-c', str(INI), '-d', 'error_log=' + str(state / 'php-error.log'), str(APP / 'vendor/phpunit/phpunit/phpunit'), '--configuration', str(APP / ('phpunit.' + profile.split('-')[0] + '.xml')), '--log-junit', str(out / 'phpunit.junit.xml')], profile, out, timeout=1800)
+        # Inherited Phase 5 CLI suites on the integrated code (each restores its own synthetic state).
+        run('inherited-search', php('tools/test-search.php'), profile, out)
+        run('inherited-report-service', php('tools/test-report-service.php'), profile, out)
+        run('inherited-native-matching-parity', php('tools/test-report-matching.php'), profile, out, timeout=1200)
         if not a.skip_live:
             before = run('state-before', php('tools/phase6-dev.php', 'state'), profile, out)
             snapshot = json.loads(run('snapshot-save', php('tools/phase6-dev.php', 'save'), profile, out))['id']

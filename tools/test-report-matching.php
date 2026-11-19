@@ -31,7 +31,8 @@ $recordCoordinatorStage = function (string $point) use (&$diagnosticContext): vo
     $diagnosticContext['coordinator_stage'] = $point;
 };
 try {
-    if (Workspace::profile()['profile'] !== 'academic-test' || ! config('refind.report_effects')) {
+    // Integrated candidate QA: the same native replay also runs on the disposable development profiles.
+    if (! in_array(Workspace::profile()['profile'], ['academic-test', ...Workspace::DEV_PROFILES], true) || ! config('refind.report_effects')) {
         throw new RuntimeException('Matching acceptance requires synthetic B-test effects.');
     }
     NativeMatchingOracle::boot();
