@@ -369,3 +369,26 @@ The owner's review of the dark-mode phone BM claim detail found that field label
 **Fix:** `p.context-note`, `p.journey-note` and `p.report-visibility` now span their container (`polish.css`). Plain paragraphs keep the 64ch measure. The same cause and fix also apply to the item page's journey note and the report form's "Who can see this report?" box.
 
 **Verified** on the review demo at 1440 px light and 390 px dark: each box spans its container, measured and seen in screenshots in `planning\professor-uiux\after\batch4\note-fix\`.
+
+## Final integrated regression after the owner review fix (20 November 2026)
+
+`python -B tools/verify-candidate.py --browser` ran on the clean committed candidate **`0e0f9dc`** (`dirty_worktree: false`), which contains the note-box fix. It **passed** with `accepted: false`. Evidence: `C:\ReFind-Laravel\evidence\phase8\candidate-20261119T221829Z\summary.json`. It supersedes the `b0bba20` run above.
+
+Two earlier attempts on the same commit hit the 2 GiB memory gates; neither gate was lowered:
+- `candidate-20261119T221329Z` passed every stage through the security probes, then the first browser suite stopped at its memory floor.
+- The run before it couldn't start because of the preflight gate.
+
+The interrupted attempt restored its snapshot. The completed run's starting state matched the verified baseline, which confirms that restore was exact.
+
+| Step | Result |
+|---|---|
+| Preflight, static checks (123 PHP files, page scripts, tools), exact grant audit | passed |
+| PHPUnit (`phpunit.phase8.xml`) | 46 tests, 2,983 assertions, 0 failures |
+| Inherited Phase 5 suites | search passed; report service 27; native matching parity 205, restore verified |
+| Live HTTP and concurrency | Phase 6: 77; Phase 7: 81; Phase 8: 28 |
+| Security probes | 75 |
+| Browser suites | Phase 6: 17; Phase 7: 22; Phase 8: 14 |
+| Synthetic state | identical to the verified baseline before and after |
+| Protection | Academic grants match the 6B evidence, 6B archive `c1f4bde6…`, 19/19 canonical files, accepted refs unchanged |
+
+**Still preserved:** `migration/uiux-rc1-verified` (`73c10fe`) and `qa-final` (`de7d8bd`). The pickup-expiry policy remains Option A. The deferred acceptance gates in [QA_RELEASE_READINESS.md](QA_RELEASE_READINESS.md) stay open. The candidate is not frozen, tagged, pushed or merged.
