@@ -1,6 +1,6 @@
 """Owned launcher for the disposable, unaccepted development profiles (phase6-dev, phase7-dev).
 
-Usage: phase6-control.py <action> [--profile phase7-dev|phase6-dev] (default phase7-dev in this branch).
+Usage: phase6-control.py <action> [--profile phase8-dev|phase7-dev|phase6-dev] (default phase8-dev in this branch).
 The development profiles share the migration-owned portable MariaDB on 127.0.0.1:3307 with the accepted academic
 profiles. This launcher never touches their schemas, grants, web processes or state. Every control action
 re-verifies live ownership (psutil pid/create-time/exe/cmdline, port probes and PROCESSLIST), not only the
@@ -15,7 +15,9 @@ PHP = ROOT / 'runtime/php85/php.exe'; INI = ROOT / 'runtime/php85/php.ini'; DB =
 DEV_PROFILES = {
     'phase6-dev': {'app': 'laravel-p6', 'ports': (8016, 8017), 'records': 'phase6-processes.json', 'database': 'refind_laravel_p6_dev', 'username': 'refind_p6_dev_app', 'cookie': 'refind_laravel_p6_dev'},
     'phase7-dev': {'app': 'laravel-p7', 'ports': (8018, 8019), 'records': 'phase7-processes.json', 'database': 'refind_laravel_p7_dev', 'username': 'refind_p7_dev_app', 'cookie': 'refind_laravel_p7_dev'},
+    'phase8-dev': {'app': 'laravel-p8', 'ports': (8020, 8021), 'records': 'phase8-processes.json', 'database': 'refind_laravel_p8_dev', 'username': 'refind_p8_dev_app', 'cookie': 'refind_laravel_p8_dev'},
 }
+STAGES = {'phase6-dev': 'student,review,approval', 'phase7-dev': 'student,review,approval,pickup', 'phase8-dev': 'student,review,approval,pickup,status,notifications,account,registration'}
 OWNER = ROOT / '.refind-laravel-owner.json'
 ACADEMIC = ROOT / 'state/academic-processes.json'  # shared 'db' record so the canonical launcher can still stop it
 POC = ROOT / 'state/processes.json'
@@ -338,12 +340,12 @@ if __name__ == '__main__':
     parser.add_argument('action', choices=['init', 'grants', 'start', 'stop', 'status', 'preflight'])
     parser.add_argument('--second', action='store_true')
     parser.add_argument('--db', action='store_true')
-    parser.add_argument('--profile', choices=sorted(DEV_PROFILES), default='phase7-dev')
+    parser.add_argument('--profile', choices=sorted(DEV_PROFILES), default='phase8-dev')
     parser.add_argument('--stages', default=None)
     a = parser.parse_args()
     select(a.profile)
     if a.stages is None:
-        a.stages = 'student,review,approval,pickup' if a.profile == 'phase7-dev' else 'student,review,approval'
+        a.stages = STAGES[a.profile]
     try:
         owned_root()
         if a.action == 'init': initialize()

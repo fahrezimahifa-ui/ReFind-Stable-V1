@@ -8,7 +8,7 @@ from importlib import import_module
 from pathlib import Path
 import json, os, sys
 
-os.environ.setdefault('REFIND_DEV_PROFILE', 'phase7-dev')
+os.environ.setdefault('REFIND_DEV_PROFILE', 'phase8-dev' if Path(__file__).resolve().parent.parent.name == 'laravel-p8' else 'phase7-dev')
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 h = import_module('test-phase6-http')
 check, Client, BASES = h.check, h.Client, h.BASES

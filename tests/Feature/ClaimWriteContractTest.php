@@ -26,7 +26,8 @@ final class ClaimWriteContractTest extends TestCase
             }
         }
         $this->assertSame(['student', 'review', 'approval'], ClaimStages::forProfile('phase6-dev', false));
-        $this->assertSame(ClaimStages::ALL, ClaimStages::forProfile('phase7-dev', false));
+        $this->assertSame(['student', 'review', 'approval', 'pickup'], ClaimStages::forProfile('phase7-dev', false));
+        $this->assertSame(ClaimStages::ALL, ClaimStages::forProfile('phase8-dev', false));
         $this->assertSame(['review'], ClaimStages::forProfile('phase6-dev', 'review'));
         $this->assertSame([], ClaimStages::forProfile('phase6-dev', 'pickup'), 'pickup can never be enabled on phase6-dev');
         $this->assertSame([], ClaimStages::forProfile('phase7-dev', ''));

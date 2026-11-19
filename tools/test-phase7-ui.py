@@ -10,7 +10,7 @@ from urllib.parse import urlparse
 import psutil
 from playwright.sync_api import expect, sync_playwright
 
-os.environ.setdefault('REFIND_DEV_PROFILE', 'phase7-dev')
+os.environ.setdefault('REFIND_DEV_PROFILE', 'phase8-dev' if Path(__file__).resolve().parent.parent.name == 'laravel-p8' else 'phase7-dev')
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 http = import_module('test-phase6-http')
 p7 = import_module('test-phase7-http')

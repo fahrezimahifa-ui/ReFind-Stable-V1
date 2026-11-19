@@ -23,7 +23,7 @@ final class ClaimReadContractTest extends TestCase
         $this->get('/my-reports.html?tab=claims&claim=1')->assertRedirect('/login.html?return=%2Fmy-reports.html%3Ftab%3Dclaims%26claim%3D1');
 
         // Runs unchanged on accepted academic-test (writes gated) and on the disposable phase6-dev profile.
-        $this->assertContains(Workspace::profile()['profile'], ['academic-test', 'phase6-dev', 'phase7-dev']);
+        $this->assertContains(Workspace::profile()['profile'], ['academic-test', ...Workspace::DEV_PROFILES]);
         require_once base_path('tools/AcademicSnapshot.php');
         $admin = \AcademicSnapshot::admin();
         $before = hash('sha256', json_encode(\AcademicSnapshot::capture($admin), JSON_THROW_ON_ERROR));

@@ -118,11 +118,14 @@ final class AuthContractTest extends TestCase
 
     public function test_application_credentials_cannot_update_even_a_zero_row_selection(): void
     {
+        // With the Phase 8 account stage the principal may update its own display name/password/avatar columns,
+        // but never role, email or activation; without it, no users column is updatable at all.
+        $account = \App\Support\ClaimStages::has('account');
         try {
-            DB::statement('UPDATE users SET full_name=full_name WHERE 1=0');
+            DB::statement($account ? 'UPDATE users SET role=role WHERE 1=0' : 'UPDATE users SET full_name=full_name WHERE 1=0');
             $this->fail('Application user unexpectedly has UPDATE access.');
         } catch (QueryException $e) {
-            $this->assertSame(1142, (int) $e->errorInfo[1]);
+            $this->assertContains((int) $e->errorInfo[1], $account ? [1142, 1143] : [1142]);
         }
     }
 }

@@ -8,10 +8,10 @@ import http.cookiejar, io, json, os, secrets, subprocess, sys, threading, urllib
 from PIL import Image
 
 ROOT = Path('C:/ReFind-Laravel'); APP = Path(__file__).resolve().parent.parent
-PROFILE = os.environ.get('REFIND_DEV_PROFILE', 'phase7-dev' if APP.name == 'laravel-p7' else 'phase6-dev')
+PROFILE = os.environ.get('REFIND_DEV_PROFILE', {'laravel-p7': 'phase7-dev', 'laravel-p8': 'phase8-dev'}.get(APP.name, 'phase6-dev'))
 STATE = ROOT / 'state' / PROFILE
-BASES = {'phase6-dev': ('http://127.0.0.1:8016', 'http://127.0.0.1:8017'), 'phase7-dev': ('http://127.0.0.1:8018', 'http://127.0.0.1:8019')}[PROFILE]
-PICKUP = PROFILE == 'phase7-dev'
+BASES = {'phase6-dev': ('http://127.0.0.1:8016', 'http://127.0.0.1:8017'), 'phase7-dev': ('http://127.0.0.1:8018', 'http://127.0.0.1:8019'), 'phase8-dev': ('http://127.0.0.1:8020', 'http://127.0.0.1:8021')}[PROFILE]
+PICKUP = PROFILE in ('phase7-dev', 'phase8-dev')
 CREDS = {**json.loads((STATE / 'credentials.json').read_text()), **json.loads((STATE / 'tmp/extra-credentials.json').read_text())}
 checks = []
 

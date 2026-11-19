@@ -11,8 +11,9 @@ use App\Support\Workspace;
  */
 require __DIR__.'/academic-bootstrap.php';
 
-const ACTIVATION = ['student' => ['phase6-dev', 'phase7-dev'], 'review' => ['phase6-dev', 'phase7-dev'], 'approval' => ['phase6-dev', 'phase7-dev'], 'pickup' => ['phase7-dev']];
-const ORDER = ['student', 'review', 'approval', 'pickup'];
+const ACTIVATION = ['student' => ['phase6-dev', 'phase7-dev', 'phase8-dev'], 'review' => ['phase6-dev', 'phase7-dev', 'phase8-dev'], 'approval' => ['phase6-dev', 'phase7-dev', 'phase8-dev'], 'pickup' => ['phase7-dev', 'phase8-dev'],
+    'status' => ['phase8-dev'], 'notifications' => ['phase8-dev'], 'account' => ['phase8-dev'], 'registration' => ['phase8-dev']];
+const ORDER = ['student', 'review', 'approval', 'pickup', 'status', 'notifications', 'account', 'registration'];
 const STAGES = [
     'student' => [
         ['claims', 'INSERT', 'item_id,related_lost_item_id,claimant_user_id,ownership_answer'],
@@ -34,6 +35,11 @@ const STAGES = [
         ['handovers', 'UPDATE', 'handover_status,pickup_location_id,scheduled_at,completed_at,handled_by_user_id,notes'],
         ['handovers', 'DELETE', null],
     ],
+    // Phase 8: BM manual report status reuses the accepted reporting grants (items status, match cleanup, history, notifications).
+    'status' => [],
+    'notifications' => [['notifications', 'UPDATE', 'is_read']],
+    'account' => [['users', 'UPDATE', 'full_name,password_hash,avatar_path']],
+    'registration' => [['users', 'INSERT', 'full_name,email,password_hash,role,is_active,student_id,avatar_path']],
 ];
 
 function grant_map(PDO $pdo, string $grantee, string $db): array
@@ -71,7 +77,7 @@ try {
     $revoke = in_array('--revoke', array_slice($argv, 2), true);
     $p = Workspace::profile();
     if (! isset(STAGES[$stage]) || array_diff(array_slice($argv, 2), ['--revoke'])) {
-        throw new RuntimeException('Usage: grant-claims.php <student|review|approval|pickup> [--revoke]');
+        throw new RuntimeException('Usage: grant-claims.php <'.implode('|', ORDER).'> [--revoke]');
     }
     if (! in_array($p['profile'], ACTIVATION[$stage], true)) {
         throw new RuntimeException('Claim grants are not activated for this profile.');
