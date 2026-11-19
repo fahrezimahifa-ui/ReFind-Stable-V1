@@ -2,6 +2,8 @@
 
 19 November 2026 · QA branch `migration/qa-final` (worktree `C:\ReFind-Laravel\laravel-p8`) · **Classification: functionally verified, with external qualifications pending.** This is not a formal acceptance.
 
+> Later work: the professor UI/UX refinement and two parity fixes are on `migration/uiux-refinement`. The final candidate run passed on `b94bb60`; see [UIUX_REFINEMENT.md](UIUX_REFINEMENT.md). This report describes the QA of `de7d8bd` and is otherwise unchanged.
+
 ## 1. Source and commit identities
 
 | Implementation | Identity and state |

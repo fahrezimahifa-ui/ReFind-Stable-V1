@@ -148,3 +148,26 @@ Passive information is now non-interactive: the passed-appointment note in the B
 The genuine workflow action, Release pickup, is unchanged in authority. It appears whenever the API offers it, for pending and scheduled pickups, as a red text button that opens the reason and confirmation dialog. Nothing in the UI releases a pickup automatically when its time passes, and the server has no expiry rule.
 
 **Unresolved:** the professor's note "Release pickup expire" does not say whether it also asks for an automatic expiry or release policy. No such rule exists natively, and "Never retrieved" does not set a disposal policy. Adding one would be a new business rule, so it is documented here rather than invented.
+
+## Final candidate verification (19 November 2026)
+
+`python -B tools/verify-candidate.py --browser` ran once on the clean committed candidate **`b94bb60`** (`dirty_worktree: false`). Evidence: `C:\ReFind-Laravel\evidence\phase8\candidate-20261119T112924Z\summary.json`. The result is **passed** with `accepted: false`.
+
+| Step | Result |
+|---|---|
+| Preflight, static checks (123 PHP files, page scripts, tools), exact grant audit | passed |
+| PHPUnit (`phpunit.phase8.xml`) | 46 tests, 2,983 assertions, 0 failures |
+| Inherited Phase 5 suites | search passed; report service 27; native matching parity 205, restore verified |
+| Live HTTP and concurrency | Phase 6: 77; Phase 7: 81; Phase 8: 28. Every race outcome legal. |
+| Security probes | 75 |
+| Browser suites | Phase 6: 17; Phase 7: 19; Phase 8: 14 |
+| Synthetic state after restore | identical |
+| Protection | Academic grants match the 6B evidence, 6B archive `c1f4bde6…`, 19/19 canonical files, accepted refs unchanged |
+
+Any commit after `b94bb60` on this branch only records these results. The deferred acceptance gates in [QA_RELEASE_READINESS.md](QA_RELEASE_READINESS.md) are unchanged:
+- independent native HTTP parity;
+- the full inherited matrix with fresh receipts;
+- fresh-Windows qualification;
+- academic activation;
+- rubric evidence;
+- owner sign-offs.
