@@ -28,7 +28,7 @@ def check(label, ok):
 def guard(route):
     req = route.request
     if req.url.startswith(('data:', 'blob:')) or req.url.startswith(BASE + '/'):
-        if req.method == 'POST' and '/api/notifications.php' in req.url:
+        if req.method == 'POST' and '/api/notifications.php' in req.url and not http.PHASE8:
             forbidden.append('notification read-marking POST')
         route.continue_()
     else:
@@ -84,7 +84,7 @@ with sync_playwright() as playwright:
         ctx, bm = phase(playwright, 1440, 'light', 'bm', 'admin.html')
         bm.goto(BASE + '/admin.html?tab=handover&handover=' + handover); ready(bm)
         expect(bm.locator('[data-bm-tab="handover"]')).to_have_attribute('aria-pressed', 'true')
-        check('Reports tab stays gated', bm.locator('[data-bm-tab="reports"]').count() == 0)
+        check('Reports tab follows the Phase 8 status stage', bm.locator('[data-bm-tab="reports"]').count() == (1 if http.PHASE8 else 0))
         expect(bm.locator('[data-bm-action]')).to_have_count(3)
         bm_operation(bm, handover, 'schedule', 'Pickup scheduled.', location='36', when=when)
         check('BM scheduled the pickup from the Handover tab', True)
@@ -100,10 +100,13 @@ with sync_playwright() as playwright:
         first = st.locator('.notification-card').first
         expect(first).to_contain_text('Pickup scheduled')
         expect(first).to_contain_text('Gedung B')
-        check('no read-marking controls while read-only', st.locator('.mark-read').count() == 0 and st.locator('#mark-all-read').is_hidden())
+        if http.PHASE8:
+            check('read-marking controls available (Phase 8)', st.locator('.mark-read').count() > 0 and st.locator('#mark-all-read').is_visible())
+        else:
+            check('no read-marking controls while read-only', st.locator('.mark-read').count() == 0 and st.locator('#mark-all-read').is_hidden())
         first.locator('a.notification-destination').click()
         st.wait_for_url(lambda u: urlparse(u).path == '/my-reports.html' and 'claim=' + claim in u); ready(st)
-        check('notification link opens the pickup without marking read', True)
+        check('notification link opens the pickup' + (' and marks it read' if http.PHASE8 else ' without marking read'), True)
         check('Student layout has no horizontal overflow', not st.evaluate('document.documentElement.scrollWidth > window.innerWidth + 1'))
         ctx.close()
 

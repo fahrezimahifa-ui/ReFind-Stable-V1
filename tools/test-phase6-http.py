@@ -12,6 +12,7 @@ PROFILE = os.environ.get('REFIND_DEV_PROFILE', {'laravel-p7': 'phase7-dev', 'lar
 STATE = ROOT / 'state' / PROFILE
 BASES = {'phase6-dev': ('http://127.0.0.1:8016', 'http://127.0.0.1:8017'), 'phase7-dev': ('http://127.0.0.1:8018', 'http://127.0.0.1:8019'), 'phase8-dev': ('http://127.0.0.1:8020', 'http://127.0.0.1:8021')}[PROFILE]
 PICKUP = PROFILE in ('phase7-dev', 'phase8-dev')
+PHASE8 = PROFILE == 'phase8-dev'  # BM report status, read-marking, account, registration, history
 CREDS = {**json.loads((STATE / 'credentials.json').read_text()), **json.loads((STATE / 'tmp/extra-credentials.json').read_text())}
 checks = []
 
@@ -154,7 +155,10 @@ def contract():
     else:
         check('handover reads stay Phase 7', bm.call('/api/handovers.php')[0] == 501)
         check('pickup scheduling stays Phase 7', bm.call('/api/handovers.php', dict(action='schedule', id=obj['handover_id']))[0] == 501)
-    check('manual report status stays out of scope', bm.call('/api/staff.php', dict(action='status', id=found))[0] == 501)
+    if PHASE8:
+        check('manual report status reaches native validation (Phase 8)', bm.call('/api/staff.php', dict(action='status', id=found))[0] == 422)
+    else:
+        check('manual report status stays out of scope', bm.call('/api/staff.php', dict(action='status', id=found))[0] == 501)
     check('claimant unread count grew', a.call('/api/notifications.php?count=1')[1]['unread_count'] >= 3)
 
 

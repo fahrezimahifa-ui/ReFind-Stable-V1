@@ -60,7 +60,7 @@ def contract():
     notes = a.call('/api/notifications.php')[1]
     first = notes['notifications'][0]
     check('claimant notification carries the structured pickup event', first['notification_type'] == 'HANDOVER_SCHEDULE' and first['pickup_event']['after']['status'] == 'SCHEDULED' and first['handover_id'] == hid)
-    check('read-marking stays unavailable', a.call('/api/notifications.php', dict(action='read_all'))[0] == 501)
+    check('read-marking follows its stage', a.call('/api/notifications.php', dict(action='read_all'))[0] == (200 if h.PHASE8 else 501))
     d = rev(bm, hid)
     code, obj, _, _ = op(bm, hid, 'reschedule', d['revision'], pickup_location_id='35', scheduled_at=slot(3, '14:00'), note='Owner asked for a later slot.')
     check('reschedule 200', code == 200 and obj['status'] == 'SCHEDULED', obj)

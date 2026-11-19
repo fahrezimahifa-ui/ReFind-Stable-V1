@@ -45,9 +45,10 @@ def run():
     check('login with the new password', code == 200, obj)
 
     a = Client(BASE).login('student_a'); b = Client(BASE).login('student_b'); bm = Client(BASE).login('bm')
-    found = h.report(b, 'FOUND', 'Phase eight desk lamp')
+    # Own category/area: earlier suites in the same run create many matching keyboard reports in category 1 / area 38.
+    found = h.report(b, 'FOUND', 'Phase eight desk lamp', location='39', category='6')
     queue = bm.call('/api/staff.php?q=Phase+eight+desk+lamp')[1]
-    check('BM report queue (default resource)', queue['total'] == 1 and queue['reports'][0]['allowed_statuses'] == ['UNDER_REVIEW', 'UNCLAIMED_CLOSED'])
+    check('BM report queue (default resource)', queue['total'] == 1 and queue['reports'][0]['status_code'] == 'OPEN' and queue['reports'][0]['allowed_statuses'] == ['UNDER_REVIEW', 'UNCLAIMED_CLOSED'], queue)
     detail = bm.call('/api/staff.php?resource=reports&id=' + found)[1]['report']
     code, obj, _, _ = bm.call('/api/staff.php', dict(action='status', id=found, status='UNDER_REVIEW', note='Checking the desk log for this lamp.', revision=detail['revision'], confirm='1'))
     check('manual status 200', code == 200 and obj == {'ok': True, 'id': found, 'status': 'UNDER_REVIEW'}, obj)
