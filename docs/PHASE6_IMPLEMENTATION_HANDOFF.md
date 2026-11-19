@@ -80,6 +80,21 @@ Tooling fixes made along the way:
 - `tools/server.php` now allows ports 8016/8017 for `phase6-dev` only.
 - `report_test_client.py` reads its base URL and profile from env; the defaults are unchanged.
 
+## Review readiness (19 November 2026)
+
+- **Owner manual demo.** The owner manually tested the integrated Phase 6 journey in a browser on `phase6-dev` (worker 8016) and **found no issues**. No code changed as a result.
+  - The demo covered: submit with a linked Lost report and a private photo, request more information, resubmit, approval with one pending handover, withdrawal, rejection, competing-claim closure, stale-decision refresh, and role/privacy checks.
+  - Demo reports were created through the application's own API and two extra synthetic Students through `phase6-dev.php seed-students`. Credentials were kept in a private local file under `state/phase6-dev`, which was deleted afterwards.
+- **Baseline hygiene.** Before the demo, one leftover synthetic report from an earlier interrupted test run was found. That run's restore had hit the 12-connection limit, which has since been fixed in the harness. The data was reset to the clean post-provision snapshot. After the demo, the pre-demo restore point was restored.
+- **Confirmation regression on `9a44603`** (unchanged code, after the demo):
+  - PHPUnit: 34 tests, 2114 assertions, OK.
+  - `test-phase6-http.py` on two live workers: 78 checks passed, every race had exactly one winner, and the global invariants held.
+  - `test-phase6-ui.py`: 15 checks passed.
+  - The `phase6-dev` snapshot restore produced a state identical to before the run, and the exact grant audit passed.
+  - The owned workers and database were stopped (records empty; ports 3307, 8016 and 8017 free).
+- **Protection check.** The 6B archive is still `c1f4bde6…`. The canonical uncommitted 6B tree (19 files) and the accepted branches are unchanged.
+- **Review target.** `migration/phase6-impl` at the commit that adds this section (on top of `9a44603`). Diff against `b70b711` for the full Phase 6 change set.
+
 ## Native divergences to compare and sign off
 
 1. **Revision digest.** The probe confirmed native token reuse when a claim goes `PENDING → NEED_MORE_INFO → PENDING` within one second, because `updated_at` has second precision. Laravel additionally hashes the latest claimant `CLAIM_SUBMITTED` notification ID (0 for legacy rows). The wire shape is unchanged, so compare token behaviour, never raw token equality.
