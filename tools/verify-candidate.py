@@ -16,7 +16,10 @@ ROOT = Path('C:/ReFind-Laravel'); APP = Path(__file__).resolve().parent.parent
 PHP = ROOT / 'runtime/php85/php.exe'; INI = ROOT / 'runtime/php85/php.ini'
 CONTROL = APP / 'tools/workspace/phase6-control.py'
 EVIDENCE_6B = ROOT / 'evidence/phase6/checkpoint-6b-20261118T093432Z'
-ACCEPTED_REFS = {'migration/academic-b': '7f864aa6ddd88cf6de130213143c74870253c049', 'migration/phase6-6a': 'b70b711a4246b4427f15a5eb5edd6b1daf45bc7a', 'migration/laravel13': 'ac03a9dae33c5d03318ac357fdb0c31abcaffa75'}
+# Since canonical integration step 5 the canonical working checkout holds the integrated code (12f3a78); the original
+# uncommitted 6B files are preserved, unchanged, in this ref (owner decision, 21 November 2026).
+PRESERVED_6B = 'migration/phase6-6b-tree'
+ACCEPTED_REFS = {PRESERVED_6B: '0b35fa0d63f0ac8687d1b0481445a8d408d4c36b', 'migration/academic-b': '7f864aa6ddd88cf6de130213143c74870253c049', 'migration/phase6-6a': 'b70b711a4246b4427f15a5eb5edd6b1daf45bc7a', 'migration/laravel13': 'ac03a9dae33c5d03318ac357fdb0c31abcaffa75'}
 DEFERRED = [
     'Independent native HTTP parity for claims, BM review, approval, pickups, BM reports/status, notifications, account and registration (external comparator kit; never same-host).',
     'Full inherited 33-suite matrix plus the Phase 6-8 suites with fresh source-bound receipts (extend VerificationReceipt/verify-phase5.py beyond phase 5).',
@@ -94,12 +97,19 @@ def protection(profile, out):
                 'column_grants': q('SELECT TABLE_SCHEMA,TABLE_NAME,COLUMN_NAME,PRIVILEGE_TYPE,IS_GRANTABLE FROM information_schema.COLUMN_PRIVILEGES WHERE GRANTEE="' + g + '"')}
         grants_ok['academic-' + prof] = all(canon(ev.get(k, [])) == canon(live[k]) for k in live)
     archive = hashlib.sha256((EVIDENCE_6B / 'checkpoint-6b-candidate.zip').read_bytes()).hexdigest()
-    manifest = json.loads(zipfile.ZipFile(EVIDENCE_6B / 'checkpoint-6b-candidate.zip').read('manifest.json'))
+    bundle = zipfile.ZipFile(EVIDENCE_6B / 'checkpoint-6b-candidate.zip')
+    manifest = json.loads(bundle.read('manifest.json'))
     files = {**manifest['modified'], **manifest['new']}
-    canonical = sum(hashlib.sha256((ROOT / 'laravel' / p).read_bytes()).hexdigest() == d for p, d in files.items())
+    eol = lambda b: b.replace(b'\r\n', b'\n')  # git normalises line endings in commits
+
+    def preserved(path, digest):
+        source = bundle.read('source/' + path)
+        blob = subprocess.run(['git', '-C', str(ROOT / 'laravel'), 'show', PRESERVED_6B + ':' + path], capture_output=True)
+        return hashlib.sha256(source).hexdigest() == digest and blob.returncode == 0 and eol(blob.stdout) == eol(source)
+    kept = sum(preserved(p, d) for p, d in files.items())
     refs = {r: subprocess.run(['git', '-C', str(ROOT / 'laravel'), 'rev-parse', r], capture_output=True, text=True).stdout.strip() for r in ACCEPTED_REFS}
-    result = {'step': 'protection', 'academic_grants_match_6B_evidence': grants_ok, 'archive_6B': archive[:16], 'canonical_6B_files': str(canonical) + '/' + str(len(files)), 'accepted_refs': {r: refs[r] == s for r, s in ACCEPTED_REFS.items()}}
-    result['passed'] = all(grants_ok.values()) and archive.startswith('c1f4bde6a2375d46') and canonical == len(files) and all(result['accepted_refs'].values())
+    result = {'step': 'protection', 'academic_grants_match_6B_evidence': grants_ok, 'archive_6B': archive[:16], 'preserved_6B_files': str(kept) + '/' + str(len(files)), 'accepted_refs': {r: refs[r] == s for r, s in ACCEPTED_REFS.items()}}
+    result['passed'] = all(grants_ok.values()) and archive.startswith('c1f4bde6a2375d46') and kept == len(files) and all(result['accepted_refs'].values())
     steps.append(result)
     if not result['passed']:
         raise RuntimeError('protection check failed: ' + json.dumps(result))
