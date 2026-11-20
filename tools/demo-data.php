@@ -8,7 +8,7 @@ use App\Support\Workspace;
  *   clear-fixtures             remove the provisioning fixtures once, before the first seed (refuses afterwards)
  *   timeline <file>            map seeding wall-clock times onto a realistic campus timeline (once, during seeding)
  *   save-baseline [--replace]  snapshot rows and private media as the demo baseline
- *   restore-baseline           restore the baseline, then move its dates to today (the explicit reset path)
+ *   restore-baseline           restore the baseline, then move its dates forward by the days since it was saved (explicit reset)
  * Nothing here runs at startup. The demo's data persists until the owner explicitly resets it.
  */
 require __DIR__.'/academic-bootstrap.php';

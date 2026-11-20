@@ -3,7 +3,8 @@
   Reset the persistent ReFind localhost demo to its seeded baseline. Explicit, separately confirmed.
 .DESCRIPTION
   Replaces every demo report, claim, pickup, notification, private photo and account change made since seeding
-  with the saved baseline (state\demo\demo-baseline.json), then moves its dates so the story ends today.
+  with the saved baseline (state\demo\demo-baseline.json), then moves every date forward by the days since the
+  baseline was saved, so the story keeps the same distance from today (upcoming pickups stay upcoming).
   It touches only the demo schema refind_laravel_demo and state\demo. You must type RESET DEMO to continue
   (or pass exactly that phrase with -Confirmation). Startup never does this.
 .PARAMETER Confirmation
@@ -23,7 +24,7 @@ if (-not (Test-Path (Join-Path $State 'demo-baseline.json'))) {
 Write-Host 'Reset the ReFind localhost demo to its seeded baseline:'
 Write-Host '  - all demo changes made since seeding are replaced (reports, claims, pickups, notifications,'
 Write-Host '    photos, display names and passwords return to the baseline in DEMO-ACCOUNTS.md);'
-Write-Host '  - dates are moved so the demo story ends today;'
+Write-Host '  - dates move forward by the days since the baseline was saved, so upcoming pickups stay upcoming;'
 Write-Host '  - nothing outside the demo is touched.'
 if (-not $Confirmation) {
     $Confirmation = Read-Host 'Type RESET DEMO to continue'
