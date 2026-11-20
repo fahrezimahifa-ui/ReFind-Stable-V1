@@ -16,6 +16,8 @@ final class ClaimStages
         // Phase 8 integration candidate: remaining native features (BM report status, notification read-marking,
         // account self-service and self-registration) on the disposable phase8-dev profile only.
         'phase8-dev' => ['student', 'review', 'approval', 'pickup', 'status', 'notifications', 'account', 'registration', 'history'],
+        // The persistent localhost demo shows every journey on its own synthetic schema (owner authorization, 20 November 2026).
+        'demo' => ['student', 'review', 'approval', 'pickup', 'status', 'notifications', 'account', 'registration', 'history'],
     ];
 
     public const ALL = ['student', 'review', 'approval', 'pickup', 'status', 'notifications', 'account', 'registration', 'history'];

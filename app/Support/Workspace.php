@@ -18,10 +18,12 @@ final class Workspace
         'phase6-dev' => ['database' => 'refind_laravel_p6_dev', 'username' => 'refind_p6_dev_app', 'cookie' => 'refind_laravel_p6_dev', 'port' => 8016, 'ports' => [8016, 8017], 'app' => 'laravel-p6', 'records' => 'phase6-processes.json'],
         'phase7-dev' => ['database' => 'refind_laravel_p7_dev', 'username' => 'refind_p7_dev_app', 'cookie' => 'refind_laravel_p7_dev', 'port' => 8018, 'ports' => [8018, 8019], 'app' => 'laravel-p7', 'records' => 'phase7-processes.json'],
         'phase8-dev' => ['database' => 'refind_laravel_p8_dev', 'username' => 'refind_p8_dev_app', 'cookie' => 'refind_laravel_p8_dev', 'port' => 8020, 'ports' => [8020, 8021], 'app' => 'laravel-p8', 'records' => 'phase8-processes.json'],
+        // Persistent localhost demo: synthetic data only, all stages on (never an academic profile, never a verification target).
+        'demo' => ['database' => 'refind_laravel_demo', 'username' => 'refind_demo_app', 'cookie' => 'refind_laravel_demo', 'port' => 8030, 'ports' => [8030, 8031], 'app' => 'laravel-demo', 'records' => 'demo-processes.json'],
     ];
 
-    /** Disposable, unaccepted development profiles (never the accepted academic ones). */
-    public const DEV_PROFILES = ['phase6-dev', 'phase7-dev', 'phase8-dev'];
+    /** Synthetic, unaccepted development profiles, including the persistent demo (never the accepted academic ones). */
+    public const DEV_PROFILES = ['phase6-dev', 'phase7-dev', 'phase8-dev', 'demo'];
 
     public static function isDev(): bool
     {

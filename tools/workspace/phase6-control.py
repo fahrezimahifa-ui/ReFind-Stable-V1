@@ -1,6 +1,6 @@
 """Owned launcher for the disposable, unaccepted development profiles (phase6-dev, phase7-dev).
 
-Usage: phase6-control.py <action> [--profile phase8-dev|phase7-dev|phase6-dev] (default phase8-dev in this branch).
+Usage: phase6-control.py <action> [--profile phase8-dev|phase7-dev|phase6-dev|demo] (default phase8-dev in this branch).
 The development profiles share the migration-owned portable MariaDB on 127.0.0.1:3307 with the accepted academic
 profiles. This launcher never touches their schemas, grants, web processes or state. Every control action
 re-verifies live ownership (psutil pid/create-time/exe/cmdline, port probes and PROCESSLIST), not only the
@@ -16,8 +16,10 @@ DEV_PROFILES = {
     'phase6-dev': {'app': 'laravel-p6', 'ports': (8016, 8017), 'records': 'phase6-processes.json', 'database': 'refind_laravel_p6_dev', 'username': 'refind_p6_dev_app', 'cookie': 'refind_laravel_p6_dev'},
     'phase7-dev': {'app': 'laravel-p7', 'ports': (8018, 8019), 'records': 'phase7-processes.json', 'database': 'refind_laravel_p7_dev', 'username': 'refind_p7_dev_app', 'cookie': 'refind_laravel_p7_dev'},
     'phase8-dev': {'app': 'laravel-p8', 'ports': (8020, 8021), 'records': 'phase8-processes.json', 'database': 'refind_laravel_p8_dev', 'username': 'refind_p8_dev_app', 'cookie': 'refind_laravel_p8_dev'},
+    # Persistent localhost demo (synthetic data, all stages). Its data survives stop/start; nothing here reseeds it.
+    'demo': {'app': 'laravel-demo', 'ports': (8030, 8031), 'records': 'demo-processes.json', 'database': 'refind_laravel_demo', 'username': 'refind_demo_app', 'cookie': 'refind_laravel_demo'},
 }
-STAGES = {'phase6-dev': 'student,review,approval', 'phase7-dev': 'student,review,approval,pickup', 'phase8-dev': 'student,review,approval,pickup,status,notifications,account,registration'}
+STAGES = {'phase6-dev': 'student,review,approval', 'phase7-dev': 'student,review,approval,pickup', 'phase8-dev': 'student,review,approval,pickup,status,notifications,account,registration', 'demo': 'student,review,approval,pickup,status,notifications,account,registration'}
 OWNER = ROOT / '.refind-laravel-owner.json'
 ACADEMIC = ROOT / 'state/academic-processes.json'  # shared 'db' record so the canonical launcher can still stop it
 POC = ROOT / 'state/processes.json'

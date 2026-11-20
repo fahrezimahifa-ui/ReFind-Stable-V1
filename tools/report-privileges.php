@@ -12,8 +12,8 @@ try {
     $test = $p['profile'] === 'academic-test';
     // phase6-dev is the disposable Phase 6 profile; its exact expected set adds the reviewed claim grants.
     $p6 = in_array($p['profile'], Workspace::DEV_PROFILES, true);
-    $p7 = in_array($p['profile'], ['phase7-dev', 'phase8-dev'], true); // adds the reviewed Phase 7 pickup grants
-    $p8 = $p['profile'] === 'phase8-dev'; // adds the reviewed Phase 8 notification/account/registration grants
+    $p7 = in_array($p['profile'], ['phase7-dev', 'phase8-dev', 'demo'], true); // adds the reviewed Phase 7 pickup grants
+    $p8 = in_array($p['profile'], ['phase8-dev', 'demo'], true); // the demo's set equals phase8-dev's; adds the reviewed Phase 8 notification/account/registration grants
     $active = $test || config('refind.report_effects');
     $schema = array_map(fn ($r) => (array) $r, $db->select('SELECT TABLE_SCHEMA,PRIVILEGE_TYPE,IS_GRANTABLE FROM information_schema.SCHEMA_PRIVILEGES WHERE GRANTEE=?', [$grantee]));
     if ($schema !== [['TABLE_SCHEMA' => $p['database'], 'PRIVILEGE_TYPE' => 'SELECT', 'IS_GRANTABLE' => 'NO']]) {

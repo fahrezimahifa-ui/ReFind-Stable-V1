@@ -110,6 +110,8 @@ def main():
     ap.add_argument('--profile', default={'laravel-p8': 'phase8-dev', 'laravel-p7': 'phase7-dev'}.get(APP.name, 'phase6-dev'))
     ap.add_argument('--browser', action='store_true'); ap.add_argument('--skip-live', action='store_true')
     a = ap.parse_args(); profile = a.profile; state = ROOT / 'state' / profile
+    if profile == 'demo':
+        sys.exit('Refused: the persistent localhost demo is never a verification target (its data must not be reset).')
     out = ROOT / 'evidence/phase8' / ('candidate-' + now()); out.mkdir(parents=True)
     head = subprocess.run(['git', '-C', str(APP), 'rev-parse', 'HEAD'], capture_output=True, text=True).stdout.strip()
     dirty = subprocess.run(['git', '-C', str(APP), 'status', '--porcelain=v1'], capture_output=True, text=True).stdout.strip() != ''

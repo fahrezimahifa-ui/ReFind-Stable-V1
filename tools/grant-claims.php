@@ -11,8 +11,9 @@ use App\Support\Workspace;
  */
 require __DIR__.'/academic-bootstrap.php';
 
-const ACTIVATION = ['student' => ['phase6-dev', 'phase7-dev', 'phase8-dev'], 'review' => ['phase6-dev', 'phase7-dev', 'phase8-dev'], 'approval' => ['phase6-dev', 'phase7-dev', 'phase8-dev'], 'pickup' => ['phase7-dev', 'phase8-dev'],
-    'status' => ['phase8-dev'], 'notifications' => ['phase8-dev'], 'account' => ['phase8-dev'], 'registration' => ['phase8-dev']];
+// 'demo' is the persistent localhost demo profile (synthetic schema refind_laravel_demo); academic profiles stay excluded.
+const ACTIVATION = ['student' => ['phase6-dev', 'phase7-dev', 'phase8-dev', 'demo'], 'review' => ['phase6-dev', 'phase7-dev', 'phase8-dev', 'demo'], 'approval' => ['phase6-dev', 'phase7-dev', 'phase8-dev', 'demo'], 'pickup' => ['phase7-dev', 'phase8-dev', 'demo'],
+    'status' => ['phase8-dev', 'demo'], 'notifications' => ['phase8-dev', 'demo'], 'account' => ['phase8-dev', 'demo'], 'registration' => ['phase8-dev', 'demo']];
 const ORDER = ['student', 'review', 'approval', 'pickup', 'status', 'notifications', 'account', 'registration'];
 const STAGES = [
     'student' => [
