@@ -67,6 +67,11 @@ $(async function () {
   function setView(view) { $('.bm-layout').attr('data-mobile-view', view); }
   function syncUrl() {
     const query = {tab};
+    // Search, filter and page live in the URL too, so a reload or a return from a report's public page keeps the queue.
+    const q = $('#bm-search').val().trim(), status = $('#bm-state').val(), defaultStatus = $('#bm-state option').first().val();
+    if (q) query.q = q;
+    if (status && status !== defaultStatus) query.status = status;
+    if (page > 1) query.page = page;
     // On phones an auto-selected record stays out of the URL until it is actually opened.
     if (selected && (!mobile() || $('.bm-layout').attr('data-mobile-view') === 'detail')) query[paramKey()] = selected;
     history.replaceState(history.state, '', app.base + 'admin.html?' + new URLSearchParams(query));
@@ -236,6 +241,8 @@ $(async function () {
       const query = {q:$('#bm-search').val().trim(),status:$('#bm-state').val(),page,limit:24};
       const data = tab === 'handover' ? await get('handovers.php',query) : await get('staff.php',{...query,resource:tab});
       if (sequence !== request) return;
+      // A remembered page past the end (records were decided meanwhile) falls back to the last page.
+      if (data.total && page > data.pages) return loadQueue(data.pages, keepFeedback);
       const records = tab === 'claims' ? data.claims : tab === 'reports' ? data.reports : data.handovers;
       if (!pinned && !records.some(record => String(record[idKey()]) === selected)) selected = records.length ? String(records[0][idKey()]) : null;
       const outside = Boolean(selected) && !records.some(record => String(record[idKey()]) === selected);
@@ -318,9 +325,15 @@ $(async function () {
     $('#operation-confirm-row').prop('hidden', !needsConfirm(action));
     $('#operation-submit').prop('disabled', needsConfirm(action) || action === 'status' && !$('#operation-status').val());
     if (action === 'status') updateStatusConfirm();
+    operation.initial = operationValues();
     document.querySelector('#operation-dialog').showModal();
     $('#operation-note').trigger('focus');
   }
+  // Leaving the page with an open, changed decision dialog asks first; a deliberate redirect sets `leaving`.
+  const operationValues = () => JSON.stringify([$('#operation-note').val(), $('#operation-location').val(), $('#operation-date').val(), $('#operation-status').val()]);
+  let leaving = false;
+  addEventListener('beforeunload', event => { if (!leaving && operation && document.querySelector('#operation-dialog')?.open && operationValues() !== operation.initial) { event.preventDefault(); event.returnValue = ''; } });
+  function sessionEnded() { leaving = true; if (operation) U.saveDraft('bm-operation', '#operation-form', {kind: operation.kind, id: operation.id, action: operation.action}); location.replace(app.loginUrl()); }
   function rememberDraft() { if (operation) drafts.set(draftKey(operation),{note:$('#operation-note').val(),location:$('#operation-location').val(),date:$('#operation-date').val(),status:$('#operation-status').val()}); }
   function showQueue() {
     setView('queue'); const previous = selected; selected = null; current = null; pinned = false; ++detailRequest; syncUrl();
@@ -424,10 +437,10 @@ $(async function () {
       await shell.refreshUnread();
     } catch (e) {
       rememberDraft();
-      if (e.status === 401) { location.replace(app.loginUrl()); return; }
+      if (e.status === 401) { sessionEnded(); return; }
       if (e.code === 'csrf_invalid') {
         const state = await app.session().catch(() => null);
-        if (state && !state.authenticated) { location.replace(app.loginUrl()); return; }
+        if (state && !state.authenticated) { sessionEnded(); return; }
       }
       $('#operation-fields').prop('disabled',false);
       $('#operation-feedback').text(e.message).prop('hidden',false);
@@ -450,9 +463,20 @@ $(async function () {
       refs = await app.request('references.php'); U.fillSelect('#operation-location',refs.locations,'Select pickup campus area');
     }
     setView(selected ? 'detail' : 'queue'); switchState();
+    const savedStatus = params.get('status'), savedPage = Number(params.get('page'));
+    if (savedStatus && $('#bm-state option').toArray().some(option => option.value === savedStatus)) $('#bm-state').val(savedStatus);
+    $('#bm-search').val((params.get('q') || '').slice(0, 100));
+    page = Number.isInteger(savedPage) && savedPage >= 1 && savedPage <= 100000 ? savedPage : 1;
     $('#bm-search').on('input',() => { if (saving) return; clearTimeout(timer); resetSelection(); timer = setTimeout(() => loadQueue(1),200); });
     $('#bm-state').on('change',() => { if (saving) return; clearTimeout(timer); resetSelection(); loadQueue(1); });
     $('[data-bm-tab]').on('click',async function () { if (saving) return; clearTimeout(timer); resetSelection(); tab = $(this).attr('data-bm-tab'); page = 1; $('#bm-search').val(''); switchState(); syncUrl(); await loadQueue(1); });
-    $('#bm-retry').on('click',() => loadQueue(page)); await loadQueue();
+    $('#bm-retry').on('click',() => loadQueue(page)); U.trackReturn('admin', 'Back to Review Queue'); await loadQueue();
+    U.restoreReturn('admin');
+    // A decision note typed before the session ended comes back in its dialog.
+    const kept = U.takeDraft('bm-operation');
+    if (kept?.extra?.kind && labels[kept.extra.action]) {
+      drafts.set(draftKey(kept.extra), {note: kept.fields['operation-note'] ?? '', location: kept.fields['operation-location'] ?? '', date: kept.fields['operation-date'] ?? '', status: kept.fields['operation-status'] ?? ''});
+      feedback('Your session ended, so your note was kept. Open "' + labels[kept.extra.action] + '" again to continue.', true);
+    }
   } catch (e) { error(e); }
 });

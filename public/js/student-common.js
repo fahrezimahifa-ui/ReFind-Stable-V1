@@ -38,8 +38,50 @@ window.StudentUI=(()=>{
   function flash(message){try{sessionStorage.setItem('refind-flash',message);}catch{}}
   function notify(message){$('#shell-feedback').addClass('success').attr('role','status').text(message).prop('hidden',false);}
   function showFlash(){let message=null;try{message=sessionStorage.getItem('refind-flash');sessionStorage.removeItem('refind-flash');}catch{}if(message)notify(message);}
-  function showError(e,selector='#page-feedback'){if(e.status===401){location.replace(app.loginUrl());return;}$(selector).removeClass('success').attr('role','alert').text(e.message||String(e)).prop('hidden',false);}
-  async function formError(e,map){if(e.status===401){location.replace(app.loginUrl());return;}if(e.code==='csrf_invalid'){const state=await app.session().catch(()=>null);if(state&&!state.authenticated){location.replace(app.loginUrl());return;}}for(const [key,message]of Object.entries(e.fields||{})){ $('[data-error="'+key+'"]').text(message).prop('hidden',false);if(map[key]){$(map[key]).attr('aria-invalid','true');linkError(map[key],key);}}showError(e,'#form-feedback');const key=Object.keys(e.fields||{}).find(k=>map[k]);if(key)revealField(map[key]);else $('#form-feedback').trigger('focus');}
+  // Return navigation: a list page remembers, in this tab only, its exact URL, scroll position and the record that was
+  // opened, so a detail page's Back link and the browser Back button return to the same place in the same list.
+  const RETURN_KEY='refind-return',KEEP_FOR=7200000,RECORD_ATTRS=['data-item-id','data-claim-id','data-record-id'];
+  const here=()=>location.pathname+location.search;
+  function readReturn(){try{const v=JSON.parse(sessionStorage.getItem(RETURN_KEY)||'null');return v&&typeof v.url==='string'&&v.url.startsWith(app.base)&&Date.now()-v.at<KEEP_FOR?v:null;}catch{return null;}}
+  function writeReturn(value){try{sessionStorage.setItem(RETURN_KEY,JSON.stringify(value));}catch{}}
+  function trackReturn(key,label){
+    try{history.scrollRestoration='manual';}catch{}
+    let opened=null;
+    const save=()=>writeReturn({key,label,url:here(),y:Math.round(scrollY),opened,at:Date.now(),restore:false});
+    $(document).on('click.return','a[href]',function(){const record=this.closest(RECORD_ATTRS.map(a=>'['+a+']').join(','));const attr=record&&RECORD_ATTRS.find(a=>record.hasAttribute(a));opened=attr?{attr,id:record.getAttribute(attr)}:null;save();});
+    addEventListener('pagehide',save);
+  }
+  function returnTarget(){return readReturn();}
+  function markReturn(){const value=readReturn();if(value)writeReturn({...value,restore:true});}
+  // Restores only when arriving through a Back link, the browser Back button or a reload; a fresh visit starts at the top.
+  function restoreReturn(key){
+    const value=readReturn();if(!value||value.key!==key||value.url!==here())return false;
+    const navigation=performance.getEntriesByType?.('navigation')?.[0]?.type;
+    if(!value.restore&&navigation!=='back_forward'&&navigation!=='reload')return false;
+    writeReturn({...value,restore:false});
+    requestAnimationFrame(()=>{window.scrollTo({top:value.y,behavior:'instant'});const record=value.opened&&[...document.querySelectorAll('['+value.opened.attr+']')].find(el=>el.getAttribute(value.opened.attr)===String(value.opened.id));const target=record&&(record.matches('a[href],button')?record:record.querySelector('a[href],button'));if(target)target.focus({preventScroll:true});});
+    return true;
+  }
+  // Unsaved changes: warn before leaving a changed form. release() stops warning just before a deliberate redirect.
+  const guards=[];
+  function guardUnsaved(form,extra=()=>''){
+    const element=$(form)[0];if(!element)return {reset(){},release(){}};
+    const snapshot=()=>JSON.stringify([...element.querySelectorAll('input,select,textarea')].filter(f=>f.id&&f.type!=='file').map(f=>['checkbox','radio'].includes(f.type)?f.checked:f.value).concat(String(extra())));
+    let saved=snapshot(),active=true;
+    const guard={reset(){saved=snapshot();},release(){active=false;}};
+    addEventListener('beforeunload',event=>{if(active&&snapshot()!==saved){event.preventDefault();event.returnValue='';}});
+    guards.push(guard);return guard;
+  }
+  // Session expiry: keep the typed text (never files or passwords) in this tab, then put it back once after signing in.
+  let beforeExpire=null;
+  function onSessionExpired(fn){beforeExpire=fn;}
+  function expired(){try{beforeExpire?.();}catch{}guards.forEach(g=>g.release());location.replace(app.loginUrl());}
+  const draftKey=name=>'refind-draft:'+name+':'+here();
+  function saveDraft(name,form,extra={}){const fields={};$(form).find('input,select,textarea').each(function(){if(!this.id||['file','password','hidden'].includes(this.type))return;fields[this.id]=['checkbox','radio'].includes(this.type)?this.checked:this.value;});try{sessionStorage.setItem(draftKey(name),JSON.stringify({at:Date.now(),fields,extra}));}catch{}}
+  function takeDraft(name){const key=draftKey(name);let draft=null;try{draft=JSON.parse(sessionStorage.getItem(key)||'null');sessionStorage.removeItem(key);}catch{}return draft&&draft.fields&&Date.now()-draft.at<KEEP_FOR?draft:null;}
+  function applyDraft(draft){for(const [id,value] of Object.entries(draft.fields)){const field=document.getElementById(id);if(!field||field.type==='file')continue;if(typeof value==='boolean')field.checked=value;else field.value=value;field.dispatchEvent(new Event('change',{bubbles:true}));}}
+  function showError(e,selector='#page-feedback'){if(e.status===401){expired();return;}$(selector).removeClass('success').attr('role','alert').text(e.message||String(e)).prop('hidden',false);}
+  async function formError(e,map){if(e.status===401){expired();return;}if(e.code==='csrf_invalid'){const state=await app.session().catch(()=>null);if(state&&!state.authenticated){expired();return;}}for(const [key,message]of Object.entries(e.fields||{})){ $('[data-error="'+key+'"]').text(message).prop('hidden',false);if(map[key]){$(map[key]).attr('aria-invalid','true');linkError(map[key],key);}}showError(e,'#form-feedback');const key=Object.keys(e.fields||{}).find(k=>map[k]);if(key)revealField(map[key]);else $('#form-feedback').trigger('focus');}
   // Screen readers announce an inline error with its field once the two are linked.
   function linkError(selector,key){const span=$('[data-error="'+key+'"]').first();if(!span.length)return;const id=span.attr('id')||'error-'+key.replace(/[^a-z0-9_-]/gi,'');span.attr('id',id);const field=$(selector),ids=(field.attr('aria-describedby')||'').split(/\s+/).filter(Boolean);if(!ids.includes(id))field.attr('aria-describedby',[...ids,id].join(' '));}
   function clearErrors(){ $('.field-error').prop('hidden',true).text('');$('input,select,textarea').attr('aria-invalid','false');$('#form-feedback,#page-feedback').prop('hidden',true);}
@@ -48,5 +90,5 @@ window.StudentUI=(()=>{
   function pager(data,load,focusSelector){const box=$('#pager').empty();if(data.pages<=1)return;const go=async next=>{await load(next);const target=focusSelector&&document.querySelector(focusSelector);if(target)focusRecord(target);};box.append($('<button>').addClass('btn btn-outline').attr('type','button').prop('disabled',data.page<=1).text('Previous').on('click',()=>go(data.page-1)),$('<span>').text('Page '+data.page+' of '+data.pages),$('<button>').addClass('btn btn-outline').attr('type','button').prop('disabled',data.page>=data.pages).text('Next').on('click',()=>go(data.page+1)));}
   function fillSelect(selector,values,label,idKey='id',nameKey='name'){const select=$(selector).empty().append($('<option>').val('').text(label));values.forEach(value=>select.append($('<option>').val(value[idKey]).text(value[nameKey])));}
   function campusDay(value=new Date()){const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(value));return ['year','month','day'].map(k=>parts.find(p=>p.type===k).value).join('-');}
-  return {navAction,statusNames,claimNames,pickupNames,stateKinds,stateChip,titleParts,demoChip,focusRecord,revealField,pickupSummary,pickupMessage,deskCard,pickupPastDue,flash,notify,showFlash,itemUrl,claimUrl,urlParams,date,eventDate,locationText,chip,chips,card,thumbUrl,skeleton,plural,empty,showError,formError,clearErrors,required,pager,fillSelect,campusDay};
+  return {navAction,statusNames,claimNames,pickupNames,stateKinds,stateChip,titleParts,demoChip,focusRecord,revealField,pickupSummary,pickupMessage,deskCard,pickupPastDue,flash,notify,showFlash,itemUrl,claimUrl,urlParams,date,eventDate,locationText,chip,chips,card,thumbUrl,skeleton,plural,empty,showError,formError,clearErrors,required,pager,fillSelect,campusDay,trackReturn,returnTarget,markReturn,restoreReturn,guardUnsaved,onSessionExpired,saveDraft,takeDraft,applyDraft};
 })();

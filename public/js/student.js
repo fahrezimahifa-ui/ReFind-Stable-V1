@@ -9,14 +9,16 @@ $(async function(){
   const notificationPage=validPage(params.get('notification_page'));
   const notificationId=validId(params.get('notification'))?params.get('notification'):null;
   const notificationFilter=params.get('notification_filter')==='unread'?'unread':'';
-  const backHref=fromNotifications?app.base+'notifications.html?'+new URLSearchParams({...(notificationFilter?{filter:notificationFilter}:{}),page:notificationPage,...(notificationId?{notification:notificationId}:{})}):app.base+'browse.html';
-  const backLabel=fromNotifications?'Back to Notifications':'Back to Explore';
-  if(page==='item')$('#item-back').attr('href',backHref).find('span').text(backLabel);
+  // Without a Notifications origin, Back returns to the list this tab came from (its page, filters and scroll), else Explore.
+  const listReturn=page==='item'&&!fromNotifications?U.returnTarget():null;
+  const backHref=fromNotifications?app.base+'notifications.html?'+new URLSearchParams({...(notificationFilter?{filter:notificationFilter}:{}),page:notificationPage,...(notificationId?{notification:notificationId}:{})}):listReturn?listReturn.url:app.base+'browse.html';
+  const backLabel=fromNotifications?'Back to Notifications':listReturn?listReturn.label:'Back to Explore';
+  if(page==='item')$('#item-back').attr('href',backHref).on('click',()=>{if(listReturn)U.markReturn();}).find('span').text(backLabel);
   // First load shows skeleton cards in an empty results grid; the status text stays for screen readers.
   function loading(value){const note=$('#page-loading').prop('hidden',!value),grid=note.nextAll('.discovery-grid').first();$('.skeleton-card').remove();note.removeClass('has-skeleton');if(value&&grid.length&&!grid.children().length){grid.append(U.skeleton(innerWidth>=1280?8:innerWidth>=680?6:2));note.addClass('has-skeleton');}}
   function bindRetry(load){$('#retry-page').off('click.student').on('click.student',()=>load());}
   // A missing or deleted record cannot be fixed by retrying, so offer a way out instead.
-  function showMissing(title='Report not found',detail='It may have been deleted, or the link is incomplete.'){loading(false);$('#retry-page,#page-feedback').prop('hidden',true);$('#page-missing').remove();$('<div>').attr('id','page-missing').append(U.empty(title,detail,backHref,fromNotifications?backLabel:'Go to Explore')).insertAfter('#page-feedback');document.body.dataset.ready='true';}
+  function showMissing(title='Report not found',detail='It may have been deleted, or the link is incomplete.'){loading(false);$('#retry-page,#page-feedback').prop('hidden',true);$('#page-missing').remove();$('<div>').attr('id','page-missing').append(U.empty(title,detail,backHref,fromNotifications||listReturn?backLabel:'Go to Explore')).insertAfter('#page-feedback');document.body.dataset.ready='true';}
   function failed(e){if(e.status===404||e.code==='invalid_id'){showMissing();return;}U.showError(e);$('#retry-page').prop('hidden',false);loading(false);}
   function clearPage(){ $('#page-feedback,#retry-page').prop('hidden',true); }
   function showList(selector,items,emptyTitle,emptyDetail){const box=$(selector).empty();if(!items.length)box.append(U.empty(emptyTitle,emptyDetail));else items.forEach(item=>box.append(U.card(item)));}
@@ -25,7 +27,7 @@ $(async function(){
   $('[data-close-dialog]').on('click',function(){this.closest('dialog').close();});
   $('dialog').on('close',()=>{if(dialogTrigger&&document.contains(dialogTrigger))dialogTrigger.focus();});
   function requestDelete(id,load,trigger){deleteId=id;deleteLoad=load;dialogTrigger=trigger;document.querySelector('#confirm-dialog').showModal();}
-  $('#confirm-delete').on('click',async function(){if(!deleteId)return;const button=$(this).prop('disabled',true).text('Deleting…');try{await app.request('items.php',{action:'delete',id:deleteId});document.querySelector('#confirm-dialog').close();if(page==='item'){U.flash('Report deleted.');location.assign(app.base+'my-reports.html');}else{await deleteLoad();U.notify('Report deleted.');}await shell.refreshUnread();}catch(e){U.showError(e);document.querySelector('#confirm-dialog').close();}finally{button.prop('disabled',false).text('Delete report');}});
+  $('#confirm-delete').on('click',async function(){if(!deleteId)return;const button=$(this).prop('disabled',true).text('Deleting…');try{await app.request('items.php',{action:'delete',id:deleteId});document.querySelector('#confirm-dialog').close();if(page==='item'){U.flash('Report deleted.');location.replace(app.base+'my-reports.html');}else{await deleteLoad();U.notify('Report deleted.');}await shell.refreshUnread();}catch(e){U.showError(e);document.querySelector('#confirm-dialog').close();}finally{button.prop('disabled',false).text('Delete report');}});
   let withdrawTarget=null;
   function requestWithdraw(itemId,after,trigger){withdrawTarget={itemId,after};dialogTrigger=trigger;document.querySelector('#withdraw-dialog').showModal();}
   $('#confirm-withdraw').on('click',async function(){if(!withdrawTarget)return;const button=$(this).prop('disabled',true).text('Withdrawing…');try{await app.request('claims.php',{action:'withdraw',itemId:withdrawTarget.itemId});document.querySelector('#withdraw-dialog').close();await withdrawTarget.after();U.notify('Claim withdrawn. You can send a new claim for this item later.');await shell.refreshUnread();}catch(e){document.querySelector('#withdraw-dialog').close();U.showError(e);}finally{button.prop('disabled',false).text('Withdraw claim');}});
@@ -110,7 +112,7 @@ $(async function(){
         $('#result-count').text(U.plural(data.total,{LOST:'lost report',FOUND:'found report'}[type]||'report')+' · '+(values.status?'':'active · ')+'newest first');if(data.items.length)showList('#browse-results',data.items);else $('#browse-results').empty().append(noResults(values));U.pager(data,next=>load(next),'#result-count');history.replaceState(null,'',app.base+'browse.html?'+query(values));loading(false);document.body.dataset.ready='true';}catch(e){if(seq===request)failed(e);}}
     $('#filter-toggle').on('click',()=>{const open=$('#advanced-filters').prop('hidden');$('#advanced-filters').prop('hidden',!open);$('#filter-toggle').attr('aria-expanded',String(open));});
     $('#filter-q').on('input',()=>{clearTimeout(timer);timer=setTimeout(()=>load(1),200);});$('#filter-category,#filter-location,#filter-status,#filter-date').on('change',()=>{resetVisual();load(1);});
-    $('[data-filter-type]').on('click',function(){type=$(this).attr('data-filter-type');resetVisual();load(1);});$('#clear-filters').on('click',()=>{$('#filter-q,#filter-category,#filter-location,#filter-status,#filter-date').val('');type='';resetVisual();load(1);});bindRetry(load);await load();
+    $('[data-filter-type]').on('click',function(){type=$(this).attr('data-filter-type');resetVisual();load(1);});$('#clear-filters').on('click',()=>{$('#filter-q,#filter-category,#filter-location,#filter-status,#filter-date').val('');type='';resetVisual();load(1);});bindRetry(load);U.trackReturn('browse','Back to Explore');await load();U.restoreReturn('browse');
   }
   // Report journey: five steps derived from the status contract, plus a newest-first history log.
   const journeySteps=[{label:'Reported',codes:['OPEN','UNDER_REVIEW']},{label:'Possible match',codes:['POTENTIAL_MATCH']},{label:'Claim review',codes:['VERIFICATION']},{label:'Ready for pickup',codes:['HANDOVER']},{label:'Returned',codes:['RESOLVED','UNCLAIMED_CLOSED']}];
@@ -217,6 +219,10 @@ $(async function(){
       updateReportMode();
     });
     updateReportMode();
+    // Unsaved changes ask before leaving; text typed before a session ended comes back once after signing in.
+    const guard=U.guardUnsaved('#report-form',()=>[publicUpload.files.length,proofUpload.files.length,keepPublic.join(',')].join('|'));
+    const draft=U.takeDraft('report');if(draft){U.applyDraft(draft);U.notify('Your session ended, so we kept what you typed. Photos can’t be kept, so add any photos again.');}
+    U.onSessionExpired(()=>U.saveDraft('report','#report-form'));
     const fields={title:'#r-title',description:'#r-description',category_id:'#r-category',location_id:'#r-location',date:'#r-date',clue:'#r-clue',time:'#r-time',location_detail:'#r-detail',photos:'#r-photos',ownershipPhotos:'#r-proof'};
     function fieldError(key,message){$('[data-error="'+key+'"]').text(message).prop('hidden',false);$(fields[key]).attr('aria-invalid','true');}
     function validateReport(){
@@ -271,7 +277,8 @@ $(async function(){
       try{
         const result=await app.request('items.php',form);
         U.flash(existing?'Report changes saved.':type==='FOUND'?'Report submitted. ReFind suggests it to students with similar Lost reports.':'Report submitted. We will notify you about possible matches.');
-        location.assign(U.itemUrl(result.id));
+        // Replace the spent form in history, so Back returns to where the student started.
+        guard.release();location.replace(U.itemUrl(result.id));
       }catch(e){
         $('#report-fields').prop('disabled',false);
         await U.formError(e,fields);
@@ -341,7 +348,7 @@ $(async function(){
       const asked=own.claim_status==='WITHDRAWN'?'You withdrew this claim earlier. Check the details and send it again.':own.review_note||'Add more identifying detail before submitting again.';
       $('#claim-review-note').empty().append($('<strong>').text(own.claim_status==='WITHDRAWN'?'Withdrawn claim':'Building Management asked:'),$('<p>').text(asked)).prop('hidden',false);
       $('#saved-claim-count').text(kept.length+' private supporting photos already saved.').prop('hidden',!kept.length);$('#saved-claim-choice').prop('hidden',!kept.length);if(kept.length)$('#claim-upload').closest('details').prop('open',true);
-      if(own.can_withdraw)$('#claim-withdraw').prop('hidden',false).on('click',function(){requestWithdraw(id,async()=>{U.flash('Claim withdrawn.');location.assign(app.base+'my-reports.html?tab=claims');},this);});}
+      if(own.can_withdraw)$('#claim-withdraw').prop('hidden',false).on('click',function(){requestWithdraw(id,async()=>{U.flash('Claim withdrawn.');guard.release();location.replace(app.base+'my-reports.html?tab=claims');},this);});}
     else{const best=item.matches.find(m=>lost.some(r=>r.item_id===m.item_id));if(best){$('#c-lost').val(best.item_id);$('#linked-suggestion').text('Suggested because your Lost report "'+U.titleParts(best.title).display+'" looks similar. Change it if needed.').prop('hidden',false);}}
     $('#claim-submit').text(submitLabel);
     $('#keep-claim-proof').on('change',function(){if(this.checked&&kept.length+upload.files.length>2){this.checked=false;upload.status('Remove new images before restoring saved evidence.',true);}});
@@ -372,7 +379,7 @@ $(async function(){
       try{
         const result=await app.request('claims.php',form);
         U.flash(own?'Claim resubmitted for review. You will get a notification when Building Management decides.':'Claim submitted. You will get a notification when Building Management decides.');
-        location.assign(app.base+'my-reports.html?tab=claims&claim='+result.id);
+        guard.release();location.replace(app.base+'my-reports.html?tab=claims&claim='+result.id);
       }catch(e){
         $('#claim-fields').prop('disabled',false);
         await U.formError(e,{answer:'#c-answer',lostItemId:'#c-lost',ownershipPhotos:'#c-proof'});
@@ -382,12 +389,15 @@ $(async function(){
         $('#claim-submit').prop('disabled',false).text(submitLabel);
       }
     });
+    const guard=U.guardUnsaved('#claim-form',()=>upload.files.length);
+    const draft=U.takeDraft('claim');if(draft){U.applyDraft(draft);U.notify('Your session ended, so we kept what you typed. Photos can’t be kept, so add any photos again.');}
+    U.onSessionExpired(()=>U.saveDraft('claim','#claim-form'));
     $('#claim-form').prop('hidden',false);
     loading(false);
     document.body.dataset.ready='true';
   }
   async function activity(){
-    let tab=['reports','claims','closed'].includes(params.get('tab'))?params.get('tab'):'reports',currentPage=1;
+    let tab=['reports','claims','closed'].includes(params.get('tab'))?params.get('tab'):'reports',currentPage=validPage(params.get('page'));
     const claimsReadOnly=document.body.dataset.claimsReadOnly==='true',handoversUnavailable=document.body.dataset.handoversUnavailable==='true';
     // The deep-linked claim is shown once; later tab or page changes do not bring it back.
     let highlight=tab==='claims'&&validId(params.get('claim'))?params.get('claim'):null;
@@ -467,10 +477,10 @@ $(async function(){
           if(step){const line=$('<p>').addClass('card-next').text(step.text);if(step.href)line.append(step.text?' ':'',$('<a>').addClass('text-link').attr('href',step.href).text(step.label));card.find('.discovery-body').append(line);}
           // Delete stays available (with its confirmation) but no longer competes visually with Edit.
           if(item.can_edit)card.append($('<div>').addClass('own-report-actions').append(U.navAction('Edit report',app.base+'report.html?edit='+item.item_id),$('<button>').addClass('text-button danger-text btn-report-delete record-delete').attr('type','button').text('Delete').on('click',function(){requestDelete(item.item_id,()=>load(currentPage),this);})));else if(item.edit_locked_reason)card.find('.discovery-body').append($('<p>').addClass('small muted').text(item.edit_locked_reason));box.append(card);});if(!data.items.length)box.append(U.empty(tab==='closed'?'No closed reports':'No active reports',tab==='closed'?'Your reports that were returned or never retrieved appear here.':'Your own reports appear here.',app.base+'report.html','Report an item'));$('#activity-count').text(U.plural(data.total,(tab==='closed'?'closed':'active')+' report'));U.pager(data,next=>load(next),'#activity-count');}
-      history.replaceState(null,'',app.base+'my-reports.html?tab='+tab+(claimTarget?'&claim='+encodeURIComponent(claimTarget):''));
+      history.replaceState(null,'',app.base+'my-reports.html?tab='+tab+(currentPage>1?'&page='+currentPage:'')+(claimTarget?'&claim='+encodeURIComponent(claimTarget):''));
       if(claimTarget){const target=box.find('[data-claim-id]').filter(function(){return $(this).attr('data-claim-id')===claimTarget;});target.addClass('selected-claim').attr('tabindex','-1');focusTarget=target[0];}
       loading(false);document.body.dataset.ready='true';if(focusTarget)U.focusRecord(focusTarget);}catch(e){failed(e);}}
-    $('[data-activity]').on('click',function(){tab=$(this).attr('data-activity');highlight=null;load(1);});bindRetry(load);await load();
+    $('[data-activity]').on('click',function(){tab=$(this).attr('data-activity');highlight=null;load(1);});bindRetry(load);U.trackReturn('my-reports','Back to My Activity');await load();U.restoreReturn('my-reports');
   }
   async function notifications(){
     let currentPage=validPage(params.get('page')),restore=validId(params.get('notification'))?params.get('notification'):null,filter=params.get('filter')==='unread'?'unread':'';
@@ -528,8 +538,8 @@ $(async function(){
       try{const data=await get('items.php',{q:values.q,page:currentPage,closed:'1',...(['lost','found'].includes(tab)?{type:tab.toUpperCase()}:{}),...(tab==='returned'?{status:'RESOLVED'}:{}),...(tab==='unclaimed'?{status:'UNCLAIMED_CLOSED'}:{})});
         if(data.total&&currentPage>data.pages)return load(data.pages);
         $('#result-count').text(U.plural(data.total,'closed report'));showList('#history-results',data.items,'No history results','Try another view or search. Active reports are in Explore.');U.pager(data,next=>load(next),'#result-count');history.replaceState(null,'',app.base+'history.html'+(query(values)?'?'+query(values):''));loading(false);document.body.dataset.ready='true';}catch(e){failed(e);}}
-    $('[data-history]').on('click',function(){tab=$(this).attr('data-history');load(1);});$('#history-q').on('input',()=>{clearTimeout(timer);timer=setTimeout(()=>load(1),200);});bindRetry(load);await load();}
-  async function homeDiscovery(){if(app.state.user?.role!=='STUDENT')return;try{const data=await get('items.php',{limit:4,active:'1'});showList('#home-reports',data.items,'No reports yet','Create a Lost or Found report to get started.');}catch(e){$('#home-reports').empty().append(U.empty('Recent reports could not load','Refresh the page to try again.'));}$('#home-discovery').prop('hidden',false);document.body.dataset.studentReady='true';}
+    $('[data-history]').on('click',function(){tab=$(this).attr('data-history');load(1);});$('#history-q').on('input',()=>{clearTimeout(timer);timer=setTimeout(()=>load(1),200);});bindRetry(load);U.trackReturn('history','Back to History');await load();U.restoreReturn('history');}
+  async function homeDiscovery(){if(app.state.user?.role!=='STUDENT')return;U.trackReturn('home','Back to Home');try{const data=await get('items.php',{limit:4,active:'1'});showList('#home-reports',data.items,'No reports yet','Create a Lost or Found report to get started.');}catch(e){$('#home-reports').empty().append(U.empty('Recent reports could not load','Refresh the page to try again.'));}$('#home-discovery').prop('hidden',false);document.body.dataset.studentReady='true';U.restoreReturn('home');}
   try{const state=await shell.ready;U.showFlash();$('[data-student-only]').prop('hidden',state.user?.role!=='STUDENT');if(page==='home'){await homeDiscovery();return;}if(!state.authenticated)return;visualEnabled=state.visual_search_enabled===true;refs=await app.request('references.php');const controllers={browse:discovery,item:itemDetail,report:reportForm,claim:claimForm,'my-reports':activity,notifications,history:historyPage};if(controllers[page])await controllers[page]();}catch(e){failed(e);$('#retry-page').off('click.student').on('click.student',()=>location.reload());}
 });
 
