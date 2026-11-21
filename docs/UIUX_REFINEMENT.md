@@ -392,3 +392,30 @@ The interrupted attempt restored its snapshot. The completed run's starting stat
 | Protection | Academic grants match the 6B evidence, 6B archive `c1f4bde6…`, 19/19 canonical files, accepted refs unchanged |
 
 **Still preserved:** `migration/uiux-rc1-verified` (`73c10fe`) and `qa-final` (`de7d8bd`). The pickup-expiry policy remains Option A. The deferred acceptance gates in [QA_RELEASE_READINESS.md](QA_RELEASE_READINESS.md) stay open. The candidate is not frozen, tagged, pushed or merged.
+
+## Stable round 1: return navigation and form safety (21 November 2026)
+
+**Context:** after the local Stable 1.0.0 (`refind-laravel-stable-1.0.0`), the owner reported that opening a card from Explore page 2 and pressing **Back to Explore** returned to page 1 at the top. A code scan of the same class of problem found seven confirmed inconveniences. Work is on `develop-round1` off `develop`. It is frontend only: no PHP, schema, grant or business-rule change.
+
+| # | Inconvenience | Fix |
+|---|---|---|
+| N1 | Back from an item lost the list's page, filters and scroll | List pages remember, in this tab only, their URL, scroll position and opened record. The item page's Back link, the browser Back button and a reload return to the same place and focus the opened card. |
+| N2 | The item page always said "Back to Explore" | It names and targets the list you came from: Explore, History, My Activity, Home or the BM Review Queue. A fresh tab still falls back to Explore; the Notifications origin is unchanged. |
+| N3 | My Activity forgot its page | `page` is kept in its URL. |
+| N4 | The BM queue forgot search, filter and page after a reload or a public-report visit | `q`, `status` (when not the default) and `page` are kept in its URL. A remembered page past the end falls back to the last page. |
+| N5 | Back after submitting returned to the spent form | Successful report and claim submits, withdraw and delete replace the history entry. |
+| N6 | No warning when leaving a filled form | A changed report or claim form, or an open, changed BM decision dialog, asks before leaving. An untouched form doesn't, and neither does a successful submit. |
+| N7 | An ended session (30-minute idle) discarded the typed form | The typed text (never files or passwords) is kept in this tab, restored once after signing in, and the student is told to add any photos again. This covers the report form, the claim form and the BM decision note. |
+
+**Files:** `public/js/student-common.js` (shared helpers), `public/js/student.js`, `public/js/bm.js`. Provenance hashes and reasons are updated in `docs/SOURCE_PROVENANCE.json`.
+
+**Tests:**
+- New suite: `tools/test-stable-navigation-ui.py` on `phase8-dev`, inside a snapshot envelope, with 30 synthetic reports created through the API for multi-page lists. **56/56 checks passed**, and the restore was identical.
+- It covers:
+  - Explore page 2 with the Found filter, scrolled to the bottom, at 1440 px light and 390 px dark: the Back link and browser Back return to the exact URL, with scroll within 40 px and the opened card focused;
+  - the Back labels and targets from Home, History and My Activity (page 2);
+  - BM search, filter and page across reloads, and the return from "Public detail" to the same queue and record;
+  - the fresh-tab fallback;
+  - Back after submit;
+  - the unsaved-changes prompt (stay keeps the text; an untouched form leaves silently);
+  - drafts restored after a forced session end, for the report form and the BM note.
