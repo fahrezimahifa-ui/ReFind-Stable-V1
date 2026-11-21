@@ -1,0 +1,1793 @@
+{
+ "version": "r2-fixtures-2026-11-21b",
+ "about": "Stable round 2 (R2-01) synthetic phase8-dev fixtures: personas, photo sources, reports and a small claim story. Photos are owner-supplied, licence-checked Flickr photos found through Openverse (batch A), or licence-checked Wikimedia Commons files (batch B, added when Commons downloads work); provenance is written by r2_prepare.py. Ground truth for image-search evaluation is kept outside Git in C:/ReFind-Laravel/fixtures/round2/EVALUATION_MANIFEST.json. Visible text never names fixture ids, pairs or roles.",
+ "personas": [
+  {
+   "key": "nadia",
+   "name": "Nadia Aulia",
+   "email": "nadia@refind.test",
+   "story": "Lost an Eachine power bank (claim needs her reply) and dark leather gloves (claim rejected: wrong pair). Found earphones, a swing-top bottle and a keychain. Batch B (when added) brings more reports and claims for each persona."
+  },
+  {
+   "key": "raka",
+   "name": "Raka Pratama",
+   "email": "raka@refind.test",
+   "story": "Frequent finder: tan gloves, a mint power bank, a crocheted earphone cover, a tan wallet. Batch B (when added) brings more reports and claims for each persona."
+  },
+  {
+   "key": "sinta",
+   "name": "Sinta Maharani",
+   "email": "sinta@refind.test",
+   "story": "Got her white earphones back (returned) after withdrawing a claim on the wrong pair. Lost a card sleeve and a fountain pen; found an Eachine power bank, a printer cable and a beaded keychain. Batch B (when added) brings more reports and claims for each persona."
+  },
+  {
+   "key": "dimas",
+   "name": "Dimas Saputra",
+   "email": "dimas@refind.test",
+   "story": "Lost a blue power bank. Found a globe keychain, a Lightning cable and tangled earphones. Batch B (when added) brings more reports and claims for each persona."
+  },
+  {
+   "key": "ayu",
+   "name": "Ayu Lestari",
+   "email": "ayu@refind.test",
+   "story": "Approved claim on her crocheted earphone cover (waiting for a pickup time). Found a pouch, keys and a grey Anker power bank. Batch B (when added) brings more reports and claims for each persona."
+  },
+  {
+   "key": "kevin",
+   "name": "Kevin Wijaya",
+   "email": "kevin@refind.test",
+   "story": "Pickup scheduled for his globe keychain; his claim on a grey Anker power bank is under review. Lost a printer cable and a slim power bank. Batch B (when added) brings more reports and claims for each persona."
+  }
+ ],
+ "photos": {
+  "o_eraser": {
+   "source": "owner",
+   "file": "WhatsApp Image 2026-11-21 at 13.42.05.jpeg",
+   "commons_title": "File:Staedtler Mars Plastic Eraser.jpg",
+   "batch": "A"
+  },
+  "o_usbb": {
+   "source": "owner",
+   "file": "WhatsApp Image 2026-11-21 at 13.42.05 (1).jpeg",
+   "commons_title": "File:A-B Usb Cable.jpg",
+   "batch": "A"
+  },
+  "o_pen": {
+   "source": "owner",
+   "file": "WhatsApp Image 2026-11-21 at 13.42.05 (2).jpeg",
+   "batch": "A"
+  },
+  "o_pouch": {
+   "source": "owner",
+   "file": "WhatsApp Image 2026-11-21 at 13.42.05 (3).jpeg",
+   "batch": "A"
+  },
+  "o_lightning": {
+   "source": "owner",
+   "file": "WhatsApp Image 2026-11-21 at 13.42.05 (4).jpeg",
+   "commons_title": "File:Lightning to USB Cable.jpg",
+   "batch": "A"
+  },
+  "o_keychain": {
+   "source": "owner",
+   "file": "WhatsApp Image 2026-11-21 at 13.42.05 (5).jpeg",
+   "commons_title": "File:Delhi metro smart card keychain.jpg",
+   "batch": "A"
+  },
+  "o_gloves_tan": {
+   "source": "owner",
+   "file": "WhatsApp Image 2026-11-21 at 13.42.05 (6).jpeg",
+   "commons_title": "File:Two pairs of mens leather gloves from Randers Handsker.jpg",
+   "crop": [
+    0.0,
+    0.08,
+    0.54,
+    1.0
+   ],
+   "batch": "A"
+  },
+  "o_gloves_dark": {
+   "source": "owner",
+   "file": "WhatsApp Image 2026-11-21 at 13.42.05 (6).jpeg",
+   "commons_title": "File:Two pairs of mens leather gloves from Randers Handsker.jpg",
+   "crop": [
+    0.46,
+    0.0,
+    1.0,
+    0.82
+   ],
+   "batch": "A"
+  },
+  "o_anker_mint": {
+   "source": "owner",
+   "file": "WhatsApp Image 2026-11-21 at 13.42.05 (7).jpeg",
+   "commons_title": "File:Anker 521 Power Bank.jpg",
+   "batch": "A"
+  },
+  "o_anker_black": {
+   "source": "owner",
+   "file": "WhatsApp Image 2026-11-21 at 13.42.05 (8).jpeg",
+   "commons_title": "File:Travel router and power bank.jpg",
+   "batch": "A"
+  },
+  "o_pb_slim": {
+   "source": "owner",
+   "file": "WhatsApp Image 2026-11-21 at 13.42.05 (9).jpeg",
+   "commons_title": "File:Power bank.,.jpg",
+   "batch": "A"
+  },
+  "dart_found_a": {
+   "source": "commons",
+   "title": "File:Superelectron Dart VL-30 (51883934422).jpg",
+   "batch": "B"
+  },
+  "dart_found_b": {
+   "source": "commons",
+   "title": "File:Superelectron Dart VL-30 (51885223724).jpg",
+   "batch": "B"
+  },
+  "dart_lost": {
+   "source": "commons",
+   "title": "File:Superelectron Dart VL-30 (51885551370).jpg",
+   "batch": "B"
+  },
+  "dart_query": {
+   "source": "commons",
+   "title": "File:Superelectron Dart VL-30 (51884980028).jpg",
+   "use": "held-out query",
+   "batch": "B"
+  },
+  "karce_lost": {
+   "source": "commons",
+   "title": "File:Calculator Karce KC-108 (1).jpg",
+   "batch": "B"
+  },
+  "karce_found": {
+   "source": "commons",
+   "title": "File:Calculator Karce KC-108 (2).jpg",
+   "batch": "B"
+  },
+  "s45w_private": {
+   "source": "commons",
+   "title": "File:SAMSUNG EP-T4510 45W POWER ADAPER BLACK (4).jpg",
+   "batch": "B"
+  },
+  "s45w_found": {
+   "source": "commons",
+   "title": "File:SAMSUNG EP-T4510 45W POWER ADAPER BLACK.jpg",
+   "batch": "B"
+  },
+  "s45w_query": {
+   "source": "commons",
+   "title": "File:SAMSUNG EP-T4510 45W POWER ADAPER BLACK (2).jpg",
+   "use": "held-out query",
+   "batch": "B"
+  },
+  "ukplug_lost": {
+   "source": "commons",
+   "title": "File:Samsung UK charging adapter (2).jpg",
+   "batch": "B"
+  },
+  "ukplug_found_a": {
+   "source": "commons",
+   "title": "File:Samsung UK charging adapter (3).jpg",
+   "batch": "B"
+  },
+  "ukplug_found_b": {
+   "source": "commons",
+   "title": "File:Samsung UK charging adapter.jpg",
+   "batch": "B"
+  },
+  "s15w_found": {
+   "source": "commons",
+   "title": "File:SAMSUNG EP-TA200 15W POWER ADAPER WHITE (3).jpg",
+   "batch": "B"
+  },
+  "icooby_lost": {
+   "source": "commons",
+   "title": "File:ICoobyPowerBank5200mAhlingdong20250515000.jpg",
+   "batch": "B"
+  },
+  "icooby_found": {
+   "source": "commons",
+   "title": "File:ICoobyPowerBank5200mAhlingdong20250515001.jpg",
+   "batch": "B"
+  },
+  "pineng_found_a": {
+   "source": "commons",
+   "title": "File:Pineng PN-963 Power Bank (1).jpg",
+   "batch": "B"
+  },
+  "pineng_found_b": {
+   "source": "commons",
+   "title": "File:Pineng PN-963 Power Bank (2).jpg",
+   "batch": "B"
+  },
+  "pineng_lost": {
+   "source": "commons",
+   "title": "File:Pineng PN-963 Power Bank (3).jpg",
+   "batch": "B"
+  },
+  "magpb_lost": {
+   "source": "commons",
+   "title": "File:Wireless mobile battery that doubles as a smartphone stand - 1.jpg",
+   "batch": "B"
+  },
+  "magpb_found": {
+   "source": "commons",
+   "title": "File:Wireless mobile battery that doubles as a smartphone stand - 2.jpg",
+   "batch": "B"
+  },
+  "xtorm_found_a": {
+   "source": "commons",
+   "title": "File:Xtorm Li-ion Battery (POWER BANK), Provenierswijk, Rotterdam (2023) 01.jpg",
+   "batch": "B"
+  },
+  "xtorm_found_b": {
+   "source": "commons",
+   "title": "File:Xtorm Li-ion Battery (POWER BANK), Provenierswijk, Rotterdam (2023) 02.jpg",
+   "batch": "B"
+  },
+  "xtorm_query": {
+   "source": "commons",
+   "title": "File:Xtorm Li-ion Battery (POWER BANK), Provenierswijk, Rotterdam (2023) 03.jpg",
+   "use": "held-out query",
+   "batch": "B"
+  },
+  "xtorm_lost": {
+   "source": "commons",
+   "title": "File:Xtorm Li-ion Battery (POWER BANK), Provenierswijk, Rotterdam (2023) 04.jpg",
+   "batch": "B"
+  },
+  "pana_lost": {
+   "source": "commons",
+   "title": "File:Panasonic in-ear headphone RZ-S50W - 1.jpg",
+   "batch": "B"
+  },
+  "pana_query": {
+   "source": "commons",
+   "title": "File:Panasonic in-ear headphone RZ-S50W - 2.jpg",
+   "use": "held-out query",
+   "batch": "B"
+  },
+  "pana_found_a": {
+   "source": "commons",
+   "title": "File:Panasonic in-ear headphone RZ-S50W - 3.jpg",
+   "batch": "B"
+  },
+  "pana_found_b": {
+   "source": "commons",
+   "title": "File:Panasonic in-ear headphone RZ-S50W - 4.jpg",
+   "batch": "B"
+  },
+  "wavefun_found": {
+   "source": "commons",
+   "title": "File:Wavefun Airbuds 01.jpg",
+   "batch": "B"
+  },
+  "wavefun_private": {
+   "source": "commons",
+   "title": "File:Wavefun Airbuds 02.jpg",
+   "batch": "B"
+  },
+  "orico_found": {
+   "source": "commons",
+   "title": "File:Orico YC-PE0508000H multiport USB charger-0.jpg",
+   "batch": "B"
+  },
+  "orico_lost": {
+   "source": "commons",
+   "title": "File:Orico YC-PE0508000H multiport USB charger-1.jpg",
+   "batch": "B"
+  },
+  "mono_found": {
+   "source": "commons",
+   "title": "File:MONO Eraser.jpg",
+   "batch": "B"
+  },
+  "mono_query": {
+   "source": "commons",
+   "title": "File:MONO eraser - 2.jpg",
+   "use": "held-out query",
+   "batch": "B"
+  },
+  "mato_found": {
+   "source": "commons",
+   "title": "File:Matomarukun Eraser - 1.jpg",
+   "batch": "B"
+  },
+  "mato_query": {
+   "source": "commons",
+   "title": "File:MATOMARUKUN Eraser.jpg",
+   "use": "held-out query",
+   "batch": "B"
+  },
+  "borracha_found": {
+   "source": "commons",
+   "title": "File:Borracha1.JPG",
+   "batch": "B"
+  },
+  "borracha_query": {
+   "source": "commons",
+   "title": "File:Borracha2.JPG",
+   "use": "held-out query",
+   "batch": "B"
+  },
+  "umbrella_found": {
+   "source": "commons",
+   "title": "File:Folding umbrella 02.jpg",
+   "batch": "B"
+  },
+  "umbrella_lost": {
+   "source": "commons",
+   "title": "File:Folding umbrella 03.jpg",
+   "batch": "B"
+  },
+  "bottle_lost": {
+   "source": "commons",
+   "title": "File:SANTÉorganiqueBootle1.jpg",
+   "batch": "B"
+  },
+  "bottle_found": {
+   "source": "commons",
+   "title": "File:SANTÉorganiqueBootle2.jpg",
+   "batch": "B"
+  },
+  "fob_green": {
+   "source": "commons",
+   "title": "File:Porte clés en cuir et pagne tissé de Soumbédioune 01.jpg",
+   "batch": "B"
+  },
+  "fob_red": {
+   "source": "commons",
+   "title": "File:Porte clés en cuir et pagne tissé de Soumbédioune 04.jpg",
+   "batch": "B"
+  },
+  "pisen_found": {
+   "source": "commons",
+   "title": "File:Pisen MF-08EU 12W USB charger-0.jpg",
+   "batch": "B"
+  },
+  "usbc_lost": {
+   "source": "commons",
+   "title": "File:P059724-972812.jpg",
+   "batch": "B"
+  },
+  "f_earpods_lost": {
+   "source": "flickr",
+   "id": "196fbd07-8f1d-4773-9e00-55fc9d872f53",
+   "title": "Earbud love 2",
+   "batch": "A"
+  },
+  "f_earpods_found": {
+   "source": "flickr",
+   "id": "c7aa68df-a13c-40af-9218-ff0b092b45ee",
+   "title": "Earbud love 1",
+   "batch": "A"
+  },
+  "f_cozy_lost": {
+   "source": "flickr",
+   "id": "21a709f5-c8da-4454-addb-757fc93b2517",
+   "title": "Calming Earbud Headset Cozy",
+   "batch": "A"
+  },
+  "f_cozy_found": {
+   "source": "flickr",
+   "id": "66c9706a-76ea-4801-b69b-61c126cf897f",
+   "title": "Calming Earbud Headset Cozy",
+   "batch": "A"
+  },
+  "f_earbuds_hoodie": {
+   "source": "flickr",
+   "id": "c8c29bda-827f-4a48-ab1d-f6f4da7300b8",
+   "title": "Washable Apple iPhone earbuds",
+   "batch": "A"
+  },
+  "f_earbuds_tangled": {
+   "source": "flickr",
+   "id": "8a7d0502-2dbb-4821-9695-459ccc09f4c4",
+   "title": "What happens when you wash iPhone earbuds",
+   "batch": "A"
+  },
+  "f_ankergrey_lost": {
+   "source": "flickr",
+   "id": "94925dbb-2363-4c95-8bdd-1c7e056785df",
+   "title": "モバイルバッテリー ANKER Power Bank 4,500mAh",
+   "batch": "A"
+  },
+  "f_ankergrey_found_a": {
+   "source": "flickr",
+   "id": "333a0f3d-e09b-4d89-bbd0-5feb14e2c4a7",
+   "title": "モバイルバッテリー ANKER Power Bank 4,500mAh",
+   "batch": "A"
+  },
+  "f_ankergrey_found_b": {
+   "source": "flickr",
+   "id": "3c6dfc7a-c27c-4998-8ed4-aed96d3d7496",
+   "title": "モバイルバッテリー ANKER Power Bank 4,500mAh",
+   "batch": "A"
+  },
+  "f_eachine_lost": {
+   "source": "flickr",
+   "id": "fe8201be-cb53-4e6f-b1c7-3b294d965ec4",
+   "title": "Eachine Mini Y5 Power Bank",
+   "batch": "A"
+  },
+  "f_eachine_found": {
+   "source": "flickr",
+   "id": "7cc85459-a043-456b-876f-e54bb98ed510",
+   "title": "Eachine Mini Y5 Power Bank",
+   "batch": "A"
+  },
+  "f_lumsing_lost": {
+   "source": "flickr",
+   "id": "0fdf9fff-9c00-462c-9c26-fe314760c8ce",
+   "title": "Lumsing Power Bank GC-930-6 Blue",
+   "batch": "A"
+  },
+  "f_wallet_tan": {
+   "source": "flickr",
+   "id": "79d79597-039b-43e2-b82a-80da7c87a282",
+   "title": "slim wallet",
+   "batch": "A"
+  },
+  "f_wallet_card": {
+   "source": "flickr",
+   "id": "e8126813-d8bf-4ef6-aeeb-079e6858f002",
+   "title": "Chester Mox #52 wallet - Pocket view",
+   "batch": "A"
+  },
+  "f_globe_lost": {
+   "source": "flickr",
+   "id": "dde207d4-42f0-446a-9eb6-db29a9f2bc50",
+   "title": "Wikipedia globe in a keychain!",
+   "batch": "A"
+  },
+  "f_globe_found": {
+   "source": "flickr",
+   "id": "9dca6526-8811-4f6b-81a3-e41532407b5b",
+   "title": "Wikipedia globe in a keychain!",
+   "batch": "A"
+  },
+  "f_keys": {
+   "source": "flickr",
+   "id": "31ff432b-f3e4-47d1-b6d4-9c1d96bbfaa4",
+   "title": "My Keychain",
+   "batch": "A"
+  },
+  "f_croc": {
+   "source": "flickr",
+   "id": "50144ff0-a02d-4ba5-aa78-d803f12c8b0b",
+   "title": "Bead crocodile Keychain - cherry",
+   "batch": "A"
+  },
+  "f_swingbottle": {
+   "source": "flickr",
+   "id": "69a6f848-0e6b-4453-b28a-1eae69573ccf",
+   "title": "water bottle",
+   "batch": "A"
+  }
+ },
+ "reports": [
+  {
+   "key": "dart_lost",
+   "type": "LOST",
+   "by": "dimas",
+   "title": "Dart VL-30 pocket calculator in a black pouch",
+   "description": "Old black Dart VL-30 pocket calculator with coloured keys and a dark display window. It was in its black flip pouch with the small instruction booklet. Photo is from home.",
+   "category": 1,
+   "area": 37,
+   "detail": "Ruang Kelas C305, back row",
+   "days_ago": 5,
+   "time": "15:30",
+   "clue": "The battery cover is held shut with a strip of clear tape, and my initials D.S. are written inside it.",
+   "photos": [
+    "dart_lost"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "dart_found",
+   "type": "FOUND",
+   "by": "raka",
+   "title": "Small black calculator with booklet and pouch",
+   "description": "Black pocket calculator labelled VL-30, found with a folded instruction booklet and a black pouch on the wooden bench by the lift.",
+   "category": 1,
+   "area": 37,
+   "detail": "Wooden bench next to the Gedung C lift, ground floor",
+   "days_ago": 4,
+   "time": "08:10",
+   "clue": "The calculator still turns on; the booklet is in English.",
+   "photos": [
+    "dart_found_a",
+    "dart_found_b"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "karce_lost",
+   "type": "LOST",
+   "by": "kevin",
+   "title": "Karce scientific calculator, black hard case",
+   "description": "Black Karce KC-108 scientific calculator in its black hard cover. Lost after the statistics quiz.",
+   "category": 1,
+   "area": 38,
+   "detail": "Lecture Theater, Gedung D",
+   "days_ago": 3,
+   "time": "11:00",
+   "clue": "There is a formula sheet folded inside the cover, written in blue pen.",
+   "photos": [
+    "karce_lost"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "karce_found",
+   "type": "FOUND",
+   "by": "ayu",
+   "title": "Scientific calculator left on a desk",
+   "description": "Black scientific calculator, cover open, with a printed formula table inside the lid. Brand on the front reads KARCE.",
+   "category": 1,
+   "area": 38,
+   "detail": "Ruang Kelas D203, front desk",
+   "days_ago": 2,
+   "time": "13:40",
+   "clue": "Something is tucked inside the cover; I did not take it out.",
+   "photos": [
+    "karce_found"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "s45w_lost",
+   "type": "LOST",
+   "by": "nadia",
+   "title": "Black Samsung USB-C charger (45 W)",
+   "description": "Black Samsung Super Fast Charging wall charger with one USB-C port. No cable attached.",
+   "category": 1,
+   "area": 36,
+   "detail": "Perpustakaan UMN, Lantai 2, charging desk",
+   "days_ago": 6,
+   "time": "16:00",
+   "clue": "There is a small white paint dot on the side without the logo.",
+   "photos": [],
+   "private": [
+    "s45w_private"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "s45w_found",
+   "type": "FOUND",
+   "by": "sinta",
+   "title": "Black Samsung charger plug",
+   "description": "Black Samsung wall charger with a USB-C port and two flat pins, left plugged in at a desk socket.",
+   "category": 1,
+   "area": 36,
+   "detail": "Perpustakaan UMN, Lantai 2",
+   "days_ago": 6,
+   "time": "18:20",
+   "clue": "No cable with it.",
+   "photos": [
+    "s45w_found"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "ukplug_lost",
+   "type": "LOST",
+   "by": "sinta",
+   "title": "White Samsung charger with UK plug",
+   "description": "White Samsung USB-A charger with a detachable UK three-pin plug head. I use it with an adapter.",
+   "category": 1,
+   "area": 36,
+   "detail": "Kantin B, Lantai 1",
+   "days_ago": 2,
+   "time": "12:30",
+   "clue": "The UK plug head has a scratch near the fuse, and the USB port has a faint pink stain.",
+   "photos": [
+    "ukplug_lost"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "ukplug_found",
+   "type": "FOUND",
+   "by": "raka",
+   "title": "White charger with a three-pin plug",
+   "description": "White Samsung charger with a three-pin (UK style) plug that folds. Found on a chair at lunchtime.",
+   "category": 1,
+   "area": 36,
+   "detail": "Kantin B, near the drinks counter",
+   "days_ago": 1,
+   "time": "13:05",
+   "clue": "One USB-A port; no cable.",
+   "photos": [
+    "ukplug_found_a",
+    "ukplug_found_b"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "s15w_found",
+   "type": "FOUND",
+   "by": "ayu",
+   "title": "White Samsung USB charger",
+   "description": "White Samsung wall charger with one USB-A port and two flat pins.",
+   "category": 1,
+   "area": 36,
+   "detail": "Kantin B, Lantai 1",
+   "days_ago": 1,
+   "time": "19:00",
+   "clue": "The pins are slightly bent.",
+   "photos": [
+    "s15w_found"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "pisen_found",
+   "type": "FOUND",
+   "by": "nadia",
+   "title": "White PISEN charger with round pins",
+   "description": "White PISEN wall charger with two round pins, found on a table.",
+   "category": 1,
+   "area": 35,
+   "detail": "Main Lobby, Gedung A",
+   "days_ago": 3,
+   "time": null,
+   "clue": "Small PISEN logo on the front; no cable.",
+   "photos": [
+    "pisen_found"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "icooby_lost",
+   "type": "LOST",
+   "by": "ayu",
+   "title": "White and pink power bank",
+   "description": "Small white power bank with a pink top panel, 5200 mAh. Lost in the Gedung A lobby while waiting.",
+   "category": 1,
+   "area": 35,
+   "detail": "Admission Office waiting area, Gedung A",
+   "days_ago": 8,
+   "time": "10:00",
+   "clue": "The pink panel has a tiny crack at the corner near the USB port.",
+   "photos": [
+    "icooby_lost"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "icooby_found",
+   "type": "FOUND",
+   "by": "dimas",
+   "title": "Pink and white power bank",
+   "description": "Compact power bank, white body with a pink cap, found on a seat.",
+   "category": 1,
+   "area": 35,
+   "detail": "Seats outside Student Services, Gedung A",
+   "days_ago": 7,
+   "time": "09:15",
+   "clue": "Battery indicator shows two dots.",
+   "photos": [
+    "icooby_found"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "pineng_lost",
+   "type": "LOST",
+   "by": "raka",
+   "title": "Black power bank with red edges",
+   "description": "Pineng PN-963 power bank: black textured front with a red rim. Close-up from my phone.",
+   "category": 1,
+   "area": 37,
+   "detail": "Windows Lab, Gedung C",
+   "days_ago": 3,
+   "time": "14:00",
+   "clue": "There is a small LCD with a crack in the top-left corner.",
+   "photos": [
+    "pineng_lost"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "pineng_found",
+   "type": "FOUND",
+   "by": "nadia",
+   "title": "Black and red power bank on a desk",
+   "description": "Black power bank with a red outline and a small screen, left on a desk beside some cables.",
+   "category": 1,
+   "area": 37,
+   "detail": "Windows Lab, Gedung C, row 2",
+   "days_ago": 2,
+   "time": "17:30",
+   "clue": "The display turned on when I pressed the side button.",
+   "photos": [
+    "pineng_found_a",
+    "pineng_found_b"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "pbslim_lost",
+   "type": "LOST",
+   "by": "kevin",
+   "title": "Black slim power bank",
+   "description": "Black slim power bank with two USB-A and two USB-C ports on one end. One corner is chipped.",
+   "category": 1,
+   "area": 37,
+   "detail": "Macintosh Lab, Gedung C",
+   "days_ago": 4,
+   "time": null,
+   "clue": "There is a sticker residue mark on the back.",
+   "photos": [
+    "o_pb_slim"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "anker_black_found",
+   "type": "FOUND",
+   "by": "sinta",
+   "title": "Black Anker power bank with a white cable",
+   "description": "Black Anker power bank, quite worn, with a white cable still plugged in. A small white travel router was next to it.",
+   "category": 1,
+   "area": 39,
+   "detail": "Car park, low wall near the exit gate",
+   "days_ago": 3,
+   "time": "19:40",
+   "clue": "Both items were together; the router has two fold-out antennas.",
+   "photos": [
+    "o_anker_black"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "anker_mint_found",
+   "type": "FOUND",
+   "by": "raka",
+   "title": "Mint green Anker power bank",
+   "description": "Mint green Anker power bank with a round button, found still charging two cables at a power strip.",
+   "category": 1,
+   "area": 37,
+   "detail": "Rooftop Parks, Gedung C, power strip by the benches",
+   "days_ago": 1,
+   "time": "16:45",
+   "clue": "The two cables are kept with it.",
+   "photos": [
+    "o_anker_mint"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "magpb_lost",
+   "type": "LOST",
+   "by": "sinta",
+   "title": "Grey wireless power bank with a fold-out stand",
+   "description": "Grey magnetic wireless power bank with a ring on the front and a small fold-out stand on the back.",
+   "category": 1,
+   "area": 38,
+   "detail": "Sport Hall & Gym, Gedung D",
+   "days_ago": 5,
+   "time": "18:00",
+   "clue": "The stand hinge is a bit loose and wobbles.",
+   "photos": [
+    "magpb_lost"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "magpb_found",
+   "type": "FOUND",
+   "by": "kevin",
+   "title": "Grey power bank standing on a desk",
+   "description": "Grey wireless power bank with a circle marking, standing up on its own small stand.",
+   "category": 1,
+   "area": 38,
+   "detail": "Sport Hall & Gym, reception desk",
+   "days_ago": 4,
+   "time": "08:30",
+   "clue": "Small text on the back lists the capacity.",
+   "photos": [
+    "magpb_found"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "xtorm_lost",
+   "type": "LOST",
+   "by": "dimas",
+   "title": "Grey Xtorm power bank with a blue strap",
+   "description": "Grey Xtorm power bank with a short blue wrist strap and an X logo.",
+   "category": 1,
+   "area": 40,
+   "detail": "Lapangan, near the bleachers",
+   "days_ago": 3,
+   "time": "17:00",
+   "clue": "The strap is knotted twice near the loop.",
+   "photos": [
+    "xtorm_lost"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "xtorm_found",
+   "type": "FOUND",
+   "by": "sinta",
+   "title": "Grey power bank with a strap",
+   "description": "Grey power bank with a blue lanyard strap, lying on a ledge by the field.",
+   "category": 1,
+   "area": 40,
+   "detail": "Concrete ledge beside the running track",
+   "days_ago": 3,
+   "time": "18:30",
+   "clue": "Ports are on the short side.",
+   "photos": [
+    "xtorm_found_a",
+    "xtorm_found_b"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "pana_lost",
+   "type": "LOST",
+   "by": "raka",
+   "title": "Left earbud, Panasonic black wireless",
+   "description": "I lost the left earbud of my black Panasonic wireless earbuds. Photo shows the set in its case before I lost it.",
+   "category": 1,
+   "area": 36,
+   "detail": "Perpustakaan UMN, Lantai 3 quiet room",
+   "days_ago": 2,
+   "time": "15:00",
+   "clue": "The ear tip on the left bud is a smaller size than the right one.",
+   "photos": [
+    "pana_lost"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "pana_found",
+   "type": "FOUND",
+   "by": "ayu",
+   "title": "Single black wireless earbud",
+   "description": "One black wireless earbud with a silicone tip and a small L marking, found under a study table.",
+   "category": 1,
+   "area": 36,
+   "detail": "Perpustakaan UMN, Lantai 3",
+   "days_ago": 2,
+   "time": "18:10",
+   "clue": "The silicone tip looks slightly worn.",
+   "photos": [
+    "pana_found_a",
+    "pana_found_b"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "wavefun_lost",
+   "type": "LOST",
+   "by": "nadia",
+   "title": "Wavefun earbuds in a dark blue case",
+   "description": "Dark blue Wavefun earbuds charging case with both earbuds inside.",
+   "category": 1,
+   "area": 36,
+   "detail": "Libro Cafe, Gedung B",
+   "days_ago": 1,
+   "time": "10:30",
+   "clue": "The left earbud has a gold logo that is half worn off.",
+   "photos": [],
+   "private": [
+    "wavefun_private"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "wavefun_found",
+   "type": "FOUND",
+   "by": "dimas",
+   "title": "Earbuds case, dark blue",
+   "description": "Dark blue earbuds case, lid open, both earbuds inside with gold markings.",
+   "category": 1,
+   "area": 36,
+   "detail": "Libro Cafe, corner table",
+   "days_ago": 1,
+   "time": "12:00",
+   "clue": "Case is almost out of charge.",
+   "photos": [
+    "wavefun_found"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "orico_lost",
+   "type": "LOST",
+   "by": "kevin",
+   "title": "White Orico multi-port USB charger",
+   "description": "White Orico desktop charger with five USB ports, used for my project devices.",
+   "category": 1,
+   "area": 37,
+   "detail": "Macintosh Lab, Gedung C",
+   "days_ago": 9,
+   "time": "13:00",
+   "clue": "Port 3 is a bit loose and the power cord has a velcro tie.",
+   "photos": [
+    "orico_lost"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "orico_found",
+   "type": "FOUND",
+   "by": "raka",
+   "title": "White multi-port USB charger",
+   "description": "White ORICO charging hub with a row of USB ports, found on a wooden table.",
+   "category": 1,
+   "area": 37,
+   "detail": "Skystar Ventures area, Gedung C",
+   "days_ago": 8,
+   "time": "09:00",
+   "clue": "No power cord with it.",
+   "photos": [
+    "orico_found"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "usbb_found",
+   "type": "FOUND",
+   "by": "sinta",
+   "title": "Grey USB printer cable (USB-A to USB-B)",
+   "description": "Beige-grey USB cable, coiled with a green rubber band: a normal USB-A plug on one end and a square USB-B printer plug on the other.",
+   "category": 1,
+   "area": 36,
+   "detail": "U-Print / Printing Lab, Gedung B",
+   "days_ago": 3,
+   "time": "11:20",
+   "clue": "About 1.5 m long.",
+   "photos": [
+    "o_usbb"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "usbb_lost",
+   "type": "LOST",
+   "by": "kevin",
+   "title": "Printer cable, USB-A to USB-B",
+   "description": "Grey printer cable with a square USB-B plug. I left it after printing my poster.",
+   "category": 1,
+   "area": 36,
+   "detail": "U-Print / Printing Lab, Gedung B",
+   "days_ago": 3,
+   "time": "10:00",
+   "clue": "Tied with a green rubber band; one end has a small ferrite bead.",
+   "photos": [],
+   "batch": "A"
+  },
+  {
+   "key": "lightning_found",
+   "type": "FOUND",
+   "by": "dimas",
+   "title": "White Lightning cable (iPhone)",
+   "description": "White Apple Lightning to USB-A cable, coiled, found on a desk.",
+   "category": 1,
+   "area": 35,
+   "detail": "Kantor Rektorat lobby, Gedung A",
+   "days_ago": 2,
+   "time": "14:20",
+   "clue": "About 1 m; the USB-A end is slightly yellowed.",
+   "photos": [
+    "o_lightning"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "usbc_lost",
+   "type": "LOST",
+   "by": "raka",
+   "title": "White USB-C charger and cable",
+   "description": "White USB-C charger block with its white USB-C cable. Photo from my desk.",
+   "category": 1,
+   "area": 35,
+   "detail": "Kantor Rektorat, Gedung A, waiting chairs",
+   "days_ago": 2,
+   "time": "13:00",
+   "clue": "The cable has a small kink close to the charger end.",
+   "photos": [
+    "usbc_lost"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "eraser_staedtler_found",
+   "type": "FOUND",
+   "by": "kevin",
+   "title": "Staedtler Mars plastic eraser",
+   "description": "White Staedtler Mars plastic eraser in its dark blue sleeve, left on a notebook.",
+   "category": 6,
+   "area": 38,
+   "detail": "Ruang Kelas D404",
+   "days_ago": 1,
+   "time": null,
+   "clue": "Barely used.",
+   "photos": [
+    "o_eraser"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "eraser_mono_found",
+   "type": "FOUND",
+   "by": "sinta",
+   "title": "Tombow MONO eraser",
+   "description": "White MONO plastic eraser with the blue, white and black sleeve.",
+   "category": 6,
+   "area": 38,
+   "detail": "Lecture Theater, Gedung D, row F",
+   "days_ago": 2,
+   "time": null,
+   "clue": "Sleeve is slightly bent.",
+   "photos": [
+    "mono_found"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "eraser_mato_found",
+   "type": "FOUND",
+   "by": "nadia",
+   "title": "Matomarukun eraser, light blue sleeve",
+   "description": "White eraser in a light blue Japanese Matomarukun sleeve.",
+   "category": 6,
+   "area": 36,
+   "detail": "Perpustakaan UMN, Lantai 1",
+   "days_ago": 4,
+   "time": null,
+   "clue": "One corner of the eraser is worn round.",
+   "photos": [
+    "mato_found"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "eraser_plain_found",
+   "type": "FOUND",
+   "by": "raka",
+   "title": "Plain white eraser",
+   "description": "Plain white rectangular eraser without a sleeve, on a wooden desk.",
+   "category": 6,
+   "area": 37,
+   "detail": "Ruang Kelas C210",
+   "days_ago": 7,
+   "time": null,
+   "clue": "Pencil marks on one side.",
+   "photos": [
+    "borracha_found"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "pen_lost",
+   "type": "LOST",
+   "by": "sinta",
+   "title": "Black fountain pen with gold dragon",
+   "description": "Black lacquered fountain pen with a gold dragon pattern and a gold nib. It was a gift and means a lot to me.",
+   "category": 6,
+   "area": 35,
+   "detail": "Function Hall, Gedung A",
+   "days_ago": 12,
+   "time": "19:00",
+   "clue": "The cap clip has a tiny dent, and there is blue ink inside, not black.",
+   "photos": [
+    "o_pen"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "pouch_found",
+   "type": "FOUND",
+   "by": "ayu",
+   "title": "Navy and white patterned zip pouch",
+   "description": "Small zip pouch with a navy and white geometric pattern, zipped and soft. Did not open it.",
+   "category": 7,
+   "area": 36,
+   "detail": "Perpustakaan UMN, Lantai 2, long table",
+   "days_ago": 4,
+   "time": "16:30",
+   "clue": "Feels like pens and a small mirror inside.",
+   "photos": [
+    "o_pouch"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "keychain_found",
+   "type": "FOUND",
+   "by": "nadia",
+   "title": "Blue Delhi Metro keychain",
+   "description": "Blue Delhi Metro Rail keychain tag (picture of a metro train and a tower) on a metal ring, no keys.",
+   "category": 7,
+   "area": 40,
+   "detail": "Lapangan, by the water tap",
+   "days_ago": 6,
+   "time": "07:20",
+   "clue": "Ring is slightly open.",
+   "photos": [
+    "o_keychain"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "fob_green_found",
+   "type": "FOUND",
+   "by": "dimas",
+   "title": "Leather key fob with Africa shape, green fabric",
+   "description": "Teardrop leather key fob with a green woven fabric map of Africa sewn on, metal key ring, no keys.",
+   "category": 7,
+   "area": 39,
+   "detail": "Motorbike parking, row B",
+   "days_ago": 5,
+   "time": "07:50",
+   "clue": "Stitching is coming loose on the bottom edge.",
+   "photos": [
+    "fob_green"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "fob_red_lost",
+   "type": "LOST",
+   "by": "ayu",
+   "title": "Leather key fob, red Africa patch",
+   "description": "Teardrop leather key fob with a red patterned fabric map of Africa. A souvenir from my aunt.",
+   "category": 7,
+   "area": 39,
+   "detail": "Motorbike parking near Gedung B",
+   "days_ago": 6,
+   "time": "17:30",
+   "clue": "My motorbike key and a small silver key were on it.",
+   "photos": [
+    "fob_red"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "gloves_tan_found",
+   "type": "FOUND",
+   "by": "raka",
+   "title": "Tan leather gloves",
+   "description": "Pair of tan (cognac) leather gloves, found together on the floor.",
+   "category": 4,
+   "area": 39,
+   "detail": "Car park, near the motorbike shelter",
+   "days_ago": 10,
+   "time": "08:00",
+   "clue": "Lined inside; size label is faded.",
+   "photos": [
+    "o_gloves_tan"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "gloves_dark_lost",
+   "type": "LOST",
+   "by": "nadia",
+   "title": "Dark brown leather gloves",
+   "description": "Pair of very dark brown leather gloves. I ride to campus and must have dropped them.",
+   "category": 4,
+   "area": 39,
+   "detail": "Car park, motorbike shelter",
+   "days_ago": 11,
+   "time": "07:40",
+   "clue": "The right glove has a small tear at the thumb seam.",
+   "photos": [
+    "o_gloves_dark"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "umbrella_lost",
+   "type": "LOST",
+   "by": "dimas",
+   "title": "Folding umbrella with colourful drops inside",
+   "description": "Folding umbrella with a black frame; the canopy is white with red, blue and orange raindrop shapes.",
+   "category": 8,
+   "area": 38,
+   "detail": "Gedung D main entrance",
+   "days_ago": 1,
+   "time": "16:00",
+   "clue": "One rib near the handle is slightly bent.",
+   "photos": [
+    "umbrella_lost"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "umbrella_found",
+   "type": "FOUND",
+   "by": "ayu",
+   "title": "Umbrella with a raindrop pattern",
+   "description": "Folding umbrella, open to dry; white canopy inside printed with colourful drops, black frame.",
+   "category": 8,
+   "area": 38,
+   "detail": "Gedung D lobby, umbrella stand",
+   "days_ago": 0,
+   "time": "09:30",
+   "clue": "No name on the handle.",
+   "photos": [
+    "umbrella_found"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "bottle_lost",
+   "type": "LOST",
+   "by": "sinta",
+   "title": "Clear glass water bottle",
+   "description": "Tall clear glass water bottle with a pale cap and printed vertical text.",
+   "category": 8,
+   "area": 36,
+   "detail": "Kantin B, table by the window",
+   "days_ago": 2,
+   "time": "12:00",
+   "clue": "There is a hairline chip on the rim under the cap.",
+   "photos": [
+    "bottle_lost"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "bottle_found",
+   "type": "FOUND",
+   "by": "kevin",
+   "title": "Glass bottle left on a table",
+   "description": "Clear glass bottle with a pale cap, left on a glass table.",
+   "category": 8,
+   "area": 36,
+   "detail": "Kantin B, Lantai 1",
+   "days_ago": 2,
+   "time": "14:00",
+   "clue": "Bottle is empty.",
+   "photos": [
+    "bottle_found"
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "f_earpods_lost",
+   "type": "LOST",
+   "by": "sinta",
+   "title": "White wired Apple earphones",
+   "description": "White Apple wired earphones (the round, not in-ear, kind) with the white cable. Photo is from home.",
+   "category": 1,
+   "area": 36,
+   "detail": "Perpustakaan UMN, Lantai 2",
+   "days_ago": 3,
+   "time": "14:00",
+   "clue": "The cable has a small knot I tied near the left earpiece.",
+   "photos": [
+    "f_earpods_lost"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "f_earpods_found",
+   "type": "FOUND",
+   "by": "kevin",
+   "title": "White earphones left on a table",
+   "description": "White wired earphones with round earpieces, left on a wooden study table.",
+   "category": 1,
+   "area": 36,
+   "detail": "Perpustakaan UMN, Lantai 2, wooden tables",
+   "days_ago": 3,
+   "time": "17:10",
+   "clue": "Standard 3.5 mm plug; the mesh is clean.",
+   "photos": [
+    "f_earpods_found"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "f_earbuds_hoodie_found",
+   "type": "FOUND",
+   "by": "nadia",
+   "title": "Tangled white earphones on a hoodie",
+   "description": "White wired earphones, tangled, found on a dark green hoodie left on a chair.",
+   "category": 1,
+   "area": 36,
+   "detail": "Perpustakaan UMN, Lantai 2, sofa area",
+   "days_ago": 2,
+   "time": "10:20",
+   "clue": "The hoodie was left too; it is with Security separately.",
+   "photos": [
+    "f_earbuds_hoodie"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "f_earbuds_tangled_found",
+   "type": "FOUND",
+   "by": "dimas",
+   "title": "White earphones with a tangled cable",
+   "description": "White wired earphones with a very tangled cable, on a lab desk next to some papers.",
+   "category": 1,
+   "area": 37,
+   "detail": "Macintosh Lab, Gedung C",
+   "days_ago": 5,
+   "time": "15:45",
+   "clue": "Looks like they went through the wash.",
+   "photos": [
+    "f_earbuds_tangled"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "f_cozy_lost",
+   "type": "LOST",
+   "by": "ayu",
+   "title": "Earphones with a mint crocheted cable cover",
+   "description": "Black earphones whose cable is covered in a mint green crocheted sleeve that I made.",
+   "category": 1,
+   "area": 40,
+   "detail": "Lapangan, wooden bleachers",
+   "days_ago": 4,
+   "time": "16:30",
+   "clue": "The sleeve has one dark plastic clip in the middle of the cable.",
+   "photos": [
+    "f_cozy_lost"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "f_cozy_found",
+   "type": "FOUND",
+   "by": "raka",
+   "title": "Earphones with a knitted mint cable",
+   "description": "Earphones with a mint green knitted cover on the cable, lying on the wooden benches.",
+   "category": 1,
+   "area": 40,
+   "detail": "Lapangan bleachers, top row",
+   "days_ago": 4,
+   "time": "18:00",
+   "clue": "Handmade-looking cover.",
+   "photos": [
+    "f_cozy_found"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "f_ankergrey_lost",
+   "type": "LOST",
+   "by": "kevin",
+   "title": "Dark grey Anker power bank, 4,500 mAh",
+   "description": "Small dark grey Anker power bank with four blue indicator lights and a short black cable.",
+   "category": 1,
+   "area": 38,
+   "detail": "Sport Hall & Gym, Gedung D",
+   "days_ago": 6,
+   "time": "19:00",
+   "clue": "The short cable is tucked into a groove on the side.",
+   "photos": [
+    "f_ankergrey_lost"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "f_ankergrey_found",
+   "type": "FOUND",
+   "by": "ayu",
+   "title": "Grey Anker power bank on a desk",
+   "description": "Dark grey Anker Power Bank with blue lights, left on a desk with a white cable plugged in.",
+   "category": 1,
+   "area": 38,
+   "detail": "Ruang Kelas D305",
+   "days_ago": 5,
+   "time": "09:40",
+   "clue": "Four lights came on when I pressed the button.",
+   "photos": [
+    "f_ankergrey_found_a",
+    "f_ankergrey_found_b"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "f_eachine_lost",
+   "type": "LOST",
+   "by": "nadia",
+   "title": "Eachine mini power bank with a digital display",
+   "description": "Small Eachine power bank, black top and silver sides, with a little green digital display. Photo is from when I bought it.",
+   "category": 1,
+   "area": 35,
+   "detail": "Student Services, Gedung A",
+   "days_ago": 5,
+   "time": "11:00",
+   "clue": "The display shows 88 when it is fully charged.",
+   "photos": [
+    "f_eachine_lost"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "f_eachine_found",
+   "type": "FOUND",
+   "by": "sinta",
+   "title": "Small black and silver power bank with a display",
+   "description": "Small power bank with a black top, silver sides and a green number display, still charging a phone cable.",
+   "category": 1,
+   "area": 35,
+   "detail": "Admission Office counter, Gedung A",
+   "days_ago": 4,
+   "time": "14:15",
+   "clue": "Brand on top reads EACHINE.",
+   "photos": [
+    "f_eachine_found"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "f_lumsing_lost",
+   "type": "LOST",
+   "by": "dimas",
+   "title": "Blue Lumsing power bank",
+   "description": "Flat blue Lumsing power bank about the size of a phone. Photo from my desk with my phone on top.",
+   "category": 1,
+   "area": 37,
+   "detail": "Windows Lab, Gedung C",
+   "days_ago": 7,
+   "time": "13:30",
+   "clue": "One corner has a small scratch through the paint.",
+   "photos": [
+    "f_lumsing_lost"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "f_wallet_tan_found",
+   "type": "FOUND",
+   "by": "raka",
+   "title": "Tan Calvin Klein leather wallet",
+   "description": "Tan leather bifold wallet with a small Calvin Klein metal plate, found on a desk.",
+   "category": 3,
+   "area": 36,
+   "detail": "Libro Cafe, Gedung B",
+   "days_ago": 2,
+   "time": "20:00",
+   "clue": "Contains an ID card and some cash; not opened further.",
+   "photos": [
+    "f_wallet_tan"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "f_wallet_card_lost",
+   "type": "LOST",
+   "by": "sinta",
+   "title": "Brown leather card sleeve",
+   "description": "Slim brown leather card holder with two slots and light stitching. My student card and a bank card were inside.",
+   "category": 3,
+   "area": 36,
+   "detail": "Libro Cafe, Gedung B",
+   "days_ago": 2,
+   "time": "18:30",
+   "clue": "My initials S.M. are stamped inside the back slot.",
+   "photos": [
+    "f_wallet_card"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "f_globe_lost",
+   "type": "LOST",
+   "by": "kevin",
+   "title": "Silver globe puzzle keychain",
+   "description": "Silver keychain shaped like a puzzle-piece globe, with a round blank tag on the ring.",
+   "category": 7,
+   "area": 40,
+   "detail": "Lapangan, near the basketball court",
+   "days_ago": 3,
+   "time": "17:30",
+   "clue": "One puzzle piece on the globe is missing.",
+   "photos": [
+    "f_globe_lost"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "f_globe_found",
+   "type": "FOUND",
+   "by": "dimas",
+   "title": "Keychain with a metal globe",
+   "description": "Metal globe keychain made of puzzle pieces, with a round tag. No keys attached.",
+   "category": 7,
+   "area": 40,
+   "detail": "Basketball court bench, Lapangan",
+   "days_ago": 3,
+   "time": "19:00",
+   "clue": "Small loose puzzle-shaped pieces were near it.",
+   "photos": [
+    "f_globe_found"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "f_keys_found",
+   "type": "FOUND",
+   "by": "ayu",
+   "title": "Keys with a car remote and pocket knife",
+   "description": "Bunch of keys on a ring with a black car remote, a mini torch, a purple capsule and a red pocket knife.",
+   "category": 7,
+   "area": 39,
+   "detail": "Car park, near the barrier gate",
+   "days_ago": 1,
+   "time": "07:30",
+   "clue": "The car remote has three buttons.",
+   "photos": [
+    "f_keys"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "f_croc_found",
+   "type": "FOUND",
+   "by": "sinta",
+   "title": "Red beaded crocodile keychain",
+   "description": "Small keychain shaped like a crocodile, made of red and white beads, on a metal ring.",
+   "category": 7,
+   "area": 35,
+   "detail": "Function Hall, Gedung A",
+   "days_ago": 6,
+   "time": "12:00",
+   "clue": "One bead leg is loose.",
+   "photos": [
+    "f_croc"
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "f_swingbottle_found",
+   "type": "FOUND",
+   "by": "nadia",
+   "title": "Glass bottle with a swing-top stopper",
+   "description": "Clear glass bottle with a white ceramic swing-top stopper and metal clasp.",
+   "category": 8,
+   "area": 36,
+   "detail": "Kantin B, Lantai 1",
+   "days_ago": 1,
+   "time": "13:00",
+   "clue": "Empty and rinsed.",
+   "photos": [
+    "f_swingbottle"
+   ],
+   "batch": "A"
+  }
+ ],
+ "claims": [
+  {
+   "key": "cl_dart",
+   "by": "dimas",
+   "found": "dart_found",
+   "lost": "dart_lost",
+   "answer": "My initials D.S. are written inside the battery cover, which is taped shut with clear tape.",
+   "steps": [
+    [
+     "review",
+     "approved",
+     "Initials inside the battery cover confirmed."
+    ],
+    [
+     "schedule",
+     37,
+     1,
+     "10:00",
+     "Bring your student card to the Gedung C security desk."
+    ]
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "cl_s45w",
+   "by": "nadia",
+   "found": "s45w_found",
+   "lost": "s45w_lost",
+   "answer": "It is my black Samsung 45 W charger; it has a small white paint dot on one side.",
+   "steps": [
+    [
+     "review",
+     "need_more_info",
+     "Please describe anything else you remember, for example where on the side the dot is."
+    ]
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "cl_icooby",
+   "by": "ayu",
+   "found": "icooby_found",
+   "lost": "icooby_lost",
+   "answer": "The pink panel has a tiny crack at the corner near the USB port.",
+   "steps": [],
+   "batch": "B"
+  },
+  {
+   "key": "cl_gloves",
+   "by": "nadia",
+   "found": "gloves_tan_found",
+   "lost": "gloves_dark_lost",
+   "answer": "My gloves are leather and I lost them in the motorbike shelter.",
+   "steps": [
+    [
+     "review",
+     "rejected",
+     "These gloves are tan, and your report describes very dark brown gloves with a torn thumb seam."
+    ]
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "cl_magpb",
+   "by": "sinta",
+   "found": "magpb_found",
+   "lost": "magpb_lost",
+   "answer": "The stand hinge on the back is loose and wobbles.",
+   "steps": [
+    [
+     "review",
+     "approved",
+     "Loose stand hinge confirmed."
+    ],
+    [
+     "schedule",
+     38,
+     1,
+     "09:00",
+     "Sport Hall reception."
+    ],
+    [
+     "complete",
+     "Returned to the owner at the Sport Hall reception."
+    ]
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "cl_wrong_charger",
+   "by": "sinta",
+   "found": "s15w_found",
+   "lost": "",
+   "answer": "I think this white Samsung charger is mine.",
+   "steps": [
+    [
+     "withdraw"
+    ]
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "cl_ukplug",
+   "by": "sinta",
+   "found": "ukplug_found",
+   "lost": "ukplug_lost",
+   "answer": "My charger has a UK three-pin plug head with a scratch near the fuse, and a faint pink stain by the USB port.",
+   "steps": [],
+   "batch": "B"
+  },
+  {
+   "key": "cl_pana",
+   "by": "raka",
+   "found": "pana_found",
+   "lost": "pana_lost",
+   "answer": "It is the left earbud; its ear tip is a smaller size than the right one.",
+   "steps": [
+    [
+     "review",
+     "approved",
+     "Smaller left ear tip confirmed."
+    ]
+   ],
+   "batch": "B"
+  },
+  {
+   "key": "cl_globe",
+   "by": "kevin",
+   "found": "f_globe_found",
+   "lost": "f_globe_lost",
+   "answer": "One puzzle piece on the globe is missing, and the round tag is blank.",
+   "steps": [
+    [
+     "review",
+     "approved",
+     "Missing puzzle piece confirmed."
+    ],
+    [
+     "schedule",
+     40,
+     1,
+     "16:00",
+     "Security post by the field."
+    ]
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "cl_eachine",
+   "by": "nadia",
+   "found": "f_eachine_found",
+   "lost": "f_eachine_lost",
+   "answer": "It is my Eachine power bank; the display shows 88 when it is full.",
+   "steps": [
+    [
+     "review",
+     "need_more_info",
+     "Please tell us what is printed on the bottom of the power bank."
+    ]
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "cl_wrong_earphones",
+   "by": "sinta",
+   "found": "f_earbuds_hoodie_found",
+   "lost": "",
+   "answer": "These white earphones could be mine.",
+   "steps": [
+    [
+     "withdraw"
+    ]
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "cl_earpods",
+   "by": "sinta",
+   "found": "f_earpods_found",
+   "lost": "f_earpods_lost",
+   "answer": "There is a small knot tied in the cable near the left earpiece.",
+   "steps": [
+    [
+     "review",
+     "approved",
+     "Knot near the left earpiece confirmed."
+    ],
+    [
+     "schedule",
+     36,
+     1,
+     "11:00",
+     "Perpustakaan front desk."
+    ],
+    [
+     "complete",
+     "Returned at the Perpustakaan front desk."
+    ]
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "cl_cozy",
+   "by": "ayu",
+   "found": "f_cozy_found",
+   "lost": "f_cozy_lost",
+   "answer": "I crocheted the mint sleeve myself; there is one dark plastic clip in the middle.",
+   "steps": [
+    [
+     "review",
+     "approved",
+     "Clip in the middle of the sleeve confirmed."
+    ]
+   ],
+   "batch": "A"
+  },
+  {
+   "key": "cl_ankergrey",
+   "by": "kevin",
+   "found": "f_ankergrey_found",
+   "lost": "f_ankergrey_lost",
+   "answer": "The short black cable tucks into a groove on the side.",
+   "steps": [],
+   "batch": "A"
+  }
+ ]
+}
