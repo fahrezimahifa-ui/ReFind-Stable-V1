@@ -346,12 +346,15 @@ p.context-note,p.journey-note,p.report-visibility{max-width:none}
 #item-chips{align-items:center}
 #item-chips>.item-chip{flex:0 1 auto}
 #item-chips>.item-type{flex:none;padding:0 4px;color:var(--value);font-size:14px;font-weight:600}
-/* Reports without a public photo: a short labelled strip at every width instead of an empty photo-sized frame. */
-.card-media:has(.no-photo),.discovery-card .card-media:has(.no-photo){height:auto;aspect-ratio:auto}
-.no-photo:not([hidden]){display:flex;align-items:center;justify-content:flex-start;gap:8px;padding:12px 16px;color:var(--empty);font-size:14px;text-align:start}
+/* Reports without a public photo (owner review): in card grids and on the two-column item page the photo frame keeps
+   its size, so rows stay aligned, and shows a calm icon with "No photo". Single-column phone cards and the narrow item
+   page use a short strip instead. */
+.no-photo:not([hidden]){display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;color:var(--empty);font-size:14px;text-align:center}
 .no-photo svg{flex:none}
-.gallery-main:disabled{height:auto;min-height:56px;aspect-ratio:auto;padding:0;justify-content:flex-start}
-@media(min-width:1100px){.detail-layout:has(.gallery-main:disabled){grid-template-columns:minmax(0,1fr)}}
+@media(max-width:679px){.card-media .no-photo:not([hidden]){justify-content:flex-start}}
+@media(max-width:1099px){.gallery-main:disabled{height:auto;min-height:56px;aspect-ratio:auto;padding:0;justify-content:flex-start}.gallery-main:disabled .no-photo:not([hidden]){justify-content:flex-start}}
+/* The Lost/Found date line sits at the bottom of every card, so dates line up across a row. */
+.discovery-card .card-meta.card-when{margin-top:auto}
 /* No layout jumps: photos fade in once loaded (the frame is already reserved); skeletons match real card height;
    later loads keep the current cards, dimmed, until the new ones replace them; the count line keeps its height. */
 @media(prefers-reduced-motion:no-preference){.card-media img,.gallery-main img{transition:opacity 150ms ease}}
@@ -370,10 +373,9 @@ p.context-note,p.journey-note,p.report-visibility{max-width:none}
 .page-heading>.btn,.page-heading>a.btn,.page-heading>button{grid-column:2;grid-row:1;justify-self:end}
 @media(max-width:679px){.page-heading>.btn,.page-heading>a.btn,.page-heading>button{min-height:44px;padding:8px 14px;font-size:15px}}
 @media(min-width:1100px){.bm-main>.page-heading{margin-bottom:var(--space-3)}}
-/* Report and claim forms: a readable column (about 46rem) aligned with the page heading, not the full 1160px frame.
-   The action pill stays aligned to the page's right edge, so on wide screens it floats in the empty gutter beside the
-   cards instead of over them. */
-.form-main :is(#report-form,#claim-form)>:not(.sticky-form-actions){max-width:46rem}
+/* Report form (owner review): full width, with short fields paired so no input is over-wide. Item name and category
+   share the 2-column form grid; Where & when uses four columns on wide screens. */
+@media(min-width:1100px){.form-main .form-card:has(#r-location) .form-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 /* A heading with a button (shown after sign-in) reserves the button's row height, so revealing it shifts nothing. */
 .page-heading:has(>.btn,>button){grid-template-rows:minmax(46px,auto) auto}
 @media(max-width:679px){.page-heading:has(>.btn,>button){grid-template-rows:minmax(44px,auto) auto}}

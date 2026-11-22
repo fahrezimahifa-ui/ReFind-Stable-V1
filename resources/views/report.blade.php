@@ -11,8 +11,8 @@
   <form id="report-form" novalidate hidden><fieldset id="report-fields">
     <div class="type-tabs report-type-switch" id="report-type" role="group" aria-label="Report type"><button type="button" class="type-tab" data-report-type="LOST">I lost something</button><button type="button" class="type-tab" data-report-type="FOUND">I found something</button></div><p class="hint" id="report-type-note" role="status" hidden></p>
     <section class="form-card"><h2>1 · Item details</h2>
-      <div class="field"><label for="r-title">Item name *</label><input class="form-control" id="r-title" maxlength="120" required placeholder="For example, a brown leather wallet" aria-describedby="r-title-hint"><span class="hint" id="r-title-hint">At least 3 characters.</span><span class="field-error" data-error="title" hidden></span></div>
-      <div class="field"><label for="r-category">Category *</label><select class="form-select" id="r-category" required></select><span class="field-error" data-error="category_id" hidden></span></div>
+      <div class="form-grid"><div class="field"><label for="r-title">Item name *</label><input class="form-control" id="r-title" maxlength="120" required placeholder="For example, a brown leather wallet" aria-describedby="r-title-hint"><span class="hint" id="r-title-hint">At least 3 characters.</span><span class="field-error" data-error="title" hidden></span></div>
+      <div class="field"><label for="r-category">Category *</label><select class="form-select" id="r-category" required></select><span class="field-error" data-error="category_id" hidden></span></div></div>
       <div class="field"><label for="r-description">Public description *</label><textarea class="form-control" id="r-description" rows="4" maxlength="2000" required placeholder="Brand, color and visible details"></textarea><span class="hint">Describe what others can see. Keep personal contact details and private clues out of this description.</span><span class="field-error" data-error="description" hidden></span></div>
     </section>
     <section class="form-card"><h2>2 · Where &amp; when</h2><div class="form-grid">
