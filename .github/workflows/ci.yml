@@ -1,0 +1,64 @@
+# Checks that need no database, web server or private state, so they run on a GitHub-hosted runner.
+# The integration, HTTP and browser suites (PHPUnit Feature tests, tools/test-*.py, tools/verify-candidate.py) are
+# bound to the local workspace (C:\ReFind-Laravel, the owned MariaDB and per-profile state) and still run there.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Syntax, provenance and unit tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP 8.5 (the local runtime's version)
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer
+
+      - name: PHP syntax (every tracked .php file)
+        run: |
+          status=0
+          while IFS= read -r -d '' file; do
+            php -l "$file" > /dev/null || status=1
+          done < <(git ls-files -z -- '*.php')
+          exit "$status"
+
+      - name: JavaScript syntax (public/js)
+        run: |
+          status=0
+          while IFS= read -r -d '' file; do
+            node --check "$file" || status=1
+          done < <(git ls-files -z -- 'public/js/*.js')
+          exit "$status"
+
+      - name: Asset provenance and Python syntax
+        run: python3 tools/ci-static-checks.py
+
+      - name: Validate composer.json and composer.lock
+        run: composer validate --no-check-publish
+
+      - name: Install locked PHP dependencies (no scripts)
+        run: composer install --no-interaction --no-progress --prefer-dist --no-scripts
+
+      # RuleMatcherTest compares the matcher with the pinned native source in the local workspace, so it runs locally only.
+      - name: Unit tests (no database)
+        run: vendor/bin/phpunit --no-configuration --bootstrap vendor/autoload.php --exclude-filter RuleMatcherTest --testdox tests/Unit
