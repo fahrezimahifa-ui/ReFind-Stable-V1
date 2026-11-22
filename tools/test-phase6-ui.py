@@ -121,7 +121,7 @@ with sync_playwright() as playwright:
         student.goto(BASE + '/my-reports.html?tab=claims&claim=' + claim_id); ready(student)
         card = student.locator('.activity-card[data-claim-id="' + claim_id + '"]')
         expect(card).to_contain_text('Please describe what is inside the front pocket.')
-        card.locator('a', has_text='Update / resubmit claim').click()
+        card.locator('a', has_text='Update claim').click()  # Stable round 3: was "Update / resubmit claim"
         student.wait_for_url(lambda u: urlparse(u).path == '/claim.html'); ready(student)
         expect(student.locator('#keep-claim-proof')).to_be_checked()
         student.locator('#c-answer').fill('Front pocket holds a green library card and a folded campus map.')
@@ -164,7 +164,7 @@ with sync_playwright() as playwright:
         sctx, student = context(playwright, 390, 'dark')
         login(student, 'student_a', 'index.html')
         student.goto(BASE + '/my-reports.html?tab=claims&claim=' + claim_id); ready(student)
-        expect(student.locator('.activity-card[data-claim-id="' + claim_id + '"]')).to_contain_text('Approved. Building Management will arrange a pickup time and place with you.')  # pending handover
+        expect(student.locator('.activity-card[data-claim-id="' + claim_id + '"]')).to_contain_text('Approved. Building Management will set a pickup time and notify you.')  # pending handover (round 3 wording)
         student.goto(BASE + '/item.html?id=' + found); ready(student)
         expect(student.locator('#item-notice')).to_contain_text('Your claim: ')
         check('student sees the approved outcome', True)

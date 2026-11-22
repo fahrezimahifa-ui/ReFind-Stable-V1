@@ -100,6 +100,8 @@ $(async function () {
     return section.append(photos);
   }
   // A labelled text field for long values (descriptions, notes), styled like the record's field labels.
+  // A titled group of record details. Later groups get a floating separator line (polish.css).
+  const group = (title, ...content) => $('<section>').addClass('bm-group').append(title ? $('<h3>').addClass('bm-group-title').text(title) : null, ...content);
   // A missing value reads as missing (muted), so it never outweighs its label.
   const placeholder = text => $('<span>').addClass('value-empty').text(text);
   function field(title, text, extra = '') { return $('<section>').addClass('bm-field ' + extra).append($('<h3>').addClass('bm-field-label').text(title), $('<p>').toggleClass('value-empty', !text).text(text || 'Not specified')); }
@@ -135,14 +137,15 @@ $(async function () {
   function claimDetail(claim) {
     const box = $('<article>').attr('data-detail-claim-id', claim.claim_id);
     box.append(recordHeading(claim.item.title,$('<div>').addClass('chips').append(U.stateChip(claim.claim_status,U.claimNames[claim.claim_status]),U.demoChip(claim.item.title))));
-    const summary = $('<div>').addClass('bm-claim-summary').append(meta([['Claimant',shell.identity(claim.claimant_name,claim.claimant_avatar_url)],['Claimant email',claim.claimant_email],['Student ID',claim.claimant_student_id],['Submitted',U.date(claim.created_at,true)],...(claim.resubmitted_at ? [['Resubmitted',U.date(claim.resubmitted_at,true)]] : []),['Found at',U.locationText(claim.item)],['Linked Lost report',claim.lost ? U.titleParts(claim.lost.title).display : placeholder('None linked')]]));
-    if (claim.item.photos.length) summary.append($('<button>').addClass('bm-report-photo').attr({type:'button','aria-label':'Enlarge public item photo'}).append($('<img>').attr({src:claim.item.photos[0],alt:U.titleParts(claim.item.title).display})).on('click', function () {
+    // Three purposeful groups: who claims it, which item, and the ownership evidence side by side (the claimant's photos
+    // sit with their answer, opposite the finder's private clue).
+    const photo = claim.item.photos.length ? $('<button>').addClass('bm-report-photo').attr({type:'button','aria-label':'Enlarge public item photo'}).append($('<img>').attr({src:claim.item.photos[0],alt:U.titleParts(claim.item.title).display})).on('click', function () {
       trigger = this; $('#bm-evidence-title').text('Public item photo'); $('#bm-evidence-image').attr({src:claim.item.photos[0],alt:U.titleParts(claim.item.title).display}); document.querySelector('#bm-evidence-dialog').showModal();
-    }));
-    box.append(summary);
-    if (claim.previous_request) box.append(field('Your previous request · ' + U.date(claim.previous_request.at,true), claim.previous_request.note, 'bm-outcome'));
-    box.append($('<div>').addClass('bm-compare').append(block('Claimant answer',claim.ownership_answer), block("Finder's private clue",claim.item.verification_clue,true)), evidence(claim.ownership_photos,"Claimant's private photos"));
-    box.append(field('Public description', claim.item.description, 'bm-claim-description'));
+    }) : null;
+    box.append(group('Claimant', meta([['Name',shell.identity(claim.claimant_name,claim.claimant_avatar_url)],['Email',claim.claimant_email],['Student ID',claim.claimant_student_id],['Submitted',U.date(claim.created_at,true)],...(claim.resubmitted_at ? [['Resubmitted',U.date(claim.resubmitted_at,true)]] : [])])));
+    box.append(group('Item', $('<div>').addClass('bm-claim-summary').append(meta([['Found at',U.locationText(claim.item)],['Linked Lost report',claim.lost ? U.titleParts(claim.lost.title).display : placeholder('None linked')]]), photo), field('Public description', claim.item.description, 'bm-claim-description')));
+    box.append(group('Ownership evidence', claim.previous_request ? field('Your previous request · ' + U.date(claim.previous_request.at,true), claim.previous_request.note, 'bm-outcome') : null,
+      $('<div>').addClass('bm-compare').append(block('Claimant answer',claim.ownership_answer).append(evidence(claim.ownership_photos,"Claimant's private photos")), block("Finder's private clue",claim.item.verification_clue,true))));
     if (claim.lost) box.append($('<section>').addClass('bm-audit').append(block("Lost owner's ownership details",claim.lost.verification_clue,true), evidence(claim.lost.ownership_photos,"Lost owner's private photos"), U.navAction('Open linked report',U.itemUrl(claim.lost.item_id))));
     if (claim.review_note) box.append(field('Review note' + (claim.reviewed_at ? ' · ' + U.date(claim.reviewed_at,true) : ''), claim.review_note, 'bm-outcome'));
     if (claim.approval_blocked) box.append($('<p>').addClass('bm-locked-note').text(claim.approval_blocked));
@@ -154,7 +157,10 @@ $(async function () {
     return box.append(actions);
   }
   function reportDetail(report) {
-    const box = $('<article>').attr('data-detail-report-id',report.item_id).append(recordHeading(report.title,U.chips(report)), meta([['Type',report.item_type === 'LOST' ? 'Lost' : 'Found'],[report.item_type === 'LOST' ? 'Last seen at' : 'Found at',U.locationText(report)],[report.item_type === 'LOST' ? 'Date lost' : 'Date found',U.eventDate(report)],['Reporter',shell.identity(report.reporter_name,report.reporter_avatar_url)]]), field('Public description', report.description), block(report.item_type === 'LOST' ? 'Ownership details' : 'Private clue',report.verification_clue,true), evidence(report.ownership_photos,'Private photos'));
+    // Two groups: the public report, then what only Building Management sees.
+    const box = $('<article>').attr('data-detail-report-id',report.item_id).append(recordHeading(report.title,U.chips(report)),
+      group(null, meta([['Type',report.item_type === 'LOST' ? 'Lost' : 'Found'],[report.item_type === 'LOST' ? 'Last seen at' : 'Found at',U.locationText(report)],[report.item_type === 'LOST' ? 'Date lost' : 'Date found',U.eventDate(report)],['Reporter',shell.identity(report.reporter_name,report.reporter_avatar_url)]]), field('Public description', report.description)),
+      group(null, block(report.item_type === 'LOST' ? 'Ownership details' : 'Private clue',report.verification_clue,true), evidence(report.ownership_photos,'Private photos')));
     const actions = $('<div>').addClass('bm-detail-actions');
     if (report.allowed_statuses.length) actions.append(actionButton('status',{kind:'report',id:report.item_id,revision:report.revision,record:report}));
     else if (['RESOLVED','UNCLAIMED_CLOSED'].includes(report.status_code)) box.append($('<p>').addClass('bm-locked-note').text('Archived report · read-only.'));
@@ -183,8 +189,10 @@ $(async function () {
   function handoverDetail(record) {
     const returned = record.handover_status === 'COMPLETED', scheduled = record.handover_status === 'SCHEDULED';
     const notes = record.notes === 'Arrange pickup with Building Management.' ? 'Awaiting a pickup appointment.' : record.notes;
-    const box = $('<article>').attr({'data-detail-handover-id':record.handover_id,'data-handover-status':record.handover_status}).append(recordHeading(record.title,$('<div>').addClass('chips').append(U.stateChip(record.handover_status,U.pickupNames[record.handover_status]),U.demoChip(record.title))),$('<div>').addClass('bm-pickup-meta').append(meta([['Verified claimant',shell.identity(record.claimant_name,record.claimant_avatar_url)],['Claimant email',record.claimant_email],['Student ID',record.claimant_student_id],['Pickup area',record.pickup_location || placeholder('Not assigned')],...(returned ? [['Returned',U.date(record.completed_at,true)],['Appointment',record.scheduled_at ? U.date(record.scheduled_at,true) : 'Collected without a scheduled appointment']] : [['Schedule',record.scheduled_at ? U.date(record.scheduled_at,true) + (U.pickupPastDue(record) ? ' · time passed' : '') : placeholder('Not scheduled yet. Agree a time with the claimant.')]])])));
-    if (notes) box.append(field('Pickup note', notes, 'bm-outcome'));
+    const box = $('<article>').attr({'data-detail-handover-id':record.handover_id,'data-handover-status':record.handover_status}).append(recordHeading(record.title,$('<div>').addClass('chips').append(U.stateChip(record.handover_status,U.pickupNames[record.handover_status]),U.demoChip(record.title))),
+      // Two groups: who collects it, then the pickup itself (area, time, note).
+      group('Verified claimant', $('<div>').addClass('bm-pickup-meta').append(meta([['Name',shell.identity(record.claimant_name,record.claimant_avatar_url)],['Email',record.claimant_email],['Student ID',record.claimant_student_id]]))),
+      group('Pickup', meta([['Pickup area',record.pickup_location || placeholder('Not assigned')],...(returned ? [['Returned',U.date(record.completed_at,true)],['Appointment',record.scheduled_at ? U.date(record.scheduled_at,true) : 'Collected without a scheduled appointment']] : [['Schedule',record.scheduled_at ? U.date(record.scheduled_at,true) + (U.pickupPastDue(record) ? ' · time passed' : '') : placeholder('Not scheduled yet. Agree a time with the claimant.')]])]), notes ? field('Pickup note', notes, 'bm-outcome') : null));
     // Display only: a passed appointment is flagged, but its state changes only through the operations below.
     if (U.pickupPastDue(record)) box.append($('<p>').addClass('past-due-note').text('The scheduled time has passed. If the owner collected the item, confirm the return; otherwise reschedule with them.'));
     // Main row: the two likeliest next steps for this state. Appointment changes and release have their own labelled
@@ -295,7 +303,7 @@ $(async function () {
     $('#operation-submit').removeClass('btn-primary btn-danger btn-warning-outline').addClass(['rejected','release'].includes(action) ? 'btn-danger' : action === 'cancel_schedule' ? 'btn-warning-outline' : 'btn-primary').text(labels[action]);
     $('#operation-dismiss').text(action === 'cancel_schedule' ? 'Keep appointment' : 'Cancel');
     $('#operation-fields').prop('disabled',false);
-    $('#operation-note').val(draft?.note ?? (action === 'approved' ? 'Ownership details verified by Building Management.' : '')).attr('maxlength',snapshot.kind === 'handover' ? 250 : 500);
+    $('#operation-note').val(draft?.note ?? (action === 'approved' ? 'Ownership verified. Building Management will set a pickup time and notify you.' : '')).attr('maxlength',snapshot.kind === 'handover' ? 250 : 500);
     $('#operation-note-label').text(snapshot.kind === 'handover' ? (noteRequired ? 'Reason (8–250 characters) *' : 'Pickup note · optional (max 250 characters)') : 'Review note (8–500 characters) *');
     $('#operation-note-hint').text(snapshot.kind === 'claim' ? 'The claimant receives this note. It does not appear in public history.' : snapshot.kind === 'report' ? 'The reporter receives this note. It does not appear in public history.' : 'The claimant sees this note in their pickup updates.');
     $('#operation-status-field').prop('hidden',action !== 'status');
