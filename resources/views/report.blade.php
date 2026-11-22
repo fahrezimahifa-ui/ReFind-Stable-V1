@@ -6,7 +6,7 @@
 <body data-page="report" data-requires-auth="true">
 @include('partials.navbar')
 <main id="main-content" tabindex="-1" class="student-main form-main">
-  <header class="page-heading"><div><h1 id="report-heading">What happened?</h1><p id="report-intro">Describe the item and where you last saw it. Photos are optional; verification details stay private.</p></div></header>
+  <header class="page-heading"><div>@php($reportFound = strtolower((string) request('type')) === 'found' || preg_match('/^[1-9][0-9]{0,9}$/', (string) request('from')))<h1 id="report-heading">{{ request()->filled('edit') ? 'Edit report' : ($reportFound ? 'Report a Found item' : 'Report a Lost item') }}</h1><p id="report-intro">{{ $reportFound ? 'Describe the item and where you found it. Photos help the owner recognize it; your private clue stays with Building Management.' : 'Describe the item and where you last saw it. Photos help others recognize it; ownership details stay private.' }}</p></div></header>
   <p class="context-note" id="report-context" hidden></p><p class="loading-note" id="page-loading" role="status">Loading form…</p><div class="feedback" id="page-feedback" role="alert" tabindex="-1" hidden></div><button class="btn btn-outline" id="retry-page" type="button" hidden>Retry loading</button>
   <form id="report-form" novalidate hidden><fieldset id="report-fields">
     <div class="type-tabs report-type-switch" id="report-type" role="group" aria-label="Report type"><button type="button" class="type-tab" data-report-type="LOST">I lost something</button><button type="button" class="type-tab" data-report-type="FOUND">I found something</button></div><p class="hint" id="report-type-note" role="status" hidden></p>

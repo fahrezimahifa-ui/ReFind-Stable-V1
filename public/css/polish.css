@@ -360,4 +360,26 @@ p.context-note,p.journey-note,p.report-visibility{max-width:none}
 .skeleton-line.w-90{margin:3px 0 4px}
 .skeleton-line.w-70,.skeleton-line.w-40{margin:4px 0}
 .discovery-grid[aria-busy="true"]>:not(.skeleton-card){opacity:.6;pointer-events:none}
-.result-summary{min-height:1.5em}
+.result-summary{min-height:1.5em}/* Page headings (round 3, batch B): a plain title and one line, smaller, so content starts sooner. The title and the
+   page's button share the first row at every width; the sentence runs underneath at full width. The heading stays a
+   direct child of #main-content and the h1 is not animated here, so the 1.1.1 page entrance is unchanged. */
+.page-heading{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:var(--space-2);row-gap:4px;margin-bottom:var(--space-3)}
+.page-heading>div{display:contents}
+.page-heading h1,.bm-main .page-heading h1{grid-column:1;grid-row:1;font-size:clamp(26px,2.4vw,32px);line-height:1.2;margin:0}
+.page-heading p,.bm-main .page-heading p{grid-column:1/-1;grid-row:2;font-size:15px;margin:0}
+.page-heading>.btn,.page-heading>a.btn,.page-heading>button{grid-column:2;grid-row:1;justify-self:end}
+@media(max-width:679px){.page-heading>.btn,.page-heading>a.btn,.page-heading>button{min-height:44px;padding:8px 14px;font-size:15px}}
+@media(min-width:1100px){.bm-main>.page-heading{margin-bottom:var(--space-3)}}
+/* Report and claim forms: a readable column (about 46rem) aligned with the page heading, not the full 1160px frame.
+   The action pill stays aligned to the page's right edge, so on wide screens it floats in the empty gutter beside the
+   cards instead of over them. */
+.form-main :is(#report-form,#claim-form)>:not(.sticky-form-actions){max-width:46rem}
+/* A heading with a button (shown after sign-in) reserves the button's row height, so revealing it shifts nothing. */
+.page-heading:has(>.btn,>button){grid-template-rows:minmax(46px,auto) auto}
+@media(max-width:679px){.page-heading:has(>.btn,>button){grid-template-rows:minmax(44px,auto) auto}}
+/* Floating action pill: same shape, a near-solid surface so content passing underneath never shows through the
+   buttons. Reduced transparency and forced colours get the solid panel. */
+:root{--action-bar-surface:rgb(255 255 255 / .97)}
+:root[data-theme="dark"]{--action-bar-surface:rgb(19 31 53 / .97)}
+@media(prefers-reduced-transparency:reduce),(forced-colors:active){:root,:root[data-theme="dark"]{--action-bar-surface:var(--panel)}}
+.sticky-form-actions,.bm-detail-actions{background:var(--action-bar-surface)}
