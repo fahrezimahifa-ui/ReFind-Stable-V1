@@ -91,10 +91,11 @@ $(async function () {
     $('#bm-search').attr('placeholder', tab === 'claims' ? 'Search item, claimant or area' : tab === 'reports' ? 'Search item, reporter or area' : 'Search item, claimant or pickup area');
     $('[data-bm-tab]').each(function () { const active = $(this).attr('data-bm-tab') === tab; $(this).toggleClass('active', active).attr('aria-pressed', String(active)); });
   }
-  function evidence(urls, title) {
+  // A labelled row of photo thumbnails; each opens large. Public photos pass U.thumbUrl so the row loads card-sized copies.
+  function evidence(urls, title, thumb = src => src, emptyText = 'No supporting images provided.') {
     const section = $('<section>').addClass('bm-evidence-section').append($('<h3>').text(title)), photos = $('<div>').addClass('bm-evidence');
-    if (!urls?.length) section.append($('<p>').addClass('small muted').text('No supporting images provided.'));
-    else urls.forEach((src, index) => photos.append($('<button>').attr({type:'button','aria-label':'Enlarge ' + title + ' ' + (index + 1)}).append($('<img>').attr({src, alt:title + ' ' + (index + 1), loading:'lazy'})).on('click', function () {
+    if (!urls?.length) section.append($('<p>').addClass('small muted').text(emptyText));
+    else urls.forEach((src, index) => photos.append($('<button>').attr({type:'button','aria-label':'Enlarge ' + title + ' ' + (index + 1)}).append($('<img>').attr({src:thumb(src), alt:title + ' ' + (index + 1), loading:'lazy'})).on('click', function () {
       trigger = this; $('#bm-evidence-title').text(title + ' ' + (index + 1)); $('#bm-evidence-image').attr({src, alt:title + ' ' + (index + 1)}); document.querySelector('#bm-evidence-dialog').showModal();
     })));
     return section.append(photos);
@@ -137,16 +138,13 @@ $(async function () {
   function claimDetail(claim) {
     const box = $('<article>').attr('data-detail-claim-id', claim.claim_id);
     box.append(recordHeading(claim.item.title,$('<div>').addClass('chips').append(U.stateChip(claim.claim_status,U.claimNames[claim.claim_status]),U.demoChip(claim.item.title))));
-    // Three purposeful groups: who claims it, which item, and the ownership evidence side by side (the claimant's photos
-    // sit with their answer, opposite the finder's private clue).
-    const photo = claim.item.photos.length ? $('<button>').addClass('bm-report-photo').attr({type:'button','aria-label':'Enlarge public item photo'}).append($('<img>').attr({src:claim.item.photos[0],alt:U.titleParts(claim.item.title).display})).on('click', function () {
-      trigger = this; $('#bm-evidence-title').text('Public item photo'); $('#bm-evidence-image').attr({src:claim.item.photos[0],alt:U.titleParts(claim.item.title).display}); document.querySelector('#bm-evidence-dialog').showModal();
-    }) : null;
+    // Three purposeful groups: who claims it, which item (details, every public photo, then its description), and the
+    // ownership evidence side by side (the claimant's photos sit with their answer, opposite the finder's private clue).
     box.append(group('Claimant', meta([['Name',shell.identity(claim.claimant_name,claim.claimant_avatar_url)],['Email',claim.claimant_email],['Student ID',claim.claimant_student_id],['Submitted',U.date(claim.created_at,true)],...(claim.resubmitted_at ? [['Resubmitted',U.date(claim.resubmitted_at,true)]] : [])])));
-    box.append(group('Item', $('<div>').addClass('bm-claim-summary').append(meta([['Found at',U.locationText(claim.item)],['Linked Lost report',claim.lost ? U.titleParts(claim.lost.title).display : placeholder('None linked')]]), photo), field('Public description', claim.item.description, 'bm-claim-description')));
+    box.append(group('Item', meta([['Found at',U.locationText(claim.item)],['Linked Lost report',claim.lost ? U.titleParts(claim.lost.title).display : placeholder('None linked')]]), evidence(claim.item.photos,'Public photos',U.thumbUrl,'No public photo provided.'), field('Public description', claim.item.description, 'bm-claim-description')));
     box.append(group('Ownership evidence', claim.previous_request ? field('Your previous request · ' + U.date(claim.previous_request.at,true), claim.previous_request.note, 'bm-outcome') : null,
       $('<div>').addClass('bm-compare').append(block('Claimant answer',claim.ownership_answer).append(evidence(claim.ownership_photos,"Claimant's private photos")), block("Finder's private clue",claim.item.verification_clue,true))));
-    if (claim.lost) box.append($('<section>').addClass('bm-audit').append(block("Lost owner's ownership details",claim.lost.verification_clue,true), evidence(claim.lost.ownership_photos,"Lost owner's private photos"), U.navAction('Open linked report',U.itemUrl(claim.lost.item_id))));
+    if (claim.lost) box.append($('<section>').addClass('bm-audit').append(block("Lost owner's ownership details",claim.lost.verification_clue,true).append(evidence(claim.lost.ownership_photos,"Lost owner's private photos")), U.navAction('Open linked report',U.itemUrl(claim.lost.item_id))));
     if (claim.review_note) box.append(field('Review note' + (claim.reviewed_at ? ' · ' + U.date(claim.reviewed_at,true) : ''), claim.review_note, 'bm-outcome'));
     if (claim.approval_blocked) box.append($('<p>').addClass('bm-locked-note').text(claim.approval_blocked));
     if (claimsReadOnly) return box;
@@ -159,8 +157,8 @@ $(async function () {
   function reportDetail(report) {
     // Two groups: the public report, then what only Building Management sees.
     const box = $('<article>').attr('data-detail-report-id',report.item_id).append(recordHeading(report.title,U.chips(report)),
-      group(null, meta([['Type',report.item_type === 'LOST' ? 'Lost' : 'Found'],[report.item_type === 'LOST' ? 'Last seen at' : 'Found at',U.locationText(report)],[report.item_type === 'LOST' ? 'Date lost' : 'Date found',U.eventDate(report)],['Reporter',shell.identity(report.reporter_name,report.reporter_avatar_url)]]), field('Public description', report.description)),
-      group(null, block(report.item_type === 'LOST' ? 'Ownership details' : 'Private clue',report.verification_clue,true), evidence(report.ownership_photos,'Private photos')));
+      group(null, meta([['Type',report.item_type === 'LOST' ? 'Lost' : 'Found'],[report.item_type === 'LOST' ? 'Last seen at' : 'Found at',U.locationText(report)],[report.item_type === 'LOST' ? 'Date lost' : 'Date found',U.eventDate(report)],['Reporter',shell.identity(report.reporter_name,report.reporter_avatar_url)]]), evidence(report.photos,'Public photos',U.thumbUrl,'No public photo provided.'), field('Public description', report.description)),
+      group(null, block(report.item_type === 'LOST' ? 'Ownership details' : 'Private clue',report.verification_clue,true).append(evidence(report.ownership_photos,'Private photos'))));
     const actions = $('<div>').addClass('bm-detail-actions');
     if (report.allowed_statuses.length) actions.append(actionButton('status',{kind:'report',id:report.item_id,revision:report.revision,record:report}));
     else if (['RESOLVED','UNCLAIMED_CLOSED'].includes(report.status_code)) box.append($('<p>').addClass('bm-locked-note').text('Archived report · read-only.'));

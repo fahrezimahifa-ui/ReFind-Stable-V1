@@ -428,4 +428,9 @@ p.context-note,p.journey-note,p.report-visibility{max-width:none}
   .journey-label{grid-column:2;grid-row:1}
   .journey-help{grid-column:2;grid-row:2}
   .journey-now{grid-column:3;grid-row:1/3}
-}
+}/* Owner review: every part of a group keeps the same 18px rhythm (no part crowds the box above it); a group title sits a
+   little closer to its own content. Photos inside an evidence box sit under its text. */
+.bm-detail .bm-group{display:flex;flex-direction:column;gap:var(--space-3)}
+.bm-detail .bm-group>.bm-group-title{margin:0 0 calc(var(--space-1) * -1)}
+.bm-detail .bm-group>.bm-field,.bm-detail .bm-group>.bm-outcome,.bm-detail .bm-group>.bm-evidence-section{margin-top:0}
+.bm-detail .bm-block>.bm-evidence-section{margin-top:14px}
