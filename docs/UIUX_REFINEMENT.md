@@ -419,3 +419,7 @@ The interrupted attempt restored its snapshot. The completed run's starting stat
   - Back after submit;
   - the unsaved-changes prompt (stay keeps the text; an untouched form leaves silently);
   - drafts restored after a forced session end, for the report form and the BM note.
+
+## Stable page entrance candidate (22 November 2026)
+
+Port the 200 ms fade and 4 px lift from ReFind-Test commit 699aa2b to Stable 1.1.0. The early theme script hands eligible navigation intent to the destination. The motion follows the device preference and applies to existing signed-in surfaces, including Home's panel when auth reveals it and the Item Detail loading line. Report and claim confirmations keep their existing presentation and replace the completed form in history.
