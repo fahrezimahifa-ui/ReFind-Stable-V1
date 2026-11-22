@@ -3,6 +3,69 @@
   const root=document.documentElement,themeKey='refind-theme',motionKey='refind-motion';
   const system=matchMedia('(prefers-color-scheme: dark)'),reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const transparency=matchMedia('(prefers-reduced-transparency: reduce)'),forced=matchMedia('(forced-colors: active)');
+  const pageEntryKey='refind-page-entry';
+  const destinations=new Set(['/', '/index.html', '/browse.html', '/item.html', '/report.html',
+    '/claim.html', '/my-reports.html', '/admin.html', '/history.html', '/notifications.html',
+    '/profile.html', '/settings.html']);
+  const entryLifetime=2000;
+  let pageEntryIntent=null;
+
+  function pageLocation(url){return url.pathname+url.search;}
+  function rememberPageEntry(href){
+    pageEntryIntent=null;
+    if(devicePaused()||document.body?.dataset.requiresAuth!=='true')return;
+    const from=new URL(location.href),to=new URL(href,from);
+    if(to.origin!==from.origin||to.hash||!destinations.has(to.pathname.toLowerCase())||
+       pageLocation(from)===pageLocation(to))return;
+    pageEntryIntent={from:pageLocation(from),to:pageLocation(to),expires:Date.now()+entryLifetime};
+  }
+  function consumePageEntry(){
+    try{
+      const raw=sessionStorage.getItem(pageEntryKey);
+      sessionStorage.removeItem(pageEntryKey);
+      if(!raw||devicePaused()||document.hidden)return;
+      const navigation=performance.getEntriesByType('navigation')[0];
+      if(navigation?.type!=='navigate'||navigation.redirectCount||!document.referrer)return;
+      const intent=JSON.parse(raw);
+      const from=new URL(document.referrer),to=new URL(location.href);
+      if(Number.isFinite(intent?.expires)&&intent.expires>=Date.now()&&from.origin===to.origin&&
+         !to.hash&&intent.from===pageLocation(from)&&intent.to===pageLocation(to)){
+        root.dataset.pageEntry='';
+      }
+    }catch(_){}
+  }
+  function finishPageEntry(){delete root.dataset.pageEntry;}
+  consumePageEntry();
+  window.addEventListener('click',event=>{
+    pageEntryIntent=null;
+    if(!event.isTrusted||event.defaultPrevented||event.button!==0||event.ctrlKey||event.metaKey||
+       event.shiftKey||event.altKey||!(event.target instanceof Element))return;
+    const link=event.target.closest('a[href]');
+    if(!link||link.matches('[download],.navigation-action--back')||
+       (link.target&&link.target.toLowerCase()!=='_self'))return;
+    rememberPageEntry(link.href);
+  });
+  // A canceled native navigation has no pagehide, so it never hands over its intent.
+  window.addEventListener('pagehide',()=>{
+    try{
+      if(pageEntryIntent&&pageEntryIntent.expires>=Date.now()){
+        sessionStorage.setItem(pageEntryKey,JSON.stringify(pageEntryIntent));
+      }
+    }catch(_){}
+    pageEntryIntent=null;
+    finishPageEntry();
+  });
+  if(root.hasAttribute('data-page-entry')){
+    document.addEventListener('animationend',event=>{
+      if(event.animationName.startsWith('refind-page-enter-'))finishPageEntry();
+    });
+    document.addEventListener('DOMContentLoaded',()=>{
+      // Home reveals its signed-in panel after auth readiness.
+      const wait=document.body?.dataset.page==='home'?entryLifetime:350;
+      setTimeout(finishPageEntry,wait);
+    },{once:true});
+  }
+
   function stored(key){try{return localStorage.getItem(key);}catch(_){return null;}}
   function validTheme(value){return value==='light'||value==='dark'?value:null;}
   let preference=validTheme(stored(themeKey)),motion=stored(motionKey)!=='off';
@@ -78,5 +141,5 @@
     document.querySelectorAll('[data-motion-choice]').forEach(input=>input.addEventListener('change',()=>setMotion(input.checked)));
     render();
   });
-  window.ReFindTheme=Object.freeze({positionHeaderPopup,getPreference:()=>preference||'system',effective,setPreference,getMotion:()=>motion,motionEffective,setMotion});
+  window.ReFindTheme=Object.freeze({positionHeaderPopup,rememberPageEntry,getPreference:()=>preference||'system',effective,setPreference,getMotion:()=>motion,motionEffective,setMotion});
 })();

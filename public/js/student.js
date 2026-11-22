@@ -278,7 +278,10 @@ $(async function(){
         const result=await app.request('items.php',form);
         U.flash(existing?'Report changes saved.':type==='FOUND'?'Report submitted. ReFind suggests it to students with similar Lost reports.':'Report submitted. We will notify you about possible matches.');
         // Replace the spent form in history, so Back returns to where the student started.
-        guard.release();location.replace(U.itemUrl(result.id));
+        const destination=U.itemUrl(result.id);
+        guard.release();
+        window.ReFindTheme?.rememberPageEntry?.(destination);
+        location.replace(destination);
       }catch(e){
         $('#report-fields').prop('disabled',false);
         await U.formError(e,fields);
@@ -379,7 +382,10 @@ $(async function(){
       try{
         const result=await app.request('claims.php',form);
         U.flash(own?'Claim resubmitted for review. You will get a notification when Building Management decides.':'Claim submitted. You will get a notification when Building Management decides.');
-        guard.release();location.replace(app.base+'my-reports.html?tab=claims&claim='+result.id);
+        const destination=app.base+'my-reports.html?tab=claims&claim='+result.id;
+        guard.release();
+        window.ReFindTheme?.rememberPageEntry?.(destination);
+        location.replace(destination);
       }catch(e){
         $('#claim-fields').prop('disabled',false);
         await U.formError(e,{answer:'#c-answer',lostItemId:'#c-lost',ownershipPhotos:'#c-proof'});
@@ -515,7 +521,7 @@ $(async function(){
           if(note.claim_id){if(app.state.user.role==='STUDENT'){target=app.base+'my-reports.html?tab=claims&claim='+note.claim_id;label=note.pickup_event?'View my pickup':'View my claim';}else if(note.notification_type?.startsWith('HANDOVER_')&&note.handover_id){target=app.base+'admin.html?tab=handover&handover='+note.handover_id;label='View pickup';}else{target=app.base+'admin.html?tab=claims&claim='+note.claim_id;label='Review claim';}}
           else if(note.item_id)target=U.itemUrl(note.item_id)+'&'+new URLSearchParams({origin:'notifications',notification_page:currentPage,notification:note.notification_id,...(filter?{notification_filter:filter}:{})});
           // Following an unread link marks it read first; modified clicks (new tab) stay native.
-          if(target)actions.prepend($('<a>').addClass('text-link notification-destination').attr('href',target).text(label).on('click',async function(e){if(readOnly||Number(note.is_read))return;if(e.ctrlKey||e.metaKey||e.shiftKey||e.button===1){mark().catch(()=>{});return;}e.preventDefault();try{await mark();}catch{}location.assign(target);}).on('auxclick',function(e){if(!readOnly&&e.button===1&&!Number(note.is_read))mark().catch(()=>{});}));
+          if(target)actions.prepend($('<a>').addClass('text-link notification-destination').attr('href',target).text(label).on('click',async function(e){if(readOnly||Number(note.is_read))return;if(e.ctrlKey||e.metaKey||e.shiftKey||e.button===1){mark().catch(()=>{});return;}e.preventDefault();try{await mark();}catch{}if(e.originalEvent?.isTrusted&&!e.altKey)window.ReFindTheme?.rememberPageEntry?.(target);location.assign(target);}).on('auxclick',function(e){if(!readOnly&&e.button===1&&!Number(note.is_read))mark().catch(()=>{});}));
           if(actions.children().length)card.append(actions);
           groupSection.append(card);
         }
