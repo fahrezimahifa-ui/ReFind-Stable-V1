@@ -423,3 +423,54 @@ The interrupted attempt restored its snapshot. The completed run's starting stat
 ## Stable page entrance candidate (22 November 2026)
 
 Port the 200 ms fade and 4 px lift from ReFind-Test commit 699aa2b to Stable 1.1.0. The early theme script hands eligible navigation intent to the destination. The motion follows the device preference and applies to existing signed-in surfaces, including Home's panel when auth reveals it and the Item Detail loading line. Report and claim confirmations keep their existing presentation and replace the completed form in history.
+
+## Stable round 3: polish (22 November 2026)
+
+**Context:** the owner asked for a polish-only round on the Stable demo: clearer and calmer, with no new features, sections or extra
+motion, and nothing that weighs the pages down (round 2 was rejected for bloating Home and slowing the app). Scope: Explore, item
+page, Report and Claim forms, My Activity and the BM Review Queue; Home's layout, Notifications, History, Login and account pages
+were out of scope, although shared styles (labels, chips, headings) also reach them. Codex's 1.1.1 page entrance is kept exactly.
+Branch `polish/stable-1.2` off `develop` (`2f5a7b4`, 1.1.1 merged with the fixture tools). Built in three batches, each reviewed
+by the owner from before/after screenshots on `phase8-dev`; the owner's review notes are folded in.
+
+### What changed
+
+| Area | Before | Now |
+|---|---|---|
+| Labels and values (owner note) | Labels 14 px/600 in a lighter colour; values 15 px/600 in full ink, so "Not specified" read before "Student ID" | Labels lead (ink, 700, 15 px); values follow (regular, softer ink); missing values are muted (`--value`, `--empty`). Applies to detail lists, BM fields and evidence boxes, form labels, the desk card, "Your pickup" and "Your claim", and profile read-only values. **Reverses batch 4's "values keep the emphasis" at the owner's request.** |
+| Status chips | Two equal chips (Lost/Found + status) | One coloured status chip, still spanning the card (batch 2); the card's date line starts with a bold "Found"/"Lost"; the item page shows the chip plus "Found item"/"Lost item". Labels and codes unchanged. |
+| Card lines | "Category · area · spot", then "Found on date · time WIB" | Where, then "Found 20 Nov 2026, 10:15 WIB"; the date line sits at the bottom of every card, so dates align across a row. |
+| No public photo | A full-size grey box "No public photo provided" | A calm icon and "No photo" in the same frame on card grids and the two-column item page (rows stay aligned, owner review); a short strip on phones and the narrow item page. |
+| Layout jumps | Later loads showed a loading line above the cards; My Activity emptied its grid first; photos popped in | Current cards stay, dimmed and `aria-busy`, until new ones arrive; the loading text is for screen readers only; skeletons match card height; count lines keep their height; photos fade in (150 ms, only with motion allowed). First-load CLS was already near zero and stays so. |
+| Page headings | Slogan titles ("Find your way back to it."), large type, BM eyebrow | Plain title and one sentence, 26-32 px; title and button share the row on desktop; on phones the button sits under the sentence at full row width (owner review). Explore is "Explore"; the BM eyebrow is gone. The report heading renders on the server from the URL, so it no longer swaps after load. |
+| Report form | Every field full width (~1,060 px) | Full width with short fields paired: item name and category; Where & when in four columns on wide screens (owner review; a narrow column was tried and rejected for the empty space it left). |
+| Action pill | Translucent glass over content | Same floating pill on a near-solid surface; it clears all content at the end of every form and BM record (checked). It still floats over content while scrolling long pages. |
+| BM records (owner note) | One loose list of fields, a single public photo top-right, private photos outside their box | Purposeful groups: claim = Claimant, Item (details, every public photo, public description), Ownership evidence (claimant's photos inside "Claimant answer", opposite the finder's clue); pickup = Verified claimant, Pickup; report = public report, then its private section with photos inside the clue box. Groups are split by a thin line that fades before the panel edges; two detail columns get a short floating vertical line; the item name is a centred 28 px header with a line under it. |
+| Item page details | Description and details run together | The same floating line under the description and the column line between the two detail columns. |
+| My Activity claims | Uneven cards, "0 private photos…", long desk block, "Update / resubmit claim" | Title links to the item; cards in a row share a height with actions along the bottom; a zero photo count is hidden; the desk details sit behind "Questions about your pickup? Contact Building Management"; "Update claim". |
+| Next step after approval | "Building Management will arrange a pickup time and place with you…" | "Approved. Building Management will set a pickup time and notify you." The BM approval note is pre-filled with the same next step (server text unchanged). |
+| Report journey | Five labels | One short muted line under each step (for example "Building Management checks a claim"). |
+
+Files: `public/css/polish.css`, `public/js/student-common.js`, `public/js/student.js`, `public/js/bm.js` (adapted; hashes and
+reasons in `docs/SOURCE_PROVENANCE.json`), and the views `browse`, `report`, `item` and `bm.blade.php`. The pinned native styles and
+scripts are untouched. Tests changed on purpose: `test-stable-navigation-ui.py` (page 2 scroll threshold 300 → 150 px, because
+photo-less seeded cards are shorter) and `test-phase6-ui.py` ("Update claim" and the approval sentence).
+
+### Round 3 verification (phase8-dev, 22 November 2026)
+
+| Check | Result |
+|---|---|
+| `test-stable-navigation-ui.py` | 56/56 after every batch and review fix |
+| `test-phase6-ui.py` / `test-phase7-ui.py` / `test-phase8-ui.py` | 17/17, 22/22, 14/14 (each in its own envelope) |
+| `test-phase8-http.py` | 28/28 |
+| PHPUnit `phpunit.phase8.xml` | 46 tests, 1 failure: `PickupContractTest::test_pickup_reads_privacy_and_gates` expects no completed pickups, but the round 2 fixtures on phase8-dev include one. The same failure occurs on the untouched `develop` base, so it is data-dependent and not caused by this round. |
+| Pill overlap at the end of forms and BM records | Clear at 1440 px and 390 px, light and dark |
+| Layout shift (CLS, first load) | Explore 0.0003, My Activity about 0.005, item 0.0003, BM queue 0.023: unchanged from before the round |
+| Envelope restore | Identical after every run |
+
+**Environmental, not app:** one phase 7 run after four back-to-back suites hit a JavaScript error from a failed script load
+(Windows loopback socket exhaustion, see the handoff); run alone it passed 22/22. The private log total passed the 20 MiB start gate
+during the round; the phase8-dev web log was reviewed (no 5xx, no PHP errors) and archived as a verified `.gz` beside itself.
+
+**Not run or not verifiable here:** `test-claim-read-ui.py` (targets academic-test on 8014, off limits); real phones, Safari and
+Firefox. Evidence: `C:\ReFind-Laravel\evidence\stable\round3-20261122\` (before/after screenshots, comparisons, suite logs).
