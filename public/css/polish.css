@@ -433,4 +433,8 @@ p.context-note,p.journey-note,p.report-visibility{max-width:none}
 .bm-detail .bm-group{display:flex;flex-direction:column;gap:var(--space-3)}
 .bm-detail .bm-group>.bm-group-title{margin:0 0 calc(var(--space-1) * -1)}
 .bm-detail .bm-group>.bm-field,.bm-detail .bm-group>.bm-outcome,.bm-detail .bm-group>.bm-evidence-section{margin-top:0}
-.bm-detail .bm-block>.bm-evidence-section{margin-top:14px}
+.bm-detail .bm-block>.bm-evidence-section{margin-top:14px}/* Owner review: in BM records the item name is the record's centred header - larger, with room above and below, the
+   status chip spanning above it and a floating line under it before the first group. Details stay left-aligned. */
+.bm-detail .bm-record-heading{position:relative;align-items:stretch;gap:var(--space-3);padding-bottom:var(--space-4)}
+.bm-detail .bm-record-heading>h2{margin:var(--space-1) 0 0;text-align:center;font-size:clamp(22px,5.6vw,28px);line-height:1.25;text-wrap:balance}
+.bm-detail .bm-record-heading::after{content:"";position:absolute;bottom:0;left:6%;right:6%;height:1px;background:linear-gradient(90deg,transparent,var(--line) 18%,var(--line) 82%,transparent);pointer-events:none}
