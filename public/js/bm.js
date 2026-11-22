@@ -100,9 +100,11 @@ $(async function () {
     return section.append(photos);
   }
   // A labelled text field for long values (descriptions, notes), styled like the record's field labels.
-  function field(title, text, extra = '') { return $('<section>').addClass('bm-field ' + extra).append($('<h3>').addClass('bm-field-label').text(title), $('<p>').text(text || 'Not specified')); }
-  function block(title, text, priv = false) { return $('<div>').addClass('bm-block' + (priv ? ' private' : '')).append($('<h3>').text(title), $('<p>').text(text || 'No identifying detail recorded.')); }
-  function meta(values) { const list = $('<dl>').addClass('detail-meta'); values.forEach(([title, value]) => list.append($('<div>').append($('<dt>').text(title), $('<dd>').append(value instanceof jQuery ? value : document.createTextNode(String(value || 'Not specified')))))); return list; }
+  // A missing value reads as missing (muted), so it never outweighs its label.
+  const placeholder = text => $('<span>').addClass('value-empty').text(text);
+  function field(title, text, extra = '') { return $('<section>').addClass('bm-field ' + extra).append($('<h3>').addClass('bm-field-label').text(title), $('<p>').toggleClass('value-empty', !text).text(text || 'Not specified')); }
+  function block(title, text, priv = false) { return $('<div>').addClass('bm-block' + (priv ? ' private' : '')).append($('<h3>').text(title), $('<p>').toggleClass('value-empty', !text).text(text || 'No identifying detail recorded.')); }
+  function meta(values) { const list = $('<dl>').addClass('detail-meta'); values.forEach(([title, value]) => list.append($('<div>').append($('<dt>').text(title), $('<dd>').append(value instanceof jQuery ? value : value ? document.createTextNode(String(value)) : placeholder('Not specified'))))); return list; }
   // Claims and reports: at most one primary and one outline button. Request more info is a text button with the same
   // dialog. Pickups lay out their own rows and sections in handoverDetail.
   function actionStyle(action) {
@@ -133,7 +135,7 @@ $(async function () {
   function claimDetail(claim) {
     const box = $('<article>').attr('data-detail-claim-id', claim.claim_id);
     box.append(recordHeading(claim.item.title,$('<div>').addClass('chips').append(U.stateChip(claim.claim_status,U.claimNames[claim.claim_status]),U.demoChip(claim.item.title))));
-    const summary = $('<div>').addClass('bm-claim-summary').append(meta([['Claimant',shell.identity(claim.claimant_name,claim.claimant_avatar_url)],['Claimant email',claim.claimant_email],['Student ID',claim.claimant_student_id],['Submitted',U.date(claim.created_at,true)],...(claim.resubmitted_at ? [['Resubmitted',U.date(claim.resubmitted_at,true)]] : []),['Found at',U.locationText(claim.item)],['Linked Lost report',claim.lost ? U.titleParts(claim.lost.title).display : 'None linked']]));
+    const summary = $('<div>').addClass('bm-claim-summary').append(meta([['Claimant',shell.identity(claim.claimant_name,claim.claimant_avatar_url)],['Claimant email',claim.claimant_email],['Student ID',claim.claimant_student_id],['Submitted',U.date(claim.created_at,true)],...(claim.resubmitted_at ? [['Resubmitted',U.date(claim.resubmitted_at,true)]] : []),['Found at',U.locationText(claim.item)],['Linked Lost report',claim.lost ? U.titleParts(claim.lost.title).display : placeholder('None linked')]]));
     if (claim.item.photos.length) summary.append($('<button>').addClass('bm-report-photo').attr({type:'button','aria-label':'Enlarge public item photo'}).append($('<img>').attr({src:claim.item.photos[0],alt:U.titleParts(claim.item.title).display})).on('click', function () {
       trigger = this; $('#bm-evidence-title').text('Public item photo'); $('#bm-evidence-image').attr({src:claim.item.photos[0],alt:U.titleParts(claim.item.title).display}); document.querySelector('#bm-evidence-dialog').showModal();
     }));
@@ -181,7 +183,7 @@ $(async function () {
   function handoverDetail(record) {
     const returned = record.handover_status === 'COMPLETED', scheduled = record.handover_status === 'SCHEDULED';
     const notes = record.notes === 'Arrange pickup with Building Management.' ? 'Awaiting a pickup appointment.' : record.notes;
-    const box = $('<article>').attr({'data-detail-handover-id':record.handover_id,'data-handover-status':record.handover_status}).append(recordHeading(record.title,$('<div>').addClass('chips').append(U.stateChip(record.handover_status,U.pickupNames[record.handover_status]),U.demoChip(record.title))),$('<div>').addClass('bm-pickup-meta').append(meta([['Verified claimant',shell.identity(record.claimant_name,record.claimant_avatar_url)],['Claimant email',record.claimant_email],['Student ID',record.claimant_student_id],['Pickup area',record.pickup_location || 'Not assigned'],...(returned ? [['Returned',U.date(record.completed_at,true)],['Appointment',record.scheduled_at ? U.date(record.scheduled_at,true) : 'Collected without a scheduled appointment']] : [['Schedule',record.scheduled_at ? U.date(record.scheduled_at,true) + (U.pickupPastDue(record) ? ' · time passed' : '') : 'Not scheduled yet. Agree a time with the claimant.']])])));
+    const box = $('<article>').attr({'data-detail-handover-id':record.handover_id,'data-handover-status':record.handover_status}).append(recordHeading(record.title,$('<div>').addClass('chips').append(U.stateChip(record.handover_status,U.pickupNames[record.handover_status]),U.demoChip(record.title))),$('<div>').addClass('bm-pickup-meta').append(meta([['Verified claimant',shell.identity(record.claimant_name,record.claimant_avatar_url)],['Claimant email',record.claimant_email],['Student ID',record.claimant_student_id],['Pickup area',record.pickup_location || placeholder('Not assigned')],...(returned ? [['Returned',U.date(record.completed_at,true)],['Appointment',record.scheduled_at ? U.date(record.scheduled_at,true) : 'Collected without a scheduled appointment']] : [['Schedule',record.scheduled_at ? U.date(record.scheduled_at,true) + (U.pickupPastDue(record) ? ' · time passed' : '') : placeholder('Not scheduled yet. Agree a time with the claimant.')]])])));
     if (notes) box.append(field('Pickup note', notes, 'bm-outcome'));
     // Display only: a passed appointment is flagged, but its state changes only through the operations below.
     if (U.pickupPastDue(record)) box.append($('<p>').addClass('past-due-note').text('The scheduled time has passed. If the owner collected the item, confirm the return; otherwise reschedule with them.'));

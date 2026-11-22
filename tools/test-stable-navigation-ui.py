@@ -116,7 +116,8 @@ def explore_return(browser, width, theme):
     p.locator('#pager button', has_text='Next').click(); expect(p.locator('#pager span')).to_contain_text('Page 2 of'); p.wait_for_timeout(900)
     list_url = path_query(p.url); check(tag + ' Explore keeps page 2 and the Found filter in its URL', 'page=2' in list_url and 'type=FOUND' in list_url, list_url)
     p.evaluate('window.scrollTo({top: document.documentElement.scrollHeight, behavior: "instant"})'); p.wait_for_timeout(900)
-    y = scroll_y(p); check(tag + ' scrolled down the list', y > 300, y)
+    # Round 3: the seeded reports have no photo and now show a compact strip, so page 2 is shorter than before.
+    y = scroll_y(p); check(tag + ' scrolled down the list', y > 150, y)
     card = p.locator('#browse-results .discovery-card').last; item = card.get_attribute('data-item-id')
     card.locator('a.card-details').click(); p.wait_for_url('**/item.html?id=*'); ready(p)
     back = p.locator('#item-back')
