@@ -14,8 +14,9 @@ $(async function(){
   const backHref=fromNotifications?app.base+'notifications.html?'+new URLSearchParams({...(notificationFilter?{filter:notificationFilter}:{}),page:notificationPage,...(notificationId?{notification:notificationId}:{})}):listReturn?listReturn.url:app.base+'browse.html';
   const backLabel=fromNotifications?'Back to Notifications':listReturn?listReturn.label:'Back to Explore';
   if(page==='item')$('#item-back').attr('href',backHref).on('click',()=>{if(listReturn)U.markReturn();}).find('span').text(backLabel);
-  // First load shows skeleton cards in an empty results grid; the status text stays for screen readers.
-  function loading(value){const note=$('#page-loading').prop('hidden',!value),grid=note.nextAll('.discovery-grid').first();$('.skeleton-card').remove();note.removeClass('has-skeleton');if(value&&grid.length&&!grid.children().length){grid.append(U.skeleton(innerWidth>=1280?8:innerWidth>=680?6:2));note.addClass('has-skeleton');}}
+  // First load shows skeleton cards in an empty results grid; later loads keep the current cards (dimmed, aria-busy)
+  // until the new ones arrive. Either way the status text stays for screen readers only, so nothing is pushed down.
+  function loading(value){const note=$('#page-loading').prop('hidden',!value),grid=note.nextAll('.discovery-grid').first();$('.skeleton-card').remove();note.removeClass('has-skeleton');grid.removeAttr('aria-busy');if(value&&grid.length){if(!grid.children().length)grid.append(U.skeleton(innerWidth>=1280?8:innerWidth>=680?6:2));else grid.attr('aria-busy','true');note.addClass('has-skeleton');}}
   function bindRetry(load){$('#retry-page').off('click.student').on('click.student',()=>load());}
   // A missing or deleted record cannot be fixed by retrying, so offer a way out instead.
   function showMissing(title='Report not found',detail='It may have been deleted, or the link is incomplete.'){loading(false);$('#retry-page,#page-feedback').prop('hidden',true);$('#page-missing').remove();$('<div>').attr('id','page-missing').append(U.empty(title,detail,backHref,fromNotifications||listReturn?backLabel:'Go to Explore')).insertAfter('#page-feedback');document.body.dataset.ready='true';}
@@ -115,7 +116,8 @@ $(async function(){
     $('[data-filter-type]').on('click',function(){type=$(this).attr('data-filter-type');resetVisual();load(1);});$('#clear-filters').on('click',()=>{$('#filter-q,#filter-category,#filter-location,#filter-status,#filter-date').val('');type='';resetVisual();load(1);});bindRetry(load);U.trackReturn('browse','Back to Explore');await load();U.restoreReturn('browse');
   }
   // Report journey: five steps derived from the status contract, plus a newest-first history log.
-  const journeySteps=[{label:'Reported',codes:['OPEN','UNDER_REVIEW']},{label:'Possible match',codes:['POTENTIAL_MATCH']},{label:'Claim review',codes:['VERIFICATION']},{label:'Ready for pickup',codes:['HANDOVER']},{label:'Returned',codes:['RESOLVED','UNCLAIMED_CLOSED']}];
+  // Each step carries one short line saying what it means (the status labels themselves never change).
+  const journeySteps=[{label:'Reported',help:'Saved and visible to students',codes:['OPEN','UNDER_REVIEW']},{label:'Possible match',help:'A similar report was found',codes:['POTENTIAL_MATCH']},{label:'Claim review',help:'Building Management checks a claim',codes:['VERIFICATION']},{label:'Ready for pickup',help:'Owner verified; pickup being arranged',codes:['HANDOVER']},{label:'Returned',help:'Back with its owner',codes:['RESOLVED','UNCLAIMED_CLOSED']}];
   const actorNames={you:'You',building_management:'Building Management',reporter:'Reporter',student:'A student',system:'ReFind'};
   const stepOf=code=>Math.max(0,journeySteps.findIndex(step=>step.codes.includes(code)));
   function relativeTime(value){const seconds=(new Date(value)-Date.now())/1000,format=new Intl.RelativeTimeFormat('en',{numeric:'auto'});if(Math.abs(seconds)<45)return 'Just now';for(const [limit,unit,size] of [[3600,'minute',60],[86400,'hour',3600],[604800,'day',86400],[2629800,'week',604800],[31557600,'month',2629800]])if(Math.abs(seconds)<limit)return format.format(Math.round(seconds/size),unit).replace(/^./,c=>c.toUpperCase());return format.format(Math.round(seconds/31557600),'year').replace(/^./,c=>c.toUpperCase());}
@@ -125,7 +127,7 @@ $(async function(){
     journeySteps.forEach((step,index)=>{
       const state=index===current?'current':index<current?(visited.has(index)?'done':'skipped'):'upcoming';
       const label=index===4&&closed?'Never retrieved':step.label;
-      const entry=$('<li>').addClass('journey-step is-'+state).toggleClass('is-closed',closed&&index===4).append($('<span>').addClass('journey-dot').attr('aria-hidden','true'),$('<span>').addClass('journey-label').text(label),$('<span>').addClass('visually-hidden').text(' · '+{current:'current step',done:'completed',skipped:'skipped',upcoming:'not reached yet'}[state]));
+      const entry=$('<li>').addClass('journey-step is-'+state).toggleClass('is-closed',closed&&index===4).append($('<span>').addClass('journey-dot').attr('aria-hidden','true'),$('<span>').addClass('journey-label').text(label),$('<span>').addClass('journey-help').text(index===4&&closed?'Not collected; closed':step.help),$('<span>').addClass('visually-hidden').text(' · '+{current:'current step',done:'completed',skipped:'skipped',upcoming:'not reached yet'}[state]));
       if(state==='current')entry.attr('aria-current','step').append($('<span>').addClass('journey-now').attr('aria-hidden','true').text('Now'));
       steps.append(entry);
     });
@@ -157,15 +159,15 @@ $(async function(){
   async function itemDetail(){
     const id=params.get('id');let item,photoIndex=0;
     if(!validId(id)){showMissing();return;}
-    function showPhoto(){const photo=item.photos[photoIndex];$('#gallery-image').attr({src:photo||'',alt:item.title}).prop('hidden',!photo);$('#gallery-empty').prop('hidden',!!photo);$('#gallery-open').prop('disabled',!photo);$('#gallery-thumbs button').attr('aria-pressed','false').eq(photoIndex).attr('aria-pressed','true');}
-    async function load(){clearPage();loading(true);try{item=(await get('items.php',{id})).item;document.title=U.titleParts(item.title).display+' · ReFind';$('#item-title').text(U.titleParts(item.title).display).attr('title',item.title);$('#item-description').text(item.description);$('#item-category').text(item.category_name);$('#item-location').text(U.locationText(item));$('#item-event').text(U.eventDate(item));$('#item-location-label').text(item.item_type==='FOUND'?'Found at':'Last seen at');$('#item-event-label').text(item.item_type==='FOUND'?'Date found':'Date lost');$('#item-reporter').empty().append(shell.identity(item.reporter_name,item.reporter_avatar_url));$('#item-chips').empty().append(U.chips(item).children());
+    function showPhoto(){const photo=item.photos[photoIndex],image=$('#gallery-image');if(photo&&image.attr('src')!==photo)U.fadeImage(image.off('load error'));image.attr({src:photo||'',alt:item.title}).prop('hidden',!photo);$('#gallery-empty').prop('hidden',!!photo);$('#gallery-open').prop('disabled',!photo);$('#gallery-thumbs button').attr('aria-pressed','false').eq(photoIndex).attr('aria-pressed','true');}
+    async function load(){clearPage();loading(true);try{item=(await get('items.php',{id})).item;document.title=U.titleParts(item.title).display+' · ReFind';$('#item-title').text(U.titleParts(item.title).display).attr('title',item.title);$('#item-description').text(item.description);$('#item-category').text(item.category_name);$('#item-location').text(U.locationText(item));$('#item-event').text(U.eventDate(item));$('#item-location-label').text(item.item_type==='FOUND'?'Found at':'Last seen at');$('#item-event-label').text(item.item_type==='FOUND'?'Date found':'Date lost');$('#item-reporter').empty().append(shell.identity(item.reporter_name,item.reporter_avatar_url));$('#item-chips').empty().append(U.chips(item).children(),$('<span>').addClass('item-type').text(item.item_type==='FOUND'?'Found item':'Lost item'));
       $('#gallery-thumbs').empty();item.photos.forEach((photo,index)=>$('#gallery-thumbs').append($('<button>').attr({type:'button','aria-label':'Public photo '+(index+1),'aria-pressed':String(index===0)}).append($('<img>').attr({src:U.thumbUrl(photo),alt:'',width:60,height:60})).on('click',()=>{photoIndex=index;showPhoto();})));photoIndex=0;showPhoto();
       const claimsReadOnly=document.body.dataset.claimsReadOnly==='true',handoversUnavailable=document.body.dataset.handoversUnavailable==='true',staffReportsUnavailable=document.body.dataset.staffReportsUnavailable==='true';
       const actions=$('#item-actions').empty(),notice=$('#item-notice').prop('hidden',true).empty(),note=text=>notice.append($('<p>').text(text)).prop('hidden',false);
       if(item.can_claim&&!claimsReadOnly)actions.append($('<a>').addClass('btn btn-primary').attr('href',U.claimUrl(id)).text(item.own_claim?'Update my claim':'I think this is mine'));
       if(item.can_report_found)actions.append(U.navAction('I found this item',app.base+'report.html?type=found&from='+encodeURIComponent(id)));
       // The notice is built from parts so a linked pair never hides the claimant's own claim status.
-      if(item.own_claim){const own=item.own_claim;note('Your claim: '+U.claimNames[own.claim_status]+(own.review_note?' · '+own.review_note:''));if(own.claim_status==='REJECTED')note('A rejected claim is final for this item.');if(own.claim_status==='APPROVED'&&!handoversUnavailable)note('Your pickup details are in My Activity.');actions.append($('<a>').addClass('btn btn-outline').attr('href',app.base+'my-reports.html?tab=claims&claim='+own.claim_id).text('Follow my claim'));}
+      if(item.own_claim){const own=item.own_claim;notice.append($('<p>').append($('<span>').addClass('note-label').text('Your claim:'),' '+U.claimNames[own.claim_status]+(own.review_note?' · '+own.review_note:''))).prop('hidden',false);if(own.claim_status==='REJECTED')note('A rejected claim is final for this item.');if(own.claim_status==='APPROVED'&&!handoversUnavailable)note('Your pickup details are in My Activity.');actions.append($('<a>').addClass('btn btn-outline').attr('href',app.base+'my-reports.html?tab=claims&claim='+own.claim_id).text('Follow my claim'));}
       // A Found report does not prove where the item is now; only the verified owner receives pickup details.
       if(item.item_type==='FOUND'&&app.state.user?.role==='STUDENT'&&['OPEN','UNDER_REVIEW','POTENTIAL_MATCH','VERIFICATION'].includes(item.status_code)){
         if(String(item.reporter_user_id)===String(app.state.user.id)){note('If you still have this item, contact Building Management to ask how to hand it in. They verify any claim before it is returned.');notice.append(U.deskCard(refs.pickup_desk));}
@@ -407,11 +409,14 @@ $(async function(){
     const claimsReadOnly=document.body.dataset.claimsReadOnly==='true',handoversUnavailable=document.body.dataset.handoversUnavailable==='true';
     // The deep-linked claim is shown once; later tab or page changes do not bring it back.
     let highlight=tab==='claims'&&validId(params.get('claim'))?params.get('claim'):null;
+    // Approved, no time yet: say what happens next. The desk details stay one tap away instead of filling the card.
+    const approvedNext='Approved. Building Management will set a pickup time and notify you.';
+    const deskHelp=question=>$('<details>').addClass('review-history pickup-help').append($('<summary>').text(question+' Contact Building Management'),U.deskCard(refs.pickup_desk));
     function claimActivityCard(claim,pickup){
       const returned=pickup?.handover_status==='COMPLETED';
       const card=$('<article>').addClass('activity-card').attr('data-claim-id',claim.claim_id).append(
         U.stateChip(returned?'COMPLETED':claim.claim_status,returned?'Returned':U.claimNames[claim.claim_status]),
-        $('<h2>').attr('title',claim.title).text(U.titleParts(claim.title).display),
+        $('<h2>').attr('title',claim.title).append($('<a>').addClass('activity-title-link').attr('href',U.itemUrl(claim.item_id)).text(U.titleParts(claim.title).display)),
         U.demoChip(claim.title),
         $('<p>').text('Submitted '+U.date(claim.created_at,true))
       );
@@ -421,22 +426,22 @@ $(async function(){
         // Only a scheduled appointment names a pickup place. Before that, the stored area is just where the item was
         // found, so it is not presented as a pickup location. The desk card is help/contact information only.
         const scheduled=pickup.handover_status==='SCHEDULED',late=U.pickupPastDue(pickup);
-        card.append($('<p>').addClass('context-note pickup-summary').text(scheduled?'Your pickup · '+U.date(pickup.scheduled_at,true)+(pickup.pickup_location?' · '+pickup.pickup_location:''):'Approved. Building Management will arrange a pickup time and place with you. They appear here once scheduled.'));
+        card.append(scheduled?$('<p>').addClass('context-note pickup-summary').append($('<span>').addClass('note-label').text('Your pickup'),' · '+U.date(pickup.scheduled_at,true)+(pickup.pickup_location?' · '+pickup.pickup_location:'')):$('<p>').addClass('context-note pickup-summary').text(approvedNext));
         if(late)card.append($('<p>').addClass('past-due-note').text('This pickup time has passed. If you have not collected the item yet, contact Building Management to arrange a new time.'));
-        card.append($('<div>').addClass('pickup-help').append($('<p>').text(scheduled?'Questions or need a different time? Contact Building Management:':'Questions about your pickup? Contact Building Management:'),U.deskCard(refs.pickup_desk)));
+        card.append(deskHelp(scheduled?'Questions or need a different time?':'Questions about your pickup?'));
       }else if(claim.claim_status==='APPROVED'&&handoversUnavailable){
         // Phase 6: approval creates one pending, unscheduled handover; pickup reads arrive with the later slice.
-        card.append($('<p>').addClass('context-note pickup-summary').text('Approved. Building Management will arrange a pickup time and place with you. They appear here once scheduled.'));
-        card.append($('<div>').addClass('pickup-help').append($('<p>').text('Questions about your pickup? Contact Building Management:'),U.deskCard(refs.pickup_desk)));
+        card.append($('<p>').addClass('context-note pickup-summary').text(approvedNext));
+        card.append(deskHelp('Questions about your pickup?'));
       }
       if(claim.claim_status==='REJECTED')card.append($('<p>').addClass('context-note').text('A rejected claim is final for this item.'));
       if(claim.review_note)card.append($('<details>').addClass('review-history').append($('<summary>').text('Review note'),$('<p>').text(claim.review_note)).prop('open',!returned));
-      card.append($('<p>').text(U.plural(claim.ownership_photo_count,'private photo')+' saved for Building Management.'));
+      if(Number(claim.ownership_photo_count))card.append($('<p>').addClass('claim-photo-count').text(U.plural(claim.ownership_photo_count,'private photo')+' shared with Building Management.'));
       const canResubmit=!claimsReadOnly&&claim.can_resubmit;
       const actions=$('<div>').addClass('claim-actions').append(
         $('<a>').addClass('btn '+(canResubmit?'btn-primary':'btn-outline'))
           .attr('href',canResubmit?U.claimUrl(claim.item_id):U.itemUrl(claim.item_id))
-          .text(canResubmit?(claim.claim_status==='WITHDRAWN'?'Claim again':'Update / resubmit claim'):returned?'View returned item':'View item')
+          .text(canResubmit?(claim.claim_status==='WITHDRAWN'?'Claim again':'Update claim'):returned?'View returned item':'View item')
       );
       if(!claimsReadOnly&&claim.can_withdraw){
         actions.append($('<button>').addClass('text-button danger-text').attr('type','button').text('Withdraw claim').on('click',function(){
@@ -455,7 +460,9 @@ $(async function(){
       if(item.status_code==='OPEN')return {text:lost?'No possible matches yet. You will get a notification when one is suggested.':'No possible matches yet.'};
       return null;
     }
-    async function load(next=currentPage){currentPage=next;clearPage();loading(true);tabState('[data-activity]','data-activity',tab);const box=$('#activity-results').empty().toggleClass('activity-claims',tab==='claims');try{
+    // The current cards stay (dimmed, aria-busy) until the new ones are built, so changing tab or page never collapses
+    // the grid. New cards are built off-page in `box` and swapped in at once.
+    async function load(next=currentPage){currentPage=next;clearPage();loading(true);tabState('[data-activity]','data-activity',tab);const results=$('#activity-results').attr('aria-busy','true'),box=$('<div>');try{
       let focusTarget=null;const claimTarget=tab==='claims'?highlight:null;
       if(tab==='claims'){
         const data=await get('claims.php',{page:currentPage,limit:24}),handover=[];
@@ -483,9 +490,10 @@ $(async function(){
           if(step){const line=$('<p>').addClass('card-next').text(step.text);if(step.href)line.append(step.text?' ':'',$('<a>').addClass('text-link').attr('href',step.href).text(step.label));card.find('.discovery-body').append(line);}
           // Delete stays available (with its confirmation) but no longer competes visually with Edit.
           if(item.can_edit)card.append($('<div>').addClass('own-report-actions').append(U.navAction('Edit report',app.base+'report.html?edit='+item.item_id),$('<button>').addClass('text-button danger-text btn-report-delete record-delete').attr('type','button').text('Delete').on('click',function(){requestDelete(item.item_id,()=>load(currentPage),this);})));else if(item.edit_locked_reason)card.find('.discovery-body').append($('<p>').addClass('small muted').text(item.edit_locked_reason));box.append(card);});if(!data.items.length)box.append(U.empty(tab==='closed'?'No closed reports':'No active reports',tab==='closed'?'Your reports that were returned or never retrieved appear here.':'Your own reports appear here.',app.base+'report.html','Report an item'));$('#activity-count').text(U.plural(data.total,(tab==='closed'?'closed':'active')+' report'));U.pager(data,next=>load(next),'#activity-count');}
+      results.empty().append(box.children()).toggleClass('activity-claims',tab==='claims').removeAttr('aria-busy');
       history.replaceState(null,'',app.base+'my-reports.html?tab='+tab+(currentPage>1?'&page='+currentPage:'')+(claimTarget?'&claim='+encodeURIComponent(claimTarget):''));
-      if(claimTarget){const target=box.find('[data-claim-id]').filter(function(){return $(this).attr('data-claim-id')===claimTarget;});target.addClass('selected-claim').attr('tabindex','-1');focusTarget=target[0];}
-      loading(false);document.body.dataset.ready='true';if(focusTarget)U.focusRecord(focusTarget);}catch(e){failed(e);}}
+      if(claimTarget){const target=results.find('[data-claim-id]').filter(function(){return $(this).attr('data-claim-id')===claimTarget;});target.addClass('selected-claim').attr('tabindex','-1');focusTarget=target[0];}
+      loading(false);document.body.dataset.ready='true';if(focusTarget)U.focusRecord(focusTarget);}catch(e){results.removeAttr('aria-busy');failed(e);}}
     $('[data-activity]').on('click',function(){tab=$(this).attr('data-activity');highlight=null;load(1);});bindRetry(load);U.trackReturn('my-reports','Back to My Activity');await load();U.restoreReturn('my-reports');
   }
   async function notifications(){
