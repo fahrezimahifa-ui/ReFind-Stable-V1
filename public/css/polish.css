@@ -294,3 +294,34 @@ body::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
 .bm-detail .bm-field:not(.bm-outcome){margin-top:16px}
 /* Bordered note boxes built as paragraphs span their container; the native 64ch paragraph measure is for plain text. */
 p.context-note,p.journey-note,p.report-visibility{max-width:none}
+
+/* One entrance for the initial signed-in surfaces of a native document navigation. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-page-entry] body[data-requires-auth="true"] #main-content > :where(
+    .page-heading, .account-heading, .filter-panel, .type-tabs, #member-home
+  ) {
+    animation: refind-page-enter-fade 200ms cubic-bezier(.2, .7, .25, 1);
+  }
+
+  [data-page-entry] body[data-requires-auth="true"] #main-content > :is(.page-heading, .account-heading, #member-home) h1 {
+    animation: refind-page-enter-lift 200ms cubic-bezier(.2, .7, .25, 1);
+  }
+
+  [data-page-entry] body[data-page="item"][data-requires-auth="true"] #main-content > #page-loading {
+    animation: refind-page-enter-placeholder 200ms cubic-bezier(.2, .7, .25, 1);
+  }
+
+  @keyframes refind-page-enter-fade {
+    from { opacity: .92; }
+  }
+
+  @keyframes refind-page-enter-lift {
+    from { translate: 0 4px; }
+    to { translate: 0 0; }
+  }
+
+  @keyframes refind-page-enter-placeholder {
+    from { opacity: .92; translate: 0 4px; }
+    to { opacity: 1; translate: 0 0; }
+  }
+}
