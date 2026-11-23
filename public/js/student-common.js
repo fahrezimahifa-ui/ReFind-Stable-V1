@@ -6,6 +6,8 @@ window.StudentUI=(()=>{
   const stateKinds={OPEN:'neutral',UNDER_REVIEW:'pending',POTENTIAL_MATCH:'possible',VERIFICATION:'pending',HANDOVER:'pickup',RESOLVED:'done',UNCLAIMED_CLOSED:'neutral',PENDING:'pending',NEED_MORE_INFO:'attention',APPROVED:'done',REJECTED:'rejected',WITHDRAWN:'neutral',SCHEDULED:'pending',COMPLETED:'done'};
   const itemUrl=id=>app.base+'item.html?id='+encodeURIComponent(id);
   const claimUrl=id=>app.base+'claim.html?id='+encodeURIComponent(id);
+  // Round 4: a claim's own detail page lives in My Activity (no tab), so no server route is needed.
+  const claimDetailUrl=id=>app.base+'my-reports.html?claim='+encodeURIComponent(id);
   const navAction=(label,href)=>$('<a>').addClass('btn btn-outline navigation-action').attr('href',href).text(label);
   const urlParams=()=>new URLSearchParams(location.search);
   function date(value,time=false){if(!value)return 'Not specified';const d=/^\d{4}-\d{2}-\d{2}$/.test(value)?new Date(value+'T00:00:00+07:00'):new Date(value);return new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Jakarta',day:'numeric',month:'short',year:'numeric',...(time?{hour:'2-digit',minute:'2-digit'}:{})}).format(d)+(time?' WIB':'');}
@@ -53,12 +55,14 @@ window.StudentUI=(()=>{
   const here=()=>location.pathname+location.search;
   function readReturn(){try{const v=JSON.parse(sessionStorage.getItem(RETURN_KEY)||'null');return v&&typeof v.url==='string'&&v.url.startsWith(app.base)&&Date.now()-v.at<KEEP_FOR?v:null;}catch{return null;}}
   function writeReturn(value){try{sessionStorage.setItem(RETURN_KEY,JSON.stringify(value));}catch{}}
-  function trackReturn(key,label){
+  // options.selector limits which links record the return point; options.onLeave=false skips saving on pagehide, so a
+  // detail page can name itself for the pages it links to without replacing the list's own return point on browser Back.
+  function trackReturn(key,label,options={}){
     try{history.scrollRestoration='manual';}catch{}
     let opened=null;
     const save=()=>writeReturn({key,label,url:here(),y:Math.round(scrollY),opened,at:Date.now(),restore:false});
-    $(document).on('click.return','a[href]',function(){const record=this.closest(RECORD_ATTRS.map(a=>'['+a+']').join(','));const attr=record&&RECORD_ATTRS.find(a=>record.hasAttribute(a));opened=attr?{attr,id:record.getAttribute(attr)}:null;save();});
-    addEventListener('pagehide',save);
+    $(document).on('click.return',options.selector||'a[href]',function(){const record=this.closest(RECORD_ATTRS.map(a=>'['+a+']').join(','));const attr=record&&RECORD_ATTRS.find(a=>record.hasAttribute(a));opened=attr?{attr,id:record.getAttribute(attr)}:null;save();});
+    if(options.onLeave!==false)addEventListener('pagehide',save);
   }
   function returnTarget(){return readReturn();}
   function markReturn(){const value=readReturn();if(value)writeReturn({...value,restore:true});}
@@ -99,5 +103,24 @@ window.StudentUI=(()=>{
   function pager(data,load,focusSelector){const box=$('#pager').empty();if(data.pages<=1)return;const go=async next=>{await load(next);const target=focusSelector&&document.querySelector(focusSelector);if(target)focusRecord(target);};box.append($('<button>').addClass('btn btn-outline').attr('type','button').prop('disabled',data.page<=1).text('Previous').on('click',()=>go(data.page-1)),$('<span>').text('Page '+data.page+' of '+data.pages),$('<button>').addClass('btn btn-outline').attr('type','button').prop('disabled',data.page>=data.pages).text('Next').on('click',()=>go(data.page+1)));}
   function fillSelect(selector,values,label,idKey='id',nameKey='name'){const select=$(selector).empty().append($('<option>').val('').text(label));values.forEach(value=>select.append($('<option>').val(value[idKey]).text(value[nameKey])));}
   function campusDay(value=new Date()){const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(value));return ['year','month','day'].map(k=>parts.find(p=>p.type===k).value).join('-');}
-  return {fadeImage,noPhoto,navAction,statusNames,claimNames,pickupNames,stateKinds,stateChip,titleParts,demoChip,focusRecord,revealField,pickupSummary,pickupMessage,deskCard,pickupPastDue,flash,notify,showFlash,itemUrl,claimUrl,urlParams,date,eventDate,locationText,chip,chips,card,thumbUrl,skeleton,plural,empty,showError,formError,clearErrors,required,pager,fillSelect,campusDay,trackReturn,returnTarget,markReturn,restoreReturn,guardUnsaved,onSessionExpired,saveDraft,takeDraft,applyDraft};
+  // Round 4 (owner): report, activity, BM queue and notification cards float and tilt toward the mouse like 3D cards.
+  // Only for a fine pointer that can hover and never with reduced motion. This only sets CSS variables (at most 6deg);
+  // polish.css draws it with transform, so the layout never moves. Touch and keyboard keep the static card.
+  (()=>{
+    const selector='.discovery-card,.activity-card,.bm-queue-card,.notification-card',fine=matchMedia('(hover:hover) and (pointer:fine)'),calm=matchMedia('(prefers-reduced-motion: reduce)');
+    let card=null,point=null,frame=0;
+    const clear=()=>{if(card){card.classList.remove('is-tilting');for(const name of ['--rx','--ry','--mx','--my'])card.style.removeProperty(name);}card=null;point=null;};
+    const draw=()=>{frame=0;if(!card||!point)return;const box=card.getBoundingClientRect();if(!box.width||!box.height)return;
+      const x=Math.min(1,Math.max(0,(point.x-box.left)/box.width)),y=Math.min(1,Math.max(0,(point.y-box.top)/box.height));
+      card.style.setProperty('--ry',((x-.5)*12).toFixed(2)+'deg');card.style.setProperty('--rx',((.5-y)*12).toFixed(2)+'deg');
+      card.style.setProperty('--mx',(x*100).toFixed(1)+'%');card.style.setProperty('--my',(y*100).toFixed(1)+'%');card.classList.add('is-tilting');};
+    document.addEventListener('pointermove',event=>{
+      if(event.pointerType!=='mouse'||!fine.matches||calm.matches){if(card)clear();return;}
+      const next=event.target instanceof Element?event.target.closest(selector):null;if(next!==card){clear();card=next;}
+      if(card){point={x:event.clientX,y:event.clientY};if(!frame)frame=requestAnimationFrame(draw);}
+    },{passive:true});
+    document.addEventListener('pointerout',event=>{if(card&&!(event.relatedTarget instanceof Node&&card.contains(event.relatedTarget)))clear();},{passive:true});
+    addEventListener('blur',clear);
+  })();
+  return {fadeImage,noPhoto,navAction,statusNames,claimNames,pickupNames,stateKinds,stateChip,titleParts,demoChip,focusRecord,revealField,pickupSummary,pickupMessage,deskCard,pickupPastDue,flash,notify,showFlash,itemUrl,claimUrl,claimDetailUrl,urlParams,date,eventDate,locationText,chip,chips,card,thumbUrl,skeleton,plural,empty,showError,formError,clearErrors,required,pager,fillSelect,campusDay,trackReturn,returnTarget,markReturn,restoreReturn,guardUnsaved,onSessionExpired,saveDraft,takeDraft,applyDraft};
 })();

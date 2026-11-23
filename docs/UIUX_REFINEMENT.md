@@ -474,3 +474,80 @@ during the round; the phase8-dev web log was reviewed (no 5xx, no PHP errors) an
 
 **Not run or not verifiable here:** `test-claim-read-ui.py` (targets academic-test on 8014, off limits); real phones, Safari and
 Firefox. Evidence: `C:\ReFind-Laravel\evidence\stable\round3-20261122\` (before/after screenshots, comparisons, suite logs).
+
+## Stable round 4: menu, 3D cards, WhatsApp profile, claim pages (23 November 2026)
+
+**Context:** the owner sent four notes with screenshots. This round was run with the `design-review-loop` skill: question
+rounds, a before set, then four batches, each reviewed from before/after images (and, for the 3D cards, tried live on
+`phase8-dev`).
+
+The notes:
+1. the phone menu pushes the page down;
+2. cards should float like 3D cards on hover;
+3. the profile picture card is crowded, and should be like WhatsApp's photo editing;
+4. claims should be regular cards with a button to a full claim page.
+
+Unlike round 3 it adds features at the owner's request. Round 2's lesson still holds: no bloat, nothing slower. Branch
+`polish/stable-1.3` off `develop` (`576fe28`).
+
+### What changed
+
+| Area | Before | Now |
+|---|---|---|
+| Phone menu (A) | Below 1000 px the Menu panel was part of the sticky header: opening it pushed every signed-in page down by 263–363 px (measured on 18 page types at 390 and 768 px) | A solid floating panel under the header (full width on phones, 360 px on the right on tablets). No page moves (0 of 36 page-views). `shell.js` (pinned) still toggles and closes it. CSS only. |
+| 3D cards (B) | Flat cards with a border change on hover | **Which cards:** report cards (Explore, Home, History), My Activity cards, BM queue cards and notification rows.<br>**On hover:** they lift ~6 px (queue cards 3 px), tilt up to 6° toward the mouse and catch a soft light. Wide notification rows tilt less and take the card surface.<br>**Scope:** mouse only. Reduced motion keeps the shadow; keyboard focus lifts without the tilt.<br>**How:** a frame-throttled handler sets CSS variables, and `transform` draws it, so layout never moves. Tried live by the owner. |
+| Profile (C) | Two cards; the left one crowded (small photo, two buttons, hint, name, chip, text, settings button); the right one a display-name form | **Layout:** one WhatsApp-style column.<br>**Photo:** a 160 px round photo with a camera "Edit" overlay (a badge on touch), opening View photo / Take photo (phones) / Upload photo / Remove photo.<br>**Name and rows:** the name with a pencil for inline editing (Enter saves, Escape cancels); the role as the subtitle; read-only rows with lock icons (an empty student ID reads "Not specified"); the privacy line; an Account settings row.<br>**Crop dialog:** a dark "Drag the image to adjust" stage with Upload, the square crop dimmed outside the circle, +/− zoom (and the wheel), a round ✓, and the position sliders under "Position controls". |
+| Claim cards (D) | Text cards: status, submitted date, boxed pickup and past-due notes, a desk disclosure, the review note, a photo line, then View item / Update / Withdraw | **The card:** a regular card with the item's photo, the claim status chip, the title, where it was found, then one status line and a full-width View details pinned together at the bottom.<br>**Example status lines:** "Pickup 22 Nov 2026, 16:00 WIB · Lapangan", "Pickup time passed · contact Building Management", "Answer Building Management's question". |
+| Claim page (D) | None: everything lived on the card | `my-reports.html?claim=<id>` (no tab), with its shell rendered on the server.<br>**Panels:** progress steps (Submitted → Under review → Approved → Ready for pickup → Returned, with More info / Rejected / Withdrawn variants); the item card (photo, title, where, when, card-wide View item); your answer and private photo count; Building Management's note; the pickup with the desk card; Update claim / Claim again and Withdraw.<br>**Layout:** the item sits in a sticky side column on desktop and comes first on phones.<br>**Navigation:** submitted claims, claim notifications and the item page's Follow my claim open it. Back returns to the exact list place; an item opened from a claim says "Back to claim". |
+
+**Owner review notes, applied:**
+- the claim card's status line and button pinned to the bottom;
+- the item card's button card-wide with centred text;
+- on phones, the item card above the steps.
+
+**Found in my own review, before showing the owner:**
+- the menu at the pill's 97 % let headings show through in dark mode, so the panel is now solid;
+- wide notification rows touched the list border, so their tilt is gentler;
+- an empty student ID showed a blank row, and the Position controls disclosure had no visible arrow;
+- the card-wide title link covered View details;
+- the desktop claim page put the status last;
+- a class clash removed the claim page's phone gutters;
+- the status line repeated the current step's text.
+
+**Files:**
+- **CSS and adapted JS:** `public/css/polish.css`, `public/js/student-common.js` (tilt, `claimDetailUrl`, `trackReturn`
+  options) and `public/js/student.js` (claim cards and page, links), with hashes and reasons in
+  `docs/SOURCE_PROVENANCE.json`.
+- **New:** `public/js/profile.js`, Laravel-only and recorded under `added_assets`, which `tools/ci-static-checks.py` now
+  verifies.
+- **Views:** `profile.blade.php` and `my-reports.blade.php`.
+- **Unchanged:** the pinned native `shell.js`, `account-ui.js` and `avatar-editor.js` (CI checks this). No server, route,
+  schema or API change.
+
+**Tests changed on purpose:**
+- `test-phase8-ui.py`: the pencil before editing the name; photo upload → zoom → save → remove.
+- `test-phase6-ui.py` and `test-phase7-ui.py`: claim details are asserted on the claim page; card → claim page.
+- Outside git: `stable-tools/stable_nav_readonly.py` (claims: card → claim page → item → "Back to claim"); the original is
+  kept as `.bak-20261123`.
+
+### Round 4 verification (phase8-dev, 23 November 2026)
+
+| Check | Result |
+|---|---|
+| `test-stable-navigation-ui.py` | 56/56 after every batch |
+| `test-phase6-ui.py` / `test-phase7-ui.py` | 17/17; 23/23 (one new check) |
+| `test-phase8-ui.py` / `test-phase8-http.py` | 18/18 (four new photo/name checks); 28/28 |
+| Menu shift (A) | 0 of 36 page-views move when the menu opens (before: 36 of 36, 263–363 px) |
+| Claim card alignment (D) | View details and card bottoms share one edge in every row (measured) |
+| Layout shift (CLS, first load) | Unchanged on every captured page (Explore 0.0003, claims tab ≈ 0.005, claim pages 0.0003, BM queue 0.023) |
+| Captures | Read-only guard: no write attempted in any capture; restore identical after every run |
+
+**Environmental, not app:**
+- The machine restarted at 12:48. That stopped the owned database (restarted with the dev control) and the 8030 demo
+  (left off).
+- The round 3 full regression had deleted the extra test-claimant credentials. Every suite run now seeds them first,
+  like `verify-candidate.py`, and removes the file afterwards.
+- Several runs hit the 2 GiB free-memory gates. Those were rerun after the owner freed memory; no gate was lowered.
+
+**Not verified here:** real phones (Take photo, touch hover), Safari and Firefox. `test-claim-read-ui.py` targets
+academic-test and was not run. Evidence: `C:\ReFind-Laravel\evidence\stable\round4-20261123\`.

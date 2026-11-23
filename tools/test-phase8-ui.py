@@ -1,4 +1,5 @@
-"""Phase 8 browser journey on live phase8-dev (8020): guest self-registration, profile name and password change,
+"""Phase 8 browser journey on live phase8-dev (8020): guest self-registration, profile name (inline editor), profile photo
+(menu, crop stage, remove) and password change,
 notification read-marking, campus history, and BM manual report status from the Reports tab.
 Synthetic data only; the caller restores the snapshot and limiter state afterwards.
 """
@@ -8,6 +9,7 @@ import json, os, secrets, sys
 from urllib.parse import urlparse
 
 import psutil
+from PIL import Image
 from playwright.sync_api import expect, sync_playwright
 
 os.environ.setdefault('REFIND_DEV_PROFILE', 'phase8-dev')
@@ -81,8 +83,28 @@ with sync_playwright() as playwright:
         # Profile name, then password change on Settings.
         page.goto(BASE + '/profile.html'); ready(page)
         expect(page.locator('#profile-email')).to_have_value(email)
+        page.locator('#name-edit').click()  # Stable round 4: the name is edited inline behind a pencil
         page.locator('#display-name').fill('Synthetic Renamed Browser'); page.locator('#profile-save').click()
         expect(page.locator('#profile-feedback')).to_contain_text('Your display name has been saved.')
+        expect(page.locator('[data-profile-name]')).to_have_text('Synthetic Renamed Browser')
+        check('inline name editor folds away after saving', page.locator('#profile-form').is_hidden())
+        # Stable round 4: WhatsApp-style photo menu and crop stage - Upload, zoom in, save; then Remove from the menu.
+        avatar = STATE / 'tmp' / 'avatar-proof.png'; Image.new('RGB', (640, 420), (90, 140, 200)).save(avatar)
+        page.locator('#avatar-trigger').click(); expect(page.locator('#avatar-menu')).to_be_visible()
+        check('photo menu offers Upload and hides View/Remove without a photo', page.locator('#avatar-change').is_visible() and page.locator('#avatar-view').is_hidden() and page.locator('#avatar-remove').is_hidden())
+        with page.expect_file_chooser() as chooser:
+            page.locator('#avatar-change').click()
+        chooser.value.set_files(str(avatar))
+        expect(page.locator('#avatar-dialog')).to_be_visible(); expect(page.locator('#avatar-menu')).to_be_hidden()
+        page.locator('#avatar-zoom-in').click()
+        check('zoom button steps the crop zoom', float(page.locator('#avatar-zoom').input_value()) > 1)
+        page.locator('#avatar-save').click()
+        expect(page.locator('#avatar-feedback')).to_contain_text('Your profile picture has been saved.')
+        expect(page.locator('#avatar-dialog')).to_be_hidden()
+        page.locator('#avatar-trigger').click(); expect(page.locator('#avatar-view')).to_be_visible()
+        page.locator('#avatar-remove').click()
+        expect(page.locator('#avatar-feedback')).to_contain_text('Your profile picture has been removed.')
+        check('profile photo uploaded, zoomed, saved and removed through the menu', True)
         page.goto(BASE + '/settings.html'); ready(page)
         page.locator('#current-password').fill(password); page.locator('#new-password').fill(newpw); page.locator('#confirm-password').fill(newpw)
         page.locator('#password-save').click()
