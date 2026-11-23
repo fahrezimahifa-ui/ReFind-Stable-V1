@@ -455,3 +455,24 @@ p.context-note,p.journey-note,p.report-visibility{max-width:none}
   .app-nav>.nav-content .nav-account{margin-top:6px;padding-top:6px;border-top:1px solid var(--line)}
 }
 @media(min-width:600px) and (max-width:999px){.app-nav>.nav-content{left:auto;width:min(360px,calc(100vw - 2 * var(--page-gutter)))}}
+/* ---- Stable round 4, batch B (owner note): cards float like 3D cards on mouse hover. They lift, tilt slightly toward
+   the pointer (at most 6deg, from student-common.js variables) and catch a soft light. Transform only, so nothing else
+   moves; only for a hovering fine pointer. Reduced motion keeps just the lift shadow; keyboard focus lifts without tilt.
+   Notification rows also take the card surface while hovered, so they lift out of the list. ---- */
+:root{--float-shadow:0 22px 46px rgb(20 32 62 / .2);--float-shadow-small:0 12px 28px rgb(20 32 62 / .17);--float-light:rgb(255 255 255 / .22)}
+:root[data-theme="dark"]{--float-shadow:0 22px 46px rgb(0 0 0 / .45);--float-shadow-small:0 12px 28px rgb(0 0 0 / .38);--float-light:rgb(255 255 255 / .09)}
+@media(hover:hover) and (pointer:fine){
+  .discovery-card,.activity-card,.bm-queue-card,.notification-card{position:relative;transition:transform 180ms cubic-bezier(.2,.7,.25,1),box-shadow 180ms ease,border-color 120ms ease,background-color 120ms ease}
+  .discovery-card:hover,.activity-card:hover,.notification-card:hover{transform:perspective(1000px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(-6px);box-shadow:var(--float-shadow),var(--glass-shadow)}
+  .bm-queue-card:hover{transform:perspective(1000px) rotateX(calc(var(--rx,0deg) * .6)) rotateY(calc(var(--ry,0deg) * .6)) translateY(-3px);box-shadow:var(--float-shadow-small),var(--glass-shadow)}
+  .notification-card:hover{z-index:1;background:var(--card-surface,var(--panel));border-radius:16px;border-top-color:transparent}
+  .notification-card:hover+.notification-card{border-top-color:transparent}
+  .discovery-card:has(:focus-visible),.activity-card:has(:focus-visible),.notification-card:has(:focus-visible){transform:translateY(-6px);box-shadow:var(--float-shadow),var(--glass-shadow)}
+  .is-tilting::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),var(--float-light),transparent 62%)}
+}
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:reduce){
+  .discovery-card,.activity-card,.bm-queue-card,.notification-card{transition:box-shadow 120ms ease,border-color 120ms ease,background-color 120ms ease}
+  .discovery-card:hover,.activity-card:hover,.notification-card:hover,.bm-queue-card:hover,
+  .discovery-card:has(:focus-visible),.activity-card:has(:focus-visible),.notification-card:has(:focus-visible){transform:none}
+  .is-tilting::after{content:none}
+}
