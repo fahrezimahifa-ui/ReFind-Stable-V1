@@ -462,7 +462,8 @@ $(async function(){
       const status=panel('claim-status-panel').append(
         $('<div>').addClass('claim-status-head').append(U.stateChip(view.code,view.label),$('<p>').addClass('claim-dates').text('Submitted '+U.date(claim.created_at,true))),
         claimSteps(claim,view),
-        view.line?$('<p>').addClass('claim-status-line').toggleClass('is-late',view.late).text(view.line):null);
+        // Under the steps the line only adds what they cannot say: the pickup time or return, or approval without a time.
+        view.line&&(view.returned||view.scheduled||claim.claim_status==='APPROVED')?$('<p>').addClass('claim-status-line').toggleClass('is-late',view.late).text(view.line):null);
       const itemPanel=panel('claim-item-panel').append(claimMedia(item,'claim-item-media'),$('<div>').addClass('claim-item-body').append(
         $('<span>').addClass('item-type').text(item?(item.item_type==='FOUND'?'Found item':'Lost item'):'Item'),
         $('<h2>').addClass('claim-item-title').attr('title',claim.title).text(display),U.demoChip(claim.title),
