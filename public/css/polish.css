@@ -465,7 +465,8 @@ p.context-note,p.journey-note,p.report-visibility{max-width:none}
   .discovery-card,.activity-card,.bm-queue-card,.notification-card{position:relative;transition:transform 180ms cubic-bezier(.2,.7,.25,1),box-shadow 180ms ease,border-color 120ms ease,background-color 120ms ease}
   .discovery-card:hover,.activity-card:hover,.notification-card:hover{transform:perspective(1000px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(-6px);box-shadow:var(--float-shadow),var(--glass-shadow)}
   .bm-queue-card:hover{transform:perspective(1000px) rotateX(calc(var(--rx,0deg) * .6)) rotateY(calc(var(--ry,0deg) * .6)) translateY(-3px);box-shadow:var(--float-shadow-small),var(--glass-shadow)}
-  .notification-card:hover{z-index:1;background:var(--card-surface,var(--panel));border-radius:16px;border-top-color:transparent}
+  .notification-card:hover{z-index:1;background:var(--card-surface,var(--panel));border-radius:16px;border-top-color:transparent;
+    transform:perspective(1400px) rotateX(calc(var(--rx,0deg) * .4)) rotateY(calc(var(--ry,0deg) * .15)) translateY(-4px) scale(.985)}
   .notification-card:hover+.notification-card{border-top-color:transparent}
   .discovery-card:has(:focus-visible),.activity-card:has(:focus-visible),.notification-card:has(:focus-visible){transform:translateY(-6px);box-shadow:var(--float-shadow),var(--glass-shadow)}
   .is-tilting::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),var(--float-light),transparent 62%)}
