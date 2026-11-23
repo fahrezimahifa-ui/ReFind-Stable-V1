@@ -117,8 +117,8 @@ with sync_playwright() as playwright:
         ctx.close()
         ctx, st = phase(playwright, 390, 'dark', 'student_a', 'index.html')
         ctx.clock.set_fixed_time(datetime.now(timezone.utc) + timedelta(days=4))
-        st.goto(BASE + '/my-reports.html?tab=claims&claim=' + claim); ready(st)
-        late = st.locator('.activity-card[data-claim-id="' + claim + '"] .past-due-note')
+        st.goto(BASE + '/my-reports.html?claim=' + claim); ready(st)  # Stable round 4: the claim's own page
+        late = st.locator('#claim-detail .past-due-note')
         expect(late).to_be_visible()
         check('Student passed-time note is flat, non-interactive status', late.evaluate(flat_js))
         ctx.close()
@@ -126,8 +126,12 @@ with sync_playwright() as playwright:
         # Student: My Activity shows the appointment; notifications are read-only.
         ctx, st = phase(playwright, 390, 'dark', 'student_a', 'index.html')
         st.goto(BASE + '/my-reports.html?tab=claims&claim=' + claim); ready(st)
-        card = st.locator('.activity-card[data-claim-id="' + claim + '"]')
-        expect(card).to_contain_text('Your pickup'); expect(card).to_contain_text('Gedung B')
+        card = st.locator('.claim-card[data-claim-id="' + claim + '"]')  # round 4: the card's status line names the pickup
+        expect(card.locator('.claim-status-line')).to_contain_text('Pickup'); expect(card).to_contain_text('Gedung B')
+        card.locator('a.claim-view').click(); st.wait_for_url(lambda u: urlparse(u).path == '/my-reports.html' and 'claim=' + claim in u and 'tab=' not in u); ready(st)
+        detail = st.locator('#claim-detail')
+        expect(detail).to_contain_text('Your pickup'); expect(detail).to_contain_text('Gedung B')
+        check('claim card opens the claim page with the pickup', True)
         st.goto(BASE + '/notifications.html'); ready(st)
         first = st.locator('.notification-card').first
         expect(first).to_contain_text('Pickup scheduled')
@@ -157,10 +161,10 @@ with sync_playwright() as playwright:
 
         # Student: returned and released outcomes.
         ctx, st = phase(playwright, 390, 'dark', 'student_a', 'index.html')
-        st.goto(BASE + '/my-reports.html?tab=claims&claim=' + claim); ready(st)
-        expect(st.locator('.activity-card[data-claim-id="' + claim + '"]')).to_contain_text('Returned')
-        st.goto(BASE + '/my-reports.html?tab=claims&claim=' + claim2); ready(st)
-        released = st.locator('.activity-card[data-claim-id="' + claim2 + '"]')
+        st.goto(BASE + '/my-reports.html?claim=' + claim); ready(st)
+        expect(st.locator('#claim-detail')).to_contain_text('Returned')
+        st.goto(BASE + '/my-reports.html?claim=' + claim2); ready(st)
+        released = st.locator('#claim-detail')
         expect(released).to_contain_text('Pickup released: Owner did not collect within the window.')
         st.goto(BASE + '/item.html?id=' + lost); ready(st)
         expect(st.locator('#item-chips')).to_contain_text('Returned')

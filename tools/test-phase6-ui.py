@@ -89,9 +89,9 @@ with sync_playwright() as playwright:
         student.locator('#claim-submit').click()
         student.wait_for_url(lambda u: urlparse(u).path == '/my-reports.html' and 'claim=' in u); ready(student)
         claim_id = urlparse(student.url).query.split('claim=')[1].split('&')[0]
-        card = student.locator('.activity-card[data-claim-id="' + claim_id + '"]')
-        expect(card).to_be_visible(); expect(card).to_contain_text('1 private photo')
-        expect(card.locator('button', has_text='Withdraw claim')).to_be_visible()
+        detail = student.locator('#claim-detail')  # Stable round 4: a submitted claim opens its own page
+        expect(detail).to_be_visible(); expect(detail).to_contain_text('1 private photo')
+        expect(detail.locator('button', has_text='Withdraw claim')).to_be_visible()
         check('student submitted a claim with a private photo through the UI', True)
         check('student layout has no horizontal overflow', not student.evaluate('document.documentElement.scrollWidth > window.innerWidth + 1'))
         sctx.close()  # one browser context at a time keeps the 2 GiB RAM floor
@@ -118,16 +118,16 @@ with sync_playwright() as playwright:
         # Student: resubmit keeping the saved private evidence.
         sctx, student = context(playwright, 390, 'dark')
         login(student, 'student_a', 'index.html')
-        student.goto(BASE + '/my-reports.html?tab=claims&claim=' + claim_id); ready(student)
-        card = student.locator('.activity-card[data-claim-id="' + claim_id + '"]')
-        expect(card).to_contain_text('Please describe what is inside the front pocket.')
-        card.locator('a', has_text='Update claim').click()  # Stable round 3: was "Update / resubmit claim"
+        student.goto(BASE + '/my-reports.html?claim=' + claim_id); ready(student)  # round 4: the claim's own page
+        detail = student.locator('#claim-detail')
+        expect(detail).to_contain_text('Please describe what is inside the front pocket.')
+        detail.locator('a', has_text='Update claim').click()  # Stable round 3: was "Update / resubmit claim"
         student.wait_for_url(lambda u: urlparse(u).path == '/claim.html'); ready(student)
         expect(student.locator('#keep-claim-proof')).to_be_checked()
         student.locator('#c-answer').fill('Front pocket holds a green library card and a folded campus map.')
         student.locator('#claim-submit').click()
         student.wait_for_url(lambda u: urlparse(u).path == '/my-reports.html'); ready(student)
-        expect(student.locator('.activity-card[data-claim-id="' + claim_id + '"]')).to_contain_text('1 private photo')
+        expect(student.locator('#claim-detail')).to_contain_text('1 private photo')
         check('student resubmitted on the same record keeping evidence', True)
         sctx.close()
 
@@ -163,8 +163,8 @@ with sync_playwright() as playwright:
         # Student: approved outcome without pickup reads.
         sctx, student = context(playwright, 390, 'dark')
         login(student, 'student_a', 'index.html')
-        student.goto(BASE + '/my-reports.html?tab=claims&claim=' + claim_id); ready(student)
-        expect(student.locator('.activity-card[data-claim-id="' + claim_id + '"]')).to_contain_text('Approved. Building Management will set a pickup time and notify you.')  # pending handover (round 3 wording)
+        student.goto(BASE + '/my-reports.html?claim=' + claim_id); ready(student)
+        expect(student.locator('#claim-detail')).to_contain_text('Approved. Building Management will set a pickup time and notify you.')  # pending handover (round 3 wording)
         student.goto(BASE + '/item.html?id=' + found); ready(student)
         expect(student.locator('#item-notice')).to_contain_text('Your claim: ')
         check('student sees the approved outcome', True)
@@ -172,8 +172,8 @@ with sync_playwright() as playwright:
         # Student: withdraw from My Activity.
         status, body, _, _ = http.claim(api_a, second)
         check('second claim created', status == 201)
-        student.goto(BASE + '/my-reports.html?tab=claims&claim=' + body['id']); ready(student)
-        student.locator('.activity-card[data-claim-id="' + body['id'] + '"] button', has_text='Withdraw claim').click()
+        student.goto(BASE + '/my-reports.html?claim=' + body['id']); ready(student)
+        student.locator('#claim-detail button', has_text='Withdraw claim').click()
         expect(student.locator('#withdraw-dialog')).to_be_visible(); student.locator('#confirm-withdraw').click()
         expect(student.locator('.feedback, #page-feedback, #shell-feedback').filter(has_text='Claim withdrawn').first).to_be_visible()
         check('student withdrew through the dialog', http.Client(BASE).login('student_a').call('/api/claims.php?id=' + body['id'])[1]['claims'][0]['claim_status'] == 'WITHDRAWN')

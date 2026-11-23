@@ -573,3 +573,45 @@ p.context-note,p.journey-note,p.report-visibility{max-width:none}
 .avatar-position summary::-webkit-details-marker{display:none}
 .avatar-position summary::before{content:"";flex:none;width:8px;height:8px;margin-left:2px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg)}
 .avatar-position[open] summary::before{transform:rotate(45deg)}
+/* ---- Stable round 4, batch D (owner request): claims are regular cards - the item's photo, the claim status chip, the
+   title, where it was found, one status line - with a full-width View details button at the bottom instead of the
+   Lost/Found date line. The claim's own page (my-reports.html?claim=<id>) holds the rest: progress steps, the item,
+   your answer and photo count, Building Management's note, the pickup and the actions. ---- */
+.claim-card .claim-status-line{margin-top:auto;color:var(--ink);font-weight:600}
+.claim-card .claim-status-line.is-late,.claim-status-panel .claim-status-line.is-late{color:var(--warning)}
+.claim-card .claim-view{width:100%;margin-top:var(--space-1)}
+.claim-card .card-where+.claim-view,.claim-card h2+.claim-view{margin-top:auto}
+.claim-card.selected-claim{border-color:var(--control);box-shadow:0 0 0 2px var(--primary-pressed)}
+.claim-detail{display:flex;flex-direction:column;gap:var(--space-3)}
+.claim-detail[hidden]{display:none}
+.claim-detail-main{display:contents}
+.claim-detail-main>*{order:3}
+.claim-detail-main>.claim-status-panel{order:1}
+.claim-detail-side{order:2;min-width:0}
+@media(min-width:900px){
+  .claim-detail{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,340px);align-items:start}
+  .claim-detail-main{display:flex;flex-direction:column;gap:var(--space-3);min-width:0}
+  .claim-detail-main>*{order:0}
+  .claim-detail-side{position:sticky;top:calc(var(--app-header-height,70px) + 16px)}
+}
+.claim-panel{margin:0;gap:var(--space-1)}
+.claim-panel-title{margin:0;color:var(--ink);font-size:18px;font-weight:700;line-height:1.3}
+.claim-status-head{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-1) var(--space-2)}
+.claim-status-head>.item-chip{flex:0 0 auto}
+.claim-dates{margin:0;color:var(--muted);font-size:14px}
+.claim-panel .claim-steps{margin:var(--space-1) 0 0;padding:16px 0 4px;border:0;background:none;box-shadow:none}
+.claim-status-panel .claim-status-line{margin:0;color:var(--ink);font-weight:600}
+.claim-answer,.claim-note{margin:0;color:var(--value);white-space:pre-line;overflow-wrap:anywhere}
+.claim-photo-count{margin:0;color:var(--muted);font-size:14px}
+.claim-panel .value-empty{margin:0}
+.claim-desk-intro{margin:var(--space-1) 0 0;color:var(--muted);font-size:14px}
+.claim-detail-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-2)}
+.claim-item-panel{padding:0;overflow:hidden}
+.claim-item-media{aspect-ratio:4 / 3;background:var(--subtle)}
+.claim-item-media img{display:block;width:100%;height:100%;object-fit:cover}
+.claim-item-media .no-photo:not([hidden]){height:100%}
+.claim-item-body{display:flex;flex-direction:column;gap:6px;padding:var(--space-3) var(--space-4) var(--space-4)}
+.claim-item-body .item-type{color:var(--muted);font-size:13px;font-weight:600}
+.claim-item-title{margin:0;font-size:20px;font-weight:700;line-height:1.3;overflow-wrap:anywhere}
+.claim-item-body .card-meta{margin:0}
+.claim-item-body .navigation-action{align-self:flex-start;margin-top:var(--space-1)}
