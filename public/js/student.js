@@ -434,8 +434,10 @@ $(async function(){
         $('<div>').addClass('chips').append(U.stateChip(view.code,view.label),U.demoChip(claim.title)),
         $('<h2>').attr('title',claim.title).append($('<a>').addClass('card-details').attr('href',href).text(display)),
         item?$('<p>').addClass('card-meta card-where').text(U.locationText(item)):null,
-        view.line?$('<p>').addClass('card-meta claim-status-line').toggleClass('is-late',view.late).text(view.line):null,
-        $('<a>').addClass('btn btn-outline claim-view').attr('href',href).append('View details',$('<span>').addClass('visually-hidden').text(' for '+display)));
+        // Owner review: the status line and View details sit together at the bottom, so they line up across a row.
+        $('<div>').addClass('claim-card-foot').append(
+          view.line?$('<p>').addClass('card-meta claim-status-line').toggleClass('is-late',view.late).text(view.line):null,
+          $('<a>').addClass('btn btn-outline claim-view').attr('href',href).append('View details',$('<span>').addClass('visually-hidden').text(' for '+display))));
       return $('<article>').addClass('discovery-card claim-card').attr('data-claim-id',claim.claim_id).append(claimMedia(item,'card-media'),body);
     }
     // Claim progress, drawn with the item page's journey styles: Submitted, Under review, Approved, Ready for pickup,
