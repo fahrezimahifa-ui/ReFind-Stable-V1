@@ -441,12 +441,15 @@ p.context-note,p.journey-note,p.report-visibility{max-width:none}
 /* ---- Stable round 4, batch A (owner note): below 1000px the Menu opens as a floating panel over the page instead of
    growing the sticky header, so nothing underneath moves (before: every signed-in page was pushed down 263-363px).
    shell.js (pinned) still toggles [hidden] and closes it on Escape or a tap outside; the account menu still opens inside
-   the panel. Near-solid surface like the action pill, so text behind never shows through. ---- */
+   the panel. A solid surface: at the pill's 97% the page's headings still showed through the menu text in dark mode. ---- */
+:root{--menu-surface:#fff}
+:root[data-theme="dark"]{--menu-surface:#131f35}
+@media(forced-colors:active){:root,:root[data-theme="dark"]{--menu-surface:Canvas}}
 @media(max-width:999px){
   .app-nav{position:relative}
   .app-nav>.nav-content{position:absolute;top:calc(100% + 6px);left:var(--page-gutter);right:var(--page-gutter);z-index:1;
     width:auto;max-height:calc(var(--usable-height,100dvh) - var(--app-header-height,70px) - 24px);overflow-y:auto;overscroll-behavior:contain;
-    padding:10px;border:1px solid var(--glass-edge);border-radius:var(--radius-panel);background:var(--action-bar-surface);
+    padding:10px;border:1px solid var(--glass-edge);border-radius:var(--radius-panel);background:var(--menu-surface);
     box-shadow:0 18px 44px rgb(15 25 50 / .2),var(--glass-shadow)}
   .app-nav>.nav-content[hidden]{display:none}
   .app-nav>.nav-content .nav-account{margin-top:6px;padding-top:6px;border-top:1px solid var(--line)}
