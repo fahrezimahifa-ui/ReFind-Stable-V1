@@ -584,14 +584,18 @@ p.context-note,p.journey-note,p.report-visibility{max-width:none}
 .claim-card.selected-claim{border-color:var(--control);box-shadow:0 0 0 2px var(--primary-pressed)}
 .claim-detail{display:flex;flex-direction:column;gap:var(--space-3)}
 .claim-detail[hidden]{display:none}
-.claim-detail-main{display:contents}
-.claim-detail-main>*{order:3}
-.claim-detail-main>.claim-status-panel{order:1}
-.claim-detail-side{order:2;min-width:0}
+#claim-back{align-self:flex-start;width:fit-content}
+.claim-detail-side{min-width:0}
+/* Phones: one column with the item right after the status (the main wrapper steps aside so its panels can be ordered). */
+@media(max-width:899px){
+  .claim-detail-main{display:contents}
+  .claim-detail-main>*{order:3}
+  .claim-detail-main>.claim-status-panel{order:1}
+  .claim-detail-side{order:2}
+}
 @media(min-width:900px){
   .claim-detail{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,340px);align-items:start}
   .claim-detail-main{display:flex;flex-direction:column;gap:var(--space-3);min-width:0}
-  .claim-detail-main>*{order:0}
   .claim-detail-side{position:sticky;top:calc(var(--app-header-height,70px) + 16px)}
 }
 .claim-panel{margin:0;gap:var(--space-1)}
