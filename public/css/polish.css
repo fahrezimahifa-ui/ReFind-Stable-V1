@@ -579,7 +579,7 @@ p.context-note,p.journey-note,p.report-visibility{max-width:none}
    your answer and photo count, Building Management's note, the pickup and the actions. ---- */
 .claim-card .claim-status-line{margin-top:auto;color:var(--ink);font-weight:600}
 .claim-card .claim-status-line.is-late,.claim-status-panel .claim-status-line.is-late{color:var(--warning)}
-.claim-card .claim-view{width:100%;margin-top:var(--space-1)}
+.claim-card .claim-view{position:relative;z-index:2;width:100%;margin-top:var(--space-1)}  /* above the card-wide title link */
 .claim-card .card-where+.claim-view,.claim-card h2+.claim-view{margin-top:auto}
 .claim-card.selected-claim{border-color:var(--control);box-shadow:0 0 0 2px var(--primary-pressed)}
 .claim-detail{display:flex;flex-direction:column;gap:var(--space-3)}
