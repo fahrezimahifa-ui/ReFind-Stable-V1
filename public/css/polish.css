@@ -438,3 +438,17 @@ p.context-note,p.journey-note,p.report-visibility{max-width:none}
 .bm-detail .bm-record-heading{position:relative;align-items:stretch;gap:var(--space-3);padding-bottom:var(--space-4)}
 .bm-detail .bm-record-heading>h2{margin:var(--space-1) 0 0;text-align:center;font-size:clamp(22px,5.6vw,28px);line-height:1.25;text-wrap:balance}
 .bm-detail .bm-record-heading::after{content:"";position:absolute;bottom:0;left:6%;right:6%;height:1px;background:linear-gradient(90deg,transparent,var(--line) 18%,var(--line) 82%,transparent);pointer-events:none}
+/* ---- Stable round 4, batch A (owner note): below 1000px the Menu opens as a floating panel over the page instead of
+   growing the sticky header, so nothing underneath moves (before: every signed-in page was pushed down 263-363px).
+   shell.js (pinned) still toggles [hidden] and closes it on Escape or a tap outside; the account menu still opens inside
+   the panel. Near-solid surface like the action pill, so text behind never shows through. ---- */
+@media(max-width:999px){
+  .app-nav{position:relative}
+  .app-nav>.nav-content{position:absolute;top:calc(100% + 6px);left:var(--page-gutter);right:var(--page-gutter);z-index:1;
+    width:auto;max-height:calc(var(--usable-height,100dvh) - var(--app-header-height,70px) - 24px);overflow-y:auto;overscroll-behavior:contain;
+    padding:10px;border:1px solid var(--glass-edge);border-radius:var(--radius-panel);background:var(--action-bar-surface);
+    box-shadow:0 18px 44px rgb(15 25 50 / .2),var(--glass-shadow)}
+  .app-nav>.nav-content[hidden]{display:none}
+  .app-nav>.nav-content .nav-account{margin-top:6px;padding-top:6px;border-top:1px solid var(--line)}
+}
+@media(min-width:600px) and (max-width:999px){.app-nav>.nav-content{left:auto;width:min(360px,calc(100vw - 2 * var(--page-gutter)))}}
