@@ -566,3 +566,10 @@ p.context-note,p.journey-note,p.report-visibility{max-width:none}
 .avatar-view-dialog img{display:block;width:min(480px,calc(100vw - 32px));height:auto;border-radius:50%}
 .avatar-view-close{position:absolute;top:-54px;right:-6px}
 @media(forced-colors:active){.profile-photo-overlay,.avatar-canvas-wrap::after{forced-color-adjust:none}.profile-name-save::before,.avatar-stage-save::before{background:ButtonText}}
+/* Batch C review: an empty student ID reads as muted "Not specified" (round 3 rule); "Position controls" keeps a
+   visible disclosure arrow (a flex summary loses the browser's marker). */
+.profile-row .readonly-control::placeholder{color:var(--empty);opacity:1}
+.avatar-position summary{list-style:none;gap:10px}
+.avatar-position summary::-webkit-details-marker{display:none}
+.avatar-position summary::before{content:"";flex:none;width:8px;height:8px;margin-left:2px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg)}
+.avatar-position[open] summary::before{transform:rotate(45deg)}
