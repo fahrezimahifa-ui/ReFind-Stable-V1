@@ -156,6 +156,53 @@ final class ItemReadRepository
         return $record;
     }
 
+    /**
+     * Photo search: public report records in rank order (raw rows for safeItems/project). Scores never leave the
+     * server; a report that vanished meanwhile is dropped.
+     *
+     * @param  list<array{item_id:int,photo_id:int,label:string}>  $matches
+     */
+    public function rankedRecords(array $matches): array
+    {
+        if (! $matches) {
+            return [];
+        }
+        $ids = array_map(fn ($m) => (int) $m['item_id'], $matches);
+        $marks = implode(',', array_fill(0, count($ids), '?'));
+        $byId = array_column($this->rows('SELECT '.$this->publicColumns().',u.avatar_path AS reporter_avatar_path FROM v_items_overview v JOIN users u ON u.user_id=v.reporter_user_id WHERE v.item_id IN ('.$marks.')', $ids), null, 'item_id');
+
+        return array_values(array_filter(array_map(fn ($m) => $byId[$m['item_id']] ?? null, $matches)));
+    }
+
+    /** Matched photo first plus the similarity label ("very_similar" | "similar"); null if that photo is not public. */
+    public static function withMatch(array $item, array $match): ?array
+    {
+        $photo = '/api/photos.php?kind=item&id='.$match['photo_id'];
+        if (! in_array($photo, $item['photos'], true)) {
+            return null;
+        }
+        $item['photos'] = [$photo, ...array_values(array_diff($item['photos'], [$photo]))];
+        $item['photo_ids'] = [(int) $match['photo_id'], ...array_values(array_filter(array_map('intval', $item['photo_ids']), fn ($id) => $id !== (int) $match['photo_id']))];
+        $item['match_label'] = $match['label'];
+
+        return $item;
+    }
+
+    /** Explore photo search: the same safe records as keyword search, in rank order, with the match label. */
+    public function rankedCards(array $matches, array $user): array
+    {
+        $safe = array_column($this->safeItems($this->rankedRecords($matches), $user), null, 'item_id');
+        $out = [];
+        foreach ($matches as $match) {
+            $item = $safe[(string) $match['item_id']] ?? null;
+            if ($item && ($item = self::withMatch($item, $match))) {
+                $out[] = $item;
+            }
+        }
+
+        return $out;
+    }
+
     public function publicColumns(): string
     {
         return 'v.item_id,v.reporter_user_id,v.reporter_name,v.item_type,v.title,v.description,v.category_id,v.category_name,v.location_id,v.location_name,v.location_detail,v.floor_name,v.event_date,v.event_time,v.status_code,v.status_name,v.created_at,v.resolved_at';

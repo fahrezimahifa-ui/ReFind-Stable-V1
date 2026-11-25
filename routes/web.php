@@ -10,6 +10,7 @@ use App\Http\Controllers\MediaController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\StaffClaimController;
+use App\Http\Controllers\VisualSearchController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PageController::class, 'show'])->defaults('legacy_methods', ['GET', 'HEAD']);
@@ -39,4 +40,6 @@ $api('claims.php', ['GET'], [ClaimReadController::class, 'claims'], 'authenticat
 $api('staff.php', ['GET'], [ClaimReadController::class, 'staff'], 'BUILDING_MANAGEMENT');
 $api('handovers.php', ['GET'], [HandoverController::class, 'index'], 'authenticated');
 $api('account.php', ['GET'], [AccountController::class, 'show'], 'authenticated');
-$api('visual-search.php', ['POST'], [DiscoveryController::class, 'visual'], 'STUDENT');
+// Photo search (Laravel divergence, 25 Nov 2026): fails closed (403 visual_disabled) without the visual stage.
+$api('visual-search.php', ['POST'], [VisualSearchController::class, 'explore'], 'STUDENT');
+$api('staff-visual-search.php', ['POST'], [VisualSearchController::class, 'staffReports'], 'BUILDING_MANAGEMENT');

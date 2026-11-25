@@ -83,6 +83,21 @@ final class StaffReportRepository
         return ['reports' => $this->project($records, ['user_id' => $user['id'], 'role' => $user['role']]), 'total' => $total, 'page' => $page, 'pages' => max(1, (int) ceil($total / $limit))];
     }
 
+    /** Photo search on the BM Reports tab: queue records in rank order, matched photo first, similarity label. */
+    public function projectRanked(array $matches, array $user): array
+    {
+        $projected = array_column($this->project($this->items->rankedRecords($matches), ['user_id' => $user['id'], 'role' => $user['role']]), null, 'item_id');
+        $reports = [];
+        foreach ($matches as $match) {
+            $report = $projected[(string) $match['item_id']] ?? null;
+            if ($report && ($report = ItemReadRepository::withMatch($report, $match))) {
+                $reports[] = $report;
+            }
+        }
+
+        return $reports;
+    }
+
     private function project(array $records, array $user): array
     {
         if (! $records) {
