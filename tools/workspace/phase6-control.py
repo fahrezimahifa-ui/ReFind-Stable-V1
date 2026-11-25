@@ -1,6 +1,7 @@
 """Owned launcher for the disposable, unaccepted development profiles (phase6-dev, phase7-dev).
 
 Usage: phase6-control.py <action> [--profile phase8-dev|phase7-dev|phase6-dev|demo] (default phase8-dev in this branch).
+Starting needs 2 GiB free memory; `start --launcher` (everyday starts from the launchers) needs 1 GiB.
 The development profiles share the migration-owned portable MariaDB on 127.0.0.1:3307 with the accepted academic
 profiles. This launcher never touches their schemas, grants, web processes or state. Every control action
 re-verifies live ownership (psutil pid/create-time/exe/cmdline, port probes and PROCESSLIST), not only the
@@ -121,10 +122,31 @@ def port_free(port):
         s.close()
 
 
-def preflight():
+START_FLOOR_MIB = 2048     # tests, envelopes, verification and promotion
+LAUNCHER_FLOOR_MIB = 1024  # starting a server for normal use (start --launcher), owner decision 25 Nov 2026
+# System and own processes the owner can't or shouldn't close; left out of the refusal hint.
+QUIET = {'explorer.exe', 'svchost.exe', 'dwm.exe', 'sihost.exe', 'ctfmon.exe', 'runtimebroker.exe', 'searchhost.exe',
+         'startmenuexperiencehost.exe', 'shellexperiencehost.exe', 'textinputhost.exe', 'conhost.exe', 'taskhostw.exe',
+         'dllhost.exe', 'fontdrvhost.exe', 'msedgewebview2.exe', 'php.exe', 'mariadbd.exe', 'python.exe',
+         'powershell.exe', 'cmd.exe'}
+
+
+def memory_hint(limit=5):
+    """The signed-in user's biggest apps by resident memory (names and MiB only), for a refused start."""
+    me = psutil.Process().username(); sizes = {}
+    for p in psutil.process_iter(['name', 'username', 'memory_info']):
+        name, info = p.info['name'] or '', p.info['memory_info']
+        if p.info['username'] == me and info and name.lower() not in QUIET:
+            sizes[name] = sizes.get(name, 0) + info.rss
+    top = sorted(sizes.items(), key=lambda kv: -kv[1])[:limit]
+    return ', '.join('%s %d MiB' % (n.removesuffix('.exe'), v // 1024 ** 2) for n, v in top) or 'none found'
+
+
+def preflight(min_mib=START_FLOOR_MIB):
     owned_root(); m = psutil.virtual_memory(); free = shutil.disk_usage(ROOT).free
-    if m.available < 2 * 1024 ** 3:
-        raise RuntimeError('Startup gate: less than 2 GiB available RAM')
+    if m.available < min_mib * 1024 ** 2:
+        raise RuntimeError('Startup gate: %d MiB free memory, %d MiB needed. Close an app and try again; the biggest '
+                           'now: %s' % (m.available // 1024 ** 2, min_mib, memory_hint()))
     if free < 5 * 1024 ** 3:
         raise RuntimeError('Startup gate: less than 5 GiB free disk')
     logs = sum(p.stat().st_size for p in (ROOT / 'state').rglob('*.log') if p.is_file())
@@ -278,8 +300,9 @@ def live_web():
     return {k: v for k, v in load(RECORD).items() if k.startswith('web-') and checked_web(v)}
 
 
-def start(second=False):
-    checked_profile(); print(json.dumps(preflight())); print('db: ' + start_db())
+def start(second=False, launcher=False):
+    checked_profile(); print(json.dumps(preflight(LAUNCHER_FLOOR_MIB if launcher else START_FLOOR_MIB)))
+    print('db: ' + start_db())
     if not (STATE / 'provisioned.json').exists():
         raise RuntimeError('Completed synthetic provisioning receipt required')
     port = PORTS[1] if second else PORTS[0]; key = 'web-' + str(port)
@@ -342,6 +365,7 @@ if __name__ == '__main__':
     parser.add_argument('action', choices=['init', 'grants', 'start', 'stop', 'status', 'preflight'])
     parser.add_argument('--second', action='store_true')
     parser.add_argument('--db', action='store_true')
+    parser.add_argument('--launcher', action='store_true', help='start for normal use: 1 GiB free-memory floor instead of 2 GiB')
     parser.add_argument('--profile', choices=sorted(DEV_PROFILES), default='phase8-dev')
     parser.add_argument('--stages', default=None)
     a = parser.parse_args()
@@ -352,7 +376,7 @@ if __name__ == '__main__':
         owned_root()
         if a.action == 'init': initialize()
         elif a.action == 'grants': grants([s for s in a.stages.split(',') if s])
-        elif a.action == 'start': start(a.second)
+        elif a.action == 'start': start(a.second, a.launcher)
         elif a.action == 'stop': stop(a.db)
         elif a.action == 'status': status()
         else: print(json.dumps(preflight()))

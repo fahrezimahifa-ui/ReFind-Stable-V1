@@ -4,7 +4,8 @@
 .DESCRIPTION
   Starts the owned portable MariaDB (127.0.0.1:3307) if needed and the demo web worker (PHP 8.5 built-in server).
   It never resets, reseeds or migrates anything: the demo keeps whatever state it had when it was stopped.
-  The launcher's memory/disk gates and its two-web-instance limit still apply.
+  The launcher's gates still apply: 1 GiB free memory for this everyday start (tests and promotion keep 2 GiB),
+  5 GiB free disk, and at most two migration web workers.
 .PARAMETER NoBrowser
   Do not open the browser after starting.
 #>
@@ -24,10 +25,10 @@ if (-not (Test-Path (Join-Path $State 'demo-baseline.json'))) {
     Write-Warning 'No demo baseline was found: the demo may not be fully seeded.'
 }
 
-& python -B $Control start --profile demo
+& python -B $Control start --profile demo --launcher
 if ($LASTEXITCODE -ne 0) {
     Write-Host ''
-    Write-Host 'The demo did not start. The reason is shown above (for example the 2 GiB free-memory gate,'
+    Write-Host 'The demo did not start. The reason is shown above (for example the 1 GiB free-memory gate,'
     Write-Host 'two other migration web workers already running, or the database). Nothing was changed.'
     exit $LASTEXITCODE
 }
