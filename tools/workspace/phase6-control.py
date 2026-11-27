@@ -87,6 +87,34 @@ def checked_web(record):
     return live(record)
 
 
+def indexer_args():
+    return ['-c', str(INI), '-d', 'error_log=' + str(STATE / 'php-error.log'), '-d', 'sys_temp_dir=' + str(STATE / 'tmp'), str(APP / 'tools/visual-index.php'), 'loop']
+
+
+def checked_indexer(record):
+    if Path(record['exe']).resolve() != PHP.resolve() or record.get('profile') != PROFILE or record['required_args'] != indexer_args():
+        raise RuntimeError('Photo indexer command is outside the ' + PROFILE + ' launch template')
+    return live(record)
+
+
+def visual_auto_index():
+    # Photo search (Stable round 5): the background indexer runs only for launcher starts whose private visual.json opts in.
+    try:
+        return json.loads((STATE / 'visual.json').read_text(encoding='utf-8')).get('auto_index') is True
+    except (OSError, ValueError):
+        return False
+
+
+def start_indexer():
+    if not visual_auto_index():
+        return
+    key = 'indexer-' + PROFILE; r = load(RECORD)
+    if key in r and checked_indexer(r[key]):
+        print('Photo indexer already running'); return
+    spawn(RECORD, key, PHP, indexer_args(), PROFILE)
+    print('Started the ' + PROFILE + ' photo indexer (checks every 30 s; stops with the web worker)')
+
+
 def checked_db(record):
     allowed = [(DB / 'mariadbd.exe').resolve(), (DB / 'mysqld.exe').resolve()]
     if Path(record['exe']).resolve() not in allowed or record.get('profile') is not None or record['required_args'] != ['--defaults-file=' + str(ROOT / 'state/mariadb.ini')]:
@@ -308,17 +336,28 @@ def start(second=False, launcher=False):
     port = PORTS[1] if second else PORTS[0]; key = 'web-' + str(port)
     r = load(RECORD)
     if key in r and checked_web(r[key]):
-        print('Owned server already running: ' + str(port)); return
+        print('Owned server already running: ' + str(port))
+        if launcher:
+            start_indexer()
+        return
     if len(live_web()) + len(other_live_web()) >= 2:
         raise RuntimeError('At most two migration web instances may run')
     port_free(port)
     rec = spawn(RECORD, key, PHP, php_args(port), PROFILE)
     wait_port(rec, port, checked_web)
     print('Started owned ' + PROFILE + ' server at http://127.0.0.1:' + str(port) + '/')
+    if launcher:
+        start_indexer()
 
 
 def stop(db=False):
     owned_root(); r = load(RECORD)
+    for key, rec in list(r.items()):
+        if key.startswith('indexer-'):
+            p = checked_indexer(rec)
+            if p:
+                p.terminate(); p.wait(timeout=10)
+            del r[key]; save(RECORD, r)
     for key, rec in list(r.items()):
         if key.startswith('web-'):
             p = checked_web(rec)
@@ -352,7 +391,7 @@ def stop(db=False):
 def status():
     owned_root(); out = {}
     for key, rec in load(RECORD).items():
-        p = checked_web(rec); out[key] = {'running': p is not None, 'rss_mib': round(p.memory_info().rss / 1024 ** 2, 1) if p else 0}
+        p = checked_indexer(rec) if key.startswith('indexer-') else checked_web(rec); out[key] = {'running': p is not None, 'rss_mib': round(p.memory_info().rss / 1024 ** 2, 1) if p else 0}
     a = load(ACADEMIC)
     if 'db' in a:
         p = checked_db(a['db']); out['db'] = {'running': p is not None, 'rss_mib': round(p.memory_info().rss / 1024 ** 2, 1) if p else 0}

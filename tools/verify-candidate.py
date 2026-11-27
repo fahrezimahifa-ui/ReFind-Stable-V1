@@ -38,6 +38,8 @@ def now():
 def env(profile):
     e = dict(os.environ, REFIND_PROFILE=profile, PHP_INI_SCAN_DIR=str(ROOT / 'runtime/empty-ini-scan'))
     e.pop('REFIND_PHASE6_STAGES', None)
+    if profile == 'phase8-dev':
+        e['REFIND_VISUAL_PROVIDER'] = 'fake'  # photo search runs on the offline fake engine: verification never calls a provider
     return e
 
 
@@ -74,7 +76,7 @@ def port_open(port):
 def static_checks(profile, out):
     files = sorted({str(p) for d in ('app', 'config', 'routes', 'tests', 'tools', 'bootstrap', 'database') for p in (APP / d).rglob('*.php')})
     bad = [f for f in files if subprocess.run([str(PHP), '-c', str(INI), '-l', f], capture_output=True, env=env(profile)).returncode]
-    js = [f for f in ('public/js/student.js', 'public/js/bm.js', 'public/js/student-common.js', 'public/js/account-ui.js', 'public/js/registration-ui.js') if subprocess.run(['node', '--check', str(APP / f)], capture_output=True).returncode]
+    js = [f for f in ('public/js/student.js', 'public/js/bm.js', 'public/js/student-common.js', 'public/js/account-ui.js', 'public/js/registration-ui.js', 'public/js/profile.js', 'public/js/photo-search.js') if subprocess.run(['node', '--check', str(APP / f)], capture_output=True).returncode]
     py = [str(f) for f in (APP / 'tools').rglob('*.py') if subprocess.run([sys.executable, '-m', 'py_compile', str(f)], capture_output=True).returncode]
     steps.append({'step': 'static', 'php_files': len(files), 'failures': bad + js + py, 'passed': not (bad or js or py)})
     if bad or js or py:
@@ -143,12 +145,12 @@ def main():
             auth_backup = {f.name: f.read_bytes() for f in (state / 'auth').glob('*.json')}
             run('seed-students', php('tools/phase6-dev.php', 'seed-students'), profile, out)
             ctl('start'); ctl('start', '--second')
-            for suite in ('test-phase6-http.py', 'test-phase7-http.py', 'test-phase8-http.py', 'test-security-probes.py'):
+            for suite in ('test-phase6-http.py', 'test-phase7-http.py', 'test-phase8-http.py', 'test-security-probes.py', 'test-visual-http.py'):
                 if (APP / 'tools' / suite).exists():
                     run(suite[:-3], [sys.executable, '-B', str(APP / 'tools' / suite)], profile, out, parse_json=True)
             if a.browser:
                 ctl('stop'); ctl('start')
-                for suite in ('test-phase6-ui.py', 'test-phase7-ui.py', 'test-phase8-ui.py'):
+                for suite in ('test-phase6-ui.py', 'test-phase7-ui.py', 'test-phase8-ui.py', 'test-visual-ui.py'):
                     run(suite[:-3], [sys.executable, '-B', str(APP / 'tools' / suite)], profile, out, parse_json=True)
             ctl('stop')
             run('snapshot-restore', php('tools/phase6-dev.php', 'restore', snapshot), profile, out); snapshot = None

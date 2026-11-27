@@ -27,10 +27,7 @@
         <span class="hint">Up to 10 MB per input image. ReFind prepares smaller copies.</span><div class="upload-previews"></div><p class="upload-status" role="status"></p>
       </div><span class="field-error" data-error="photos" hidden></span>
     </details>
-    <div id="visual-report-consent" class="context-note" hidden>
-      <label><input type="checkbox" id="visual-report-opt-in"> Make my new public demo photos searchable by image</label>
-      <p class="hint">ReFind sends opted-in photos to Google Gemini. Use cleared demo photos without personal information.</p>
-    </div>
+    <p class="hint photo-search-report-hint" id="photo-search-report-hint" hidden>Public photos can also be found with photo search.</p>
     <section class="form-card private-card"><h2 id="private-heading">4 · Ownership details for Building Management</h2><p id="private-intro">This helps Building Management verify the owner and never appears on the public report.</p>
       <div class="field"><label for="r-clue" id="r-clue-label">A detail only the owner would know *</label><textarea class="form-control" id="r-clue" rows="3" maxlength="1000" required placeholder="For example, a small tear inside a pocket or a mark under the cover" aria-describedby="r-clue-hint"></textarea><span class="hint" id="r-clue-hint">At least 8 characters. Only Building Management sees it.</span><span class="field-error" data-error="clue" hidden></span></div>
       <div id="lost-evidence"><details class="optional-media"><summary>Private photos<span class="hint">Optional · up to 2 photos including saved ones (JPEG, PNG or WebP, up to 10 MB each)</span></summary>

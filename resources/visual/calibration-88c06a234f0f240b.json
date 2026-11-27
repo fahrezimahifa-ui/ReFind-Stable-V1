@@ -1,0 +1,7 @@
+{
+    "model_key": "fake:grey8+rgb4:v1:jpeg-white-v1",
+    "cutoff": 0.8,
+    "strong_cutoff": 0.95,
+    "fitted_on": "none: fixed test values",
+    "note": "Offline fake engine for tests and stable screenshots only (phase8-dev). It cannot tell objects apart; never use it for accuracy claims."
+}

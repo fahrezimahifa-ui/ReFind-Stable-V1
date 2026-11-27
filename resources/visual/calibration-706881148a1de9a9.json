@@ -1,0 +1,20 @@
+{
+    "model_key": "gemini:gemini-embedding-2:768:jpeg-white-v1",
+    "cutoff": 0.808126,
+    "strong_cutoff": 0.961587,
+    "fitted_on": [
+        "commons-validation-full (native licensed Wikimedia set, validation split + 60 distractors)",
+        "round2 batch A (phase8-dev photo reports)"
+    ],
+    "rule": "max same-object Hit@5 with at most 10% unrelated returns; ties: MRR, fewer unrelated, lower cutoff. Strong = halfway between highest non-target and lowest target above it.",
+    "eval_spec_sha256": "887bece47fba689c070e661c2e0ec6a1577a58ee82afdf8351b96f757ac39fed",
+    "held_out_result": {
+        "same_object_top5": "31/35",
+        "unrelated_returned": "0/21",
+        "p50_seconds": 1.484,
+        "p95_seconds": 2.722,
+        "provider_errors": 0
+    },
+    "evidence": "C:/ReFind-Laravel/evidence/visual/batch-a-20261127T022029Z-gemini-refit-batchb (private)",
+    "frozen": "2026-11-27, owner approval"
+}

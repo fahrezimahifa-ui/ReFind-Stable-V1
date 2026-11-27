@@ -61,9 +61,4 @@ final class DiscoveryController
         $auth->require(in_array($access, ['STUDENT', 'BUILDING_MANAGEMENT'], true) ? $access : null);
         throw new ContractError('This operation is not available in the proof of concept.', 501, 'feature_pending');
     }
-
-    public function visual()
-    {
-        throw new ContractError('Photo search is unavailable.', 403, 'visual_disabled');
-    }
 }

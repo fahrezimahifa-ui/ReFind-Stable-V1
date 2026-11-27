@@ -12,7 +12,7 @@ final class ApiMethodBoundary
         $methods = null;
         if (preg_match('~^api/(session|references|photos|avatar)\.php$~D', $path)) {
             $methods = ['GET'];
-        } elseif (preg_match('~^api/(auth|register|visual-search)\.php$~D', $path)) {
+        } elseif (preg_match('~^api/(auth|register|visual-search|staff-visual-search)\.php$~D', $path)) {
             $methods = ['POST'];
         } elseif (preg_match('~^api/(account|items|claims|staff|handovers|notifications)\.php$~D', $path)) {
             $methods = ['GET', 'POST'];
