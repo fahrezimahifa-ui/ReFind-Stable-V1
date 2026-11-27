@@ -681,3 +681,18 @@ p.context-note,p.journey-note,p.report-visibility{max-width:none}
 /* B4: desktop keeps the original Clear filters link on the results line; only phones move it into the drop-down. */
 @media(min-width:768px){.advanced-filters .filter-clear{display:none}}
 @media(max-width:767px){#clear-filters{display:none}.filter-panel.is-photo-results .type-tabs{margin-bottom:0}.filter-panel.is-photo-results .results-line{min-height:0;margin:0}}
+/* Round 5, Batch C: BM Reports-tab photo search. The pill sits inside the search box (full row), with a Lost/All switch;
+   photo-match queue cards show the matched photo and the similarity label beside the status chip. */
+.photo-search-top{display:flex;flex:1;flex-wrap:wrap;align-items:center;gap:8px 12px;min-width:0}
+.bm-filters .photo-search-chip{flex-basis:100%;margin-top:0}
+.photo-search-toggle{display:inline-flex;overflow:hidden;border:1px solid var(--line);border-radius:10px;background:var(--glass-control)}
+.photo-search-toggle button{min-height:36px;padding:6px 12px;border:0;background:transparent;color:var(--muted);font-size:13px;font-weight:600}
+.photo-search-toggle button+button{border-left:1px solid var(--line)}
+.photo-search-toggle button.active{background:var(--primary-soft);color:var(--navy)}
+.bm-queue-card.has-photo{display:grid;grid-template-columns:64px minmax(0,1fr);gap:12px;align-items:start}
+.bm-photo-thumb{width:64px;height:64px;border-radius:10px;background:var(--media);object-fit:cover}
+.bm-photo-text{display:block;min-width:0}
+.bm-photo-chips{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.bm-photo-label{display:inline-flex;align-items:center;padding:5px 8px;border-radius:7px;background:var(--primary-soft);color:var(--navy);font-size:12px;font-weight:700}
+.bm-photo-label.is-very_similar{background:var(--info-bg);color:var(--info)}
+@media(max-width:767px){.photo-search-toggle button{min-height:40px}}

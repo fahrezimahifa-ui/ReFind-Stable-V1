@@ -4,14 +4,17 @@
 // 250 KB, which also drops EXIF), up to 3 photos sit in a chip under the search row, and every change re-runs the
 // search. Photos stay in this tab's memory only; the server compares them and discards them.
 window.PhotoSearch=class{
-  constructor({field,after,endpoint,fields=()=>({}),onStart=()=>{},onResults=()=>{},onError=()=>{},onClear=()=>{}}){
+  constructor({field,after,container,endpoint,fields=()=>({}),toggle=null,onStart=()=>{},onResults=()=>{},onError=()=>{},onClear=()=>{}}){
     Object.assign(this,{endpoint,fields,onStart,onResults,onError,onClear});
+    // toggle: {label, options:[[value,text],...], value}: a small switch in the pill; changing it searches again.
+    this.toggle=toggle;this.toggleValue=toggle?toggle.value:null;
     this.files=[];this.sequence=0;this.busy=false;
     const camera='<svg class="ui-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.6l1.2-1.8c.3-.4.7-.7 1.2-.7h3c.5 0 .9.3 1.2.7L15.9 6h1.6A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/><circle cx="12" cy="12.5" r="3.25" stroke="currentColor" stroke-width="1.75"/></svg>';
     this.field=$(field).addClass('photo-search-field');
     this.button=$('<button>').attr({type:'button','aria-label':'Search by photo',title:'Search by photo'}).addClass('photo-search-camera').html(camera).appendTo(this.field);
     this.input=$('<input>').attr({type:'file',accept:'image/jpeg,image/png,image/webp','aria-hidden':'true',tabindex:'-1'}).addClass('visually-hidden photo-search-input').appendTo('body');
-    this.chip=$('<div>').addClass('photo-search-chip').attr({role:'group','aria-label':'Photo search'}).prop('hidden',true).insertAfter(after);
+    this.chip=$('<div>').addClass('photo-search-chip').attr({role:'group','aria-label':'Photo search'}).prop('hidden',true);
+    if(container)this.chip.appendTo(container);else this.chip.insertAfter(after);
     this.status=$('<p>').addClass('visually-hidden').attr({role:'status','aria-live':'polite'}).appendTo(this.chip);
     this.dialog=$(`<dialog class="avatar-dialog avatar-stage photo-crop" aria-labelledby="photo-crop-title">
       <div class="avatar-stage-bar"><button class="avatar-stage-icon" type="button" data-crop-close aria-label="Cancel photo search"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></button><h2 id="photo-crop-title">Crop to the item</h2></div>
@@ -24,6 +27,9 @@ window.PhotoSearch=class{
     this.bindCrop();
   }
   active(){return this.files.length>0;}
+  // Shown only where photo search applies (e.g. BM's Reports tab); hiding it ends photo mode without callbacks.
+  setAvailable(on){this.button.prop('hidden',!on);if(!on&&this.files.length)this.reset();}
+  reset(){this.sequence++;this.busy=false;this.files.forEach(f=>URL.revokeObjectURL(f.url));this.files=[];this.render();}
   pick(){if(this.busy)return;if(this.files.length>=3){this.say('You can search with up to 3 photos. Remove one to add another.');return;}this.input.trigger('click');}
   say(text){this.status.text('');setTimeout(()=>this.status.text(text),30);}
   // Crop screen ----------------------------------------------------------------------------------------------------
@@ -78,9 +84,11 @@ window.PhotoSearch=class{
     const thumbs=$('<span>').addClass('photo-search-thumbs');
     this.files.forEach((f,i)=>thumbs.append($('<span>').addClass('photo-search-thumb').append($('<img>').attr({src:f.url,alt:''}),$('<button>').attr({type:'button','aria-label':'Remove photo '+(i+1)}).addClass('photo-search-remove').text('×').on('click',()=>this.remove(i)))));
     const label=$('<span>').addClass('photo-search-label').text(this.busy?'Searching by photo…':'Searching by photo · '+this.files.length+' photo'+(this.files.length===1?'':'s'));
+    const top=$('<span>').addClass('photo-search-top').append(thumbs,label);
+    if(this.toggle){const group=$('<span>').addClass('photo-search-toggle').attr({role:'group','aria-label':this.toggle.label});this.toggle.options.forEach(([value,text])=>group.append($('<button>').attr({type:'button','aria-pressed':String(value===this.toggleValue)}).toggleClass('active',value===this.toggleValue).text(text).on('click',()=>{if(this.busy||value===this.toggleValue)return;this.toggleValue=value;this.render();this.search();})));top.append(group);}
     const add=$('<button>').attr('type','button').addClass('text-button photo-search-add').text('+ Add').prop('hidden',this.files.length>=3).on('click',()=>this.pick());
     const clear=$('<button>').attr('type','button').addClass('text-button photo-search-clear').text('× Clear').on('click',()=>this.clear());
-    c.prepend(thumbs,label,$('<span>').addClass('photo-search-actions').append(add,clear));
+    c.prepend(top,$('<span>').addClass('photo-search-actions').append(add,clear));
   }
   remove(index){if(this.busy)return;URL.revokeObjectURL(this.files[index].url);this.files.splice(index,1);if(!this.files.length){this.clear();return;}this.render();this.search();}
   clear(restore=true){this.sequence++;this.busy=false;this.files.forEach(f=>URL.revokeObjectURL(f.url));this.files=[];this.render();this.onClear(restore);}

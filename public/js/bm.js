@@ -8,6 +8,7 @@ $(async function () {
   let selected = params.get(tab === 'claims' ? 'claim' : tab === 'reports' ? 'report' : 'handover') || null;
   let pinned = Boolean(selected), initialFocus = Boolean(selected), current = null, page = 1;
   let request = 0, detailRequest = 0, saving = false, operation = null, refs, trigger = null, timer;
+  let photo = null, photoData = null; // Reports-tab photo search (round 5)
   const drafts = new Map();
   const labels = {approved:'Approve claim', rejected:'Reject claim', need_more_info:'Request more info', status:'Update report status', schedule:'Schedule pickup', reschedule:'Reschedule pickup', cancel_schedule:'Cancel appointment', complete:'Confirm item returned', release:'Release pickup'};
   const done = {approved:'Claim approved.', rejected:'Claim rejected.', need_more_info:'More information requested from the claimant.', status:'Report status updated.', schedule:'Pickup scheduled.', reschedule:'Pickup rescheduled.', cancel_schedule:'Appointment cancelled. Ownership stays approved.', complete:'Item return confirmed.', release:'Pickup released. The report and any linked Lost report are available again.'};
@@ -247,7 +248,8 @@ $(async function () {
     $('#bm-loading').prop('hidden',false); $('#bm-retry').prop('hidden',true); if (!keepFeedback) $('#bm-feedback').prop('hidden',true);
     try {
       const query = {q:$('#bm-search').val().trim(),status:$('#bm-state').val(),page,limit:24};
-      const data = tab === 'handover' ? await get('handovers.php',query) : await get('staff.php',{...query,resource:tab});
+      // Photo search (round 5): ranked matches replace the queue page while the photo pill is active.
+      const data = tab === 'reports' && photoData ? photoData : tab === 'handover' ? await get('handovers.php',query) : await get('staff.php',{...query,resource:tab});
       if (sequence !== request) return;
       // A remembered page past the end (records were decided meanwhile) falls back to the last page.
       if (data.total && page > data.pages) return loadQueue(data.pages, keepFeedback);
@@ -255,21 +257,24 @@ $(async function () {
       if (!pinned && !records.some(record => String(record[idKey()]) === selected)) selected = records.length ? String(records[0][idKey()]) : null;
       const outside = Boolean(selected) && !records.some(record => String(record[idKey()]) === selected);
       $('#bm-selection-note').text(mobile() ? 'This linked or saved record is not in the current list. Back to queue returns to that list.' : 'This linked or saved record is not in the current list. Choose a card to return to it.').prop('hidden',!outside);
-      const box = $('#bm-queue-list').empty(); $('#queue-count').text(U.plural(data.total, 'record'));
+      const box = $('#bm-queue-list').empty(); $('#queue-count').text(tab === 'reports' && photoData ? data.total + ' photo match' + (data.total === 1 ? '' : 'es') : U.plural(data.total, 'record'));
       records.forEach(record => {
         const id = String(record[idKey()]), code = tab === 'claims' ? record.claim_status : tab === 'reports' ? record.status_code : record.handover_status;
         const label = tab === 'claims' ? U.claimNames[code] : tab === 'reports' ? U.statusNames[code] : U.pickupNames[code];
         const detail = tab === 'claims' ? record.claimant_name + ' · ' + U.plural(record.proof_count, 'supporting image') : tab === 'reports' ? (record.item_type === 'LOST' ? 'Lost · ' : 'Found · ') + U.locationText(record) : record.claimant_name + ' · ' + (code === 'COMPLETED' ? 'Returned' : record.scheduled_at ? U.date(record.scheduled_at,true) : 'Not scheduled yet');
         const summary=$('<p>').text(detail);
         if(tab!=='reports'){const extra=tab==='claims'?U.plural(record.proof_count,'supporting image'):code==='COMPLETED'?'Returned':record.scheduled_at?U.date(record.scheduled_at,true):'Not scheduled yet';summary.empty().addClass('bm-queue-person').append(shell.identity(record.claimant_name,record.claimant_avatar_url),$('<span>').text(extra));}
-        box.append($('<button>').addClass('bm-queue-card').toggleClass('selected',id === selected).attr({type:'button','data-record-id':id,'aria-pressed':String(id === selected)}).append(U.stateChip(code,label),tab==='handover'&&U.pickupPastDue(record)?$('<span>').addClass('past-due-flag').text('Time passed'):null,$('<h3>').attr('title',record.title).text(U.titleParts(record.title).display),U.demoChip(record.title),summary).on('click',async function () {
+        const parts = [U.stateChip(code,label),tab==='handover'&&U.pickupPastDue(record)?$('<span>').addClass('past-due-flag').text('Time passed'):null,$('<h3>').attr('title',record.title).text(U.titleParts(record.title).display),U.demoChip(record.title),summary];
+        // Photo matches: the matched photo as a thumbnail and the similarity label beside the status chip.
+        const content = record.match_label ? [$('<img>').addClass('bm-photo-thumb').attr({src:U.thumbUrl(record.photos[0]),alt:'',loading:'lazy',width:64,height:64}),$('<span>').addClass('bm-photo-text').append($('<span>').addClass('bm-photo-chips').append(parts[0],$('<span>').addClass('bm-photo-label is-'+record.match_label).text(record.match_label==='very_similar'?'Very similar':'Similar')),...parts.slice(1))] : parts;
+        box.append($('<button>').addClass('bm-queue-card').toggleClass('selected',id === selected).toggleClass('has-photo',Boolean(record.match_label)).attr({type:'button','data-record-id':id,'aria-pressed':String(id === selected)}).append(...content).on('click',async function () {
           if (saving) return; selected = id; pinned = false; $('#bm-selection-note').prop('hidden',true);
           // On phones the detail is its own step, so the system Back button returns to the list.
           if (mobile() && !history.state?.bmDetail) history.pushState({bmDetail:true}, '', app.base + 'admin.html?' + new URLSearchParams({tab, [paramKey()]: id}));
           setView('detail'); await loadDetail(true);
         }));
       });
-      if (!records.length) box.append(query.q ? emptyDetail('No matching records','Try another search word or clear the search.') : emptyDetail('Queue is clear','Nothing in this view needs attention. Change the filter to revisit outcomes.'));
+      if (!records.length) box.append(tab === 'reports' && photoData ? emptyDetail('No photo matches','Try All reports, another state, or another photo.') : query.q ? emptyDetail('No matching records','Try another search word or clear the search.') : emptyDetail('Queue is clear','Nothing in this view needs attention. Change the filter to revisit outcomes.'));
       const pager = $('#bm-pager').empty();
       if (data.pages > 1) pager.append($('<button>').addClass('btn btn-outline').attr('type','button').prop('disabled',page <= 1).text('Previous').on('click',() => { resetSelection(); loadQueue(page - 1); }),$('<span>').text(page + ' / ' + data.pages),$('<button>').addClass('btn btn-outline').attr('type','button').prop('disabled',page >= data.pages).text('Next').on('click',() => { resetSelection(); loadQueue(page + 1); }));
       // Remove the queue loading row before focus calculates its final scroll position.
@@ -475,9 +480,24 @@ $(async function () {
     if (savedStatus && $('#bm-state option').toArray().some(option => option.value === savedStatus)) $('#bm-state').val(savedStatus);
     $('#bm-search').val((params.get('q') || '').slice(0, 100));
     page = Number.isInteger(savedPage) && savedPage >= 1 && savedPage <= 100000 ? savedPage : 1;
-    $('#bm-search').on('input',() => { if (saving) return; clearTimeout(timer); resetSelection(); timer = setTimeout(() => loadQueue(1),200); });
-    $('#bm-state').on('change',() => { if (saving) return; clearTimeout(timer); resetSelection(); loadQueue(1); });
-    $('[data-bm-tab]').on('click',async function () { if (saving) return; clearTimeout(timer); resetSelection(); tab = $(this).attr('data-bm-tab'); page = 1; $('#bm-search').val(''); switchState(); syncUrl(); await loadQueue(1); });
+    // Photo search on the Reports tab (round 5): Lost reports first, a switch in the pill widens to all reports; the State
+    // filter re-runs the search. Typed words are set aside and come back with × Clear. Desktop opens the best match.
+    const wordsPlaceholder = $('#bm-search').attr('placeholder');
+    const photoNotice = $('<p>').addClass('photo-search-notice').attr('role','status').prop('hidden',true).insertAfter('.bm-filters');
+    const notice = text => photoNotice.text(text || '').prop('hidden',!text);
+    let photoMode = false, savedWords = '';
+    function endPhoto(restore) { photoData = null; notice(''); if (photoMode) { $('#bm-search').attr('placeholder',wordsPlaceholder).val(restore ? savedWords : $('#bm-search').val()); photoMode = false; savedWords = ''; } }
+    if (state.visual_staff_enabled === true && reportsAvailable) photo = new PhotoSearch({field:$('#bm-search').closest('.search-field'),container:'.bm-filters',endpoint:'staff-visual-search.php',
+      toggle:{label:'Reports to compare',options:[['LOST','Lost reports'],['','All reports']],value:'LOST'},
+      fields:() => ({type:photo.toggleValue,status:$('#bm-state').val()}),
+      onStart:() => { if (!photoMode) savedWords = $('#bm-search').val(); photoMode = true; $('#bm-search').val('').attr('placeholder','Searching by photo'); notice(''); resetSelection(); },
+      onResults:r => { photoData = r.state === 'matches' ? {reports:r.reports,total:r.reports.length,page:1,pages:1} : null; if (!photoData) notice(r.state === 'no_match' ? 'No close photo matches. Try cropping closer to the item or adding another angle.' : 'Photo search is not ready yet: report photos are still being prepared.'); pinned = false; selected = null; loadQueue(1); },
+      onError:e => { photoData = null; notice(e.message || 'Photo search is unavailable. You can still search by keyword.'); loadQueue(1); },
+      onClear:restore => { endPhoto(restore); resetSelection(); loadQueue(1); }});
+    photo?.setAvailable(tab === 'reports');
+    $('#bm-search').on('input',() => { if (saving) return; clearTimeout(timer); if (photo?.active()) { photo.clear(false); return; } resetSelection(); timer = setTimeout(() => loadQueue(1),200); });
+    $('#bm-state').on('change',() => { if (saving) return; clearTimeout(timer); if (photo?.active() && tab === 'reports') { photo.search(); return; } resetSelection(); loadQueue(1); });
+    $('[data-bm-tab]').on('click',async function () { if (saving) return; clearTimeout(timer); resetSelection(); tab = $(this).attr('data-bm-tab'); page = 1; endPhoto(false); photo?.setAvailable(tab === 'reports'); $('#bm-search').val(''); switchState(); syncUrl(); await loadQueue(1); });
     $('#bm-retry').on('click',() => loadQueue(page)); U.trackReturn('admin', 'Back to Review Queue'); await loadQueue();
     U.restoreReturn('admin');
     // A decision note typed before the session ended comes back in its dialog.
