@@ -20,9 +20,15 @@ final class InferHubProvider implements Provider
 
     public function __construct(private array $config) {}
 
+    /** Last descriptions (describe_match), for evaluation evidence only; never returned to users. */
+    public array $descriptions = [];
+
     public function modelKey(): string
     {
         $c = $this->config;
+        if ($c['strategy'] === 'describe_match') {
+            return implode(':', ['inferhub', 'describe_match', $c['vision_model'], Describer::VERSION, Preprocess::VERSION]);
+        }
 
         return implode(':', ['inferhub', $c['strategy'], $c['embedding_model'], (string) ($c['dimensions'] ?? 'native'), $c['request_format'], Preprocess::VERSION]);
     }
@@ -32,9 +38,8 @@ final class InferHubProvider implements Provider
         if ($jpegs === []) {
             return [];
         }
-        if ($this->config['strategy'] !== 'image_embedding') {
-            // describe_embed (vision description -> text embedding) is wired once Batch A picks its models.
-            throw new ProviderError('unavailable', 60);
+        if ($this->config['strategy'] === 'describe_match') {
+            return $this->describe($jpegs);
         }
         $body = self::imageEmbeddingRequest($this->config, $jpegs);
         $response = $this->post('/embeddings', $body);
@@ -92,6 +97,45 @@ final class InferHubProvider implements Provider
         }
 
         return array_values($out);
+    }
+
+    /** One vision call per photo, all in parallel, so 1–3 query photos cost one round-trip of time. */
+    private function describe(array $jpegs): array
+    {
+        $key = VisualConfig::key($this->config);
+        $url = $this->config['base_url'].'/chat/completions';
+        $timeout = $this->config['timeout_seconds'];
+        $model = $this->config['vision_model'];
+        try {
+            $responses = Http::pool(fn ($pool) => array_map(fn ($jpeg) => $pool->withToken($key)->acceptJson()->asJson()
+                ->connectTimeout(min(5, $timeout))->timeout($timeout)->withoutRedirecting()
+                ->post($url, Describer::request($model, $jpeg)), $jpegs));
+        } catch (\Throwable) {
+            throw new ProviderError('unavailable', 60);
+        }
+        $this->descriptions = [];
+        $this->usage = ['prompt_tokens' => 0, 'completion_tokens' => 0, 'total_tokens' => 0];
+        $vectors = [];
+        foreach (array_values($responses) as $response) {
+            if ($response instanceof ConnectionException) {
+                throw new ProviderError('timeout');
+            }
+            if (! $response instanceof \Illuminate\Http\Client\Response) {
+                throw new ProviderError('unavailable', 60);
+            }
+            if (! $response->successful()) {
+                throw ProviderError::fromStatus($response->status(), (int) $response->header('Retry-After'));
+            }
+            $json = $response->json();
+            foreach (['prompt_tokens', 'completion_tokens', 'total_tokens'] as $k) {
+                $this->usage[$k] += (int) ($json['usage'][$k] ?? 0);
+            }
+            $description = Describer::parse($json);
+            $this->descriptions[] = $description;
+            $vectors[] = Describer::vector($description);
+        }
+
+        return $vectors;
     }
 
     /** One JSON POST under the configured timeout; maps every failure to a reason code. */

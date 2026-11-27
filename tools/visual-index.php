@@ -280,6 +280,41 @@ if ($action === 'status') {
         $out['error_type'] = is_array($err) ? ($err['type'] ?? $err['code'] ?? null) : null;
     }
     visual_out($out);
+} elseif ($action === 'probe-gemini') {
+    // Speed probe: K single-photo embedding calls with licensed test photos (never prints the key).
+    $config = VisualConfig::parse(['provider' => 'gemini', 'timeout_seconds' => 20]);
+    $provider = new \App\Visual\GeminiProvider($config);
+    $times = [];
+    foreach (['demo-reference', 'demo-positive', 'pair-1-reference'] as $name) {
+        if (Budget::forProfile($config)->reserve(null, 1) > 0) {
+            throw new RuntimeException('Budget exhausted for now.');
+        }
+        $started = microtime(true);
+        try {
+            $v = $provider->embed([Preprocess::prepare((string) file_get_contents(Workspace::ROOT.'/fixtures/visual-commons/'.$name.'.jpg'))]);
+            $times[] = ['photo' => $name, 'seconds' => round(microtime(true) - $started, 3), 'dimensions' => count($v[0])];
+        } catch (ProviderError $e) {
+            $times[] = ['photo' => $name, 'seconds' => round(microtime(true) - $started, 3), 'error' => $e->reason, 'http_status' => $e->status];
+        }
+    }
+    visual_out(['model' => $config['embedding_model'], 'calls' => $times]);
+} elseif ($action === 'probe-describe') {
+    // One describe call with a licensed test photo: shows the description, latency and token usage (never the key).
+    $raw = visual_raw_config();
+    $image = $argv[3] ?? Workspace::ROOT.'/fixtures/visual-commons/demo-reference.jpg';
+    Workspace::assertPath($image);
+    $config = VisualConfig::parse(['provider' => 'inferhub', 'strategy' => 'describe_match', 'vision_model' => $argv[2] ?? ''] + array_intersect_key($raw, array_flip(['base_url', 'key_file', 'timeout_seconds', 'daily_cap', 'install_per_minute', 'user_per_minute'])));
+    if (Budget::forProfile($config)->reserve(null, 1) > 0) {
+        throw new RuntimeException('Budget exhausted for now.');
+    }
+    $provider = new \App\Visual\InferHubProvider($config);
+    $started = microtime(true);
+    try {
+        $provider->embed([Preprocess::prepare((string) file_get_contents($image))]);
+        visual_out(['model' => $argv[2], 'seconds' => round(microtime(true) - $started, 3), 'description' => $provider->descriptions[0], 'usage' => $provider->usage]);
+    } catch (ProviderError $e) {
+        visual_out(['model' => $argv[2], 'seconds' => round(microtime(true) - $started, 3), 'error' => $e->reason, 'http_status' => $e->status]);
+    }
 } else {
     throw new RuntimeException('Unknown action.');
 }

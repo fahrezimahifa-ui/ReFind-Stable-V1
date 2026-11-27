@@ -18,7 +18,7 @@ final class VisualConfig
 {
     public const SECRETS = Workspace::ROOT.'/state/secrets';
 
-    public const STRATEGIES = ['image_embedding', 'describe_embed'];
+    public const STRATEGIES = ['image_embedding', 'describe_match'];
 
     private const DEFAULTS = ['rerank' => false, 'timeout_seconds' => 8, 'user_per_minute' => 9, 'install_per_minute' => 30, 'daily_cap' => 500, 'auto_index' => false, 'dimensions' => null, 'embedding_model' => null, 'vision_model' => null, 'request_format' => 'openai', 'key_file' => self::SECRETS.'/inferhub.key'];
 
@@ -32,9 +32,24 @@ final class VisualConfig
         if ($unknown = array_diff(array_keys($raw), $known)) {
             throw new \InvalidArgumentException('Unknown visual.json field: '.implode(', ', $unknown));
         }
+        if (($raw['provider'] ?? null) === 'gemini') {
+            // Google's host is fixed in GeminiProvider; base_url is not used for it.
+            $raw += ['embedding_model' => 'gemini-embedding-2', 'dimensions' => 768, 'key_file' => self::SECRETS.'/gemini.key', 'strategy' => 'image_embedding'];
+            if (isset($raw['base_url']) || $raw['strategy'] !== 'image_embedding') {
+                throw new \InvalidArgumentException('gemini uses Google\'s fixed host and image_embedding only.');
+            }
+        }
         $c = $raw + self::DEFAULTS;
-        if (! in_array($c['provider'] ?? null, ['inferhub', 'fake'], true)) {
-            throw new \InvalidArgumentException('provider must be "inferhub" or "fake".');
+        if (! in_array($c['provider'] ?? null, ['inferhub', 'gemini', 'fake'], true)) {
+            throw new \InvalidArgumentException('provider must be "inferhub", "gemini" or "fake".');
+        }
+        if ($c['provider'] === 'gemini') {
+            if (! is_string($c['embedding_model']) || ! preg_match('~^gemini-[a-z0-9.-]{1,60}$~D', $c['embedding_model'])) {
+                throw new \InvalidArgumentException('embedding_model must be a Gemini model name.');
+            }
+            if ($c['dimensions'] !== null && (! is_int($c['dimensions']) || $c['dimensions'] < 64 || $c['dimensions'] > 4096)) {
+                throw new \InvalidArgumentException('dimensions must be null or 64–4096.');
+            }
         }
         foreach (['rerank', 'auto_index'] as $flag) {
             if (! is_bool($c[$flag])) {
@@ -59,11 +74,11 @@ final class VisualConfig
                     throw new \InvalidArgumentException($key.' is not a valid model or format name.');
                 }
             }
-            if (! is_string($c['embedding_model'])) {
-                throw new \InvalidArgumentException('embedding_model is required.');
+            if ($c['strategy'] === 'image_embedding' && ! is_string($c['embedding_model'])) {
+                throw new \InvalidArgumentException('embedding_model is required for image_embedding.');
             }
-            if (($c['strategy'] === 'describe_embed' || $c['rerank']) && ! is_string($c['vision_model'])) {
-                throw new \InvalidArgumentException('vision_model is required for describe_embed or rerank.');
+            if (($c['strategy'] === 'describe_match' || $c['rerank']) && ! is_string($c['vision_model'])) {
+                throw new \InvalidArgumentException('vision_model is required for describe_match or rerank.');
             }
             if ($c['dimensions'] !== null && (! is_int($c['dimensions']) || $c['dimensions'] < 64 || $c['dimensions'] > 4096)) {
                 throw new \InvalidArgumentException('dimensions must be null or 64–4096.');
@@ -173,6 +188,10 @@ final class VisualConfig
     {
         $c = $config ?? self::require();
 
-        return $c['provider'] === 'fake' ? new FakeProvider : new InferHubProvider($c);
+        return match ($c['provider']) {
+            'fake' => new FakeProvider,
+            'gemini' => new GeminiProvider($c),
+            default => new InferHubProvider($c),
+        };
     }
 }

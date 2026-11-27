@@ -74,6 +74,8 @@ final class VisualSearchContractTest extends TestCase
         foreach (glob($dir.'/*.json') ?: [] as $file) {
             $this->authFiles[$file] = file_get_contents($file);
         }
+        // Start from an empty photo-search budget so live use moments earlier cannot rate-limit the test users.
+        @unlink($dir.'/visual-budget.json');
         try {
             $body();
         } finally {

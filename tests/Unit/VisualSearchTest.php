@@ -4,7 +4,9 @@ namespace Tests\Unit;
 
 use App\Visual\Budget;
 use App\Visual\Calibration;
+use App\Visual\Describer;
 use App\Visual\FakeProvider;
+use App\Visual\GeminiProvider;
 use App\Visual\IndexStore;
 use App\Visual\InferHubProvider;
 use App\Visual\Preprocess;
@@ -184,6 +186,68 @@ final class VisualSearchTest extends TestCase
         $this->assertSame('unavailable', ProviderError::fromStatus(500)->reason);
     }
 
+    public function test_describe_and_match_parsing_hashing_and_shrinking(): void
+    {
+        $reply = ['choices' => [['message' => ['content' => "```json\n{\"category\":\"Game_Controller\",\"object\":\"Dreamcast controller\",\"colors\":[\"white\",\"teal\",\"grey\"],\"brand\":\"Sega Dreamcast\",\"visible_text\":[\"DREAMCAST\",\"start\"],\"material\":\"plastic\",\"features\":[\"VMU slot\",\"attached cable\"]}\n```"]]]];
+        $d = Describer::parse($reply);
+        $this->assertSame('game_controller', $d['category']);
+        $this->assertSame(['white', 'grey'], $d['colors'], 'colours outside the palette are dropped');
+        $this->assertSame('sega dreamcast', $d['brand']);
+        $this->assertSame(['dreamcast', 'start'], $d['visible_text']);
+        $same = Describer::vector($d);
+        $this->assertCount(Describer::DIMENSIONS, $same);
+        $this->assertEqualsWithDelta(1.0, Vector::cosine($same, Describer::vector($d)), 1e-9);
+        $sibling = Describer::vector(['category' => 'game_controller', 'object' => 'xbox controller', 'colors' => ['black'], 'brand' => 'xbox', 'visible_text' => [], 'material' => 'plastic', 'features' => ['analog sticks']]);
+        $other = Describer::vector(['category' => 'umbrella', 'object' => 'folding umbrella', 'colors' => ['blue'], 'brand' => null, 'visible_text' => [], 'material' => 'fabric', 'features' => ['white dots']]);
+        $this->assertGreaterThan(Vector::cosine($same, $other), Vector::cosine($same, $sibling), 'same category ranks above an unrelated item');
+        $this->assertSame('other', Describer::parse(['choices' => [['message' => ['content' => '{"category":"spaceship","object":"x"}']]]])['category']);
+        foreach ([null, ['choices' => [['message' => ['content' => 'no json here']]]], ['choices' => []]] as $bad) {
+            try {
+                Describer::parse($bad);
+                $this->fail('accepted an unusable reply');
+            } catch (ProviderError $e) {
+                $this->assertSame('bad_response', $e->reason);
+            }
+        }
+        $big = imagecreatetruecolor(1000, 500);
+        ob_start();
+        imagejpeg($big);
+        $small = getimagesizefromstring(Describer::shrink((string) ob_get_clean()));
+        $this->assertSame([640, 320], [$small[0], $small[1]]);
+        $body = Describer::request('m', Describer::shrink((string) (function () { $i = imagecreatetruecolor(20, 10); ob_start(); imagejpeg($i); return ob_get_clean(); })()));
+        $this->assertSame(0, $body['temperature']);
+        $this->assertStringStartsWith('data:image/jpeg;base64,', $body['messages'][1]['content'][0]['image_url']['url']);
+        $this->assertSame('inferhub:describe_match:v/m:'.Describer::VERSION.':'.Preprocess::VERSION, (new InferHubProvider(VisualConfig::parse(['provider' => 'inferhub', 'base_url' => 'https://api.example.test/v1', 'strategy' => 'describe_match', 'vision_model' => 'v/m'])))->modelKey());
+    }
+
+    public function test_gemini_request_parsing_and_fixed_host(): void
+    {
+        $body = GeminiProvider::request('gemini-embedding-2', 768, ['abc', 'de']);
+        $this->assertCount(2, $body['requests']);
+        $this->assertSame(['model' => 'models/gemini-embedding-2', 'content' => ['parts' => [['inline_data' => ['mime_type' => 'image/jpeg', 'data' => 'YWJj']]]], 'output_dimensionality' => 768], $body['requests'][0]);
+        $this->assertEqualsWithDelta([[0.6, 0.8]], GeminiProvider::parse(['embeddings' => [['values' => [3, 4]]]], 1, 2), 1e-12);
+        foreach ([null, ['embeddings' => []], ['embeddings' => [['values' => [1, 2, 3]]]], ['embeddings' => [['values' => [0, 0]]]]] as $bad) {
+            try {
+                GeminiProvider::parse($bad, 1, 2);
+                $this->fail('accepted a bad Gemini response');
+            } catch (ProviderError $e) {
+                $this->assertSame('bad_response', $e->reason);
+            }
+        }
+        $c = VisualConfig::parse(['provider' => 'gemini']);
+        $this->assertSame(['gemini-embedding-2', 768, 'image_embedding'], [$c['embedding_model'], $c['dimensions'], $c['strategy']]);
+        $this->assertStringEndsWith('/state/secrets/gemini.key', $c['key_file']);
+        $this->assertSame('gemini:gemini-embedding-2:768:'.Preprocess::VERSION, (new GeminiProvider($c))->modelKey());
+        foreach ([['provider' => 'gemini', 'base_url' => 'https://evil.example/v1'], ['provider' => 'gemini', 'embedding_model' => 'other-model'], ['provider' => 'gemini', 'strategy' => 'describe_match']] as $bad) {
+            try {
+                VisualConfig::parse($bad);
+                $this->fail('accepted invalid Gemini config: '.json_encode($bad));
+            } catch (\InvalidArgumentException) {
+                $this->addToAssertionCount(1);
+            }
+        }
+    }
+
     public function test_private_config_is_strict(): void
     {
         $ok = VisualConfig::parse(['provider' => 'inferhub', 'base_url' => 'https://api.example.test/v1/', 'strategy' => 'image_embedding', 'embedding_model' => 'org/model-1']);
@@ -197,7 +261,7 @@ final class VisualSearchTest extends TestCase
             ['provider' => 'inferhub', 'base_url' => 'http://api.example.test', 'strategy' => 'image_embedding', 'embedding_model' => 'm'],
             ['provider' => 'inferhub', 'base_url' => 'https://u:p@api.example.test', 'strategy' => 'image_embedding', 'embedding_model' => 'm'],
             ['provider' => 'inferhub', 'base_url' => 'https://api.example.test', 'strategy' => 'image_embedding'],
-            ['provider' => 'inferhub', 'base_url' => 'https://api.example.test', 'strategy' => 'describe_embed', 'embedding_model' => 'm'],
+            ['provider' => 'inferhub', 'base_url' => 'https://api.example.test', 'strategy' => 'describe_match'],
             ['provider' => 'fake', 'daily_cap' => 0],
             ['provider' => 'fake', 'key_file' => 'C:/ReFind-Laravel/state/demo/inferhub.key'],
             [1, 2],

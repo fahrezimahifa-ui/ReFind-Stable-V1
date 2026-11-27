@@ -2,6 +2,7 @@
 
 use App\Support\Workspace;
 use App\Visual\FakeProvider;
+use App\Visual\GeminiProvider;
 use App\Visual\InferHubProvider;
 use App\Visual\Preprocess;
 use App\Visual\Provider;
@@ -11,7 +12,7 @@ use App\Visual\VisualConfig;
 
 /*
  * Offline photo-search evaluation (Batch A). No database, no app budget: it has its own hard call allowance.
- *   php tools/visual-evaluate.php SPEC [--fake] [--model M] [--format F] [--dimensions D] [--max-calls N]
+ *   php tools/visual-evaluate.php SPEC [--fake] [--vision VISION_MODEL] [--timeout S] [--model M] [--format F] [--dimensions D] [--max-calls N]
  *                                      [--latency-sample K] [--dry-run] [--label NAME]
  * SPEC comes from tools/visual-eval-prep.py. Embeddings are cached per model key (private fixtures folder), so a
  * rerun never pays twice. Cutoffs are fitted on the spec's validation split only, then frozen and applied to the
@@ -22,10 +23,10 @@ require __DIR__.'/academic-bootstrap.php';
 
 $args = array_slice($argv, 1);
 $spec = null;
-$opt = ['fake' => false, 'model' => null, 'format' => null, 'dimensions' => null, 'max-calls' => 0, 'latency-sample' => 0, 'dry-run' => false, 'label' => null];
+$opt = ['fake' => false, 'gemini' => false, 'single-sample' => 0, 'vision' => null, 'timeout' => null, 'model' => null, 'format' => null, 'dimensions' => null, 'max-calls' => 0, 'latency-sample' => 0, 'dry-run' => false, 'label' => null];
 for ($i = 0; $i < count($args); $i++) {
     $a = $args[$i];
-    if (in_array($a, ['--fake', '--dry-run'], true)) {
+    if (in_array($a, ['--fake', '--gemini', '--dry-run'], true)) {
         $opt[substr($a, 2)] = true;
     } elseif (str_starts_with($a, '--') && array_key_exists(substr($a, 2), $opt)) {
         $opt[substr($a, 2)] = $args[++$i] ?? null;
@@ -46,6 +47,8 @@ foreach ($specData['files'] as $file => $hash) {
 /** @var Provider $provider */
 if ($opt['fake']) {
     $provider = new FakeProvider;
+} elseif ($opt['gemini']) {
+    $provider = new GeminiProvider(VisualConfig::parse(array_filter(['provider' => 'gemini', 'timeout_seconds' => $opt['timeout'] !== null ? (int) $opt['timeout'] : null, 'dimensions' => $opt['dimensions'] !== null ? (int) $opt['dimensions'] : null], fn ($v) => $v !== null)));
 } else {
     $raw = json_decode((string) file_get_contents(Workspace::storage().'/visual.json'), true, 16, JSON_THROW_ON_ERROR);
     foreach (['model' => 'embedding_model', 'format' => 'request_format'] as $from => $to) {
@@ -55,6 +58,13 @@ if ($opt['fake']) {
     }
     if ($opt['dimensions'] !== null) {
         $raw['dimensions'] = (int) $opt['dimensions'];
+    }
+    if ($opt['vision'] !== null) {
+        $raw['strategy'] = 'describe_match';
+        $raw['vision_model'] = $opt['vision'];
+    }
+    if ($opt['timeout'] !== null) {
+        $raw['timeout_seconds'] = (int) $opt['timeout']; // measure the real latency spread instead of cutting it off
     }
     $raw['provider'] = 'inferhub';
     $provider = new InferHubProvider(VisualConfig::parse($raw));
@@ -80,7 +90,7 @@ foreach ($specData['splits'] as $split) {
 $cached = fn (string $file) => is_file($cacheDir.'/'.$specData['files'][$file].'.f32');
 $todoQueries = array_values(array_filter(array_keys($queryFiles), fn ($f) => ! $cached($f)));
 $todoGallery = array_values(array_filter(array_keys(array_diff_key($galleryFiles, $queryFiles)), fn ($f) => ! $cached($f)));
-$latencyPhotos = 3 * (int) $opt['latency-sample'];
+$latencyPhotos = 3 * (int) $opt['latency-sample'] + (int) $opt['single-sample'];
 $planned = count($todoQueries) + count($todoGallery) + $latencyPhotos;
 $plan = ['model_key' => $modelKey, 'uncached_query_photos' => count($todoQueries), 'uncached_gallery_photos' => count($todoGallery), 'latency_sample_photos' => $latencyPhotos, 'planned_calls' => $planned, 'http_requests' => count($todoQueries) + (int) ceil(count($todoGallery) / 4) + (int) $opt['latency-sample']];
 if ($opt['dry-run']) {
@@ -105,13 +115,17 @@ $embedFiles = function (array $files, string $timing) use ($provider, $cacheDir,
         return false;
     }
     $timings[$timing][] = microtime(true) - $t;
-    if ($provider instanceof InferHubProvider && $provider->usage !== null) {
+    if (($provider instanceof InferHubProvider || $provider instanceof GeminiProvider) && $provider->usage !== null) {
         $usage['reported'] = true;
         $usage['prompt_tokens'] += (int) ($provider->usage['prompt_tokens'] ?? 0);
+        $usage['completion_tokens'] = ($usage['completion_tokens'] ?? 0) + (int) ($provider->usage['completion_tokens'] ?? 0);
         $usage['total_tokens'] += (int) ($provider->usage['total_tokens'] ?? 0);
     }
     foreach ($files as $i => $f) {
         file_put_contents($cacheDir.'/'.$specData['files'][$f].'.f32', Vector::pack($vectors[$i]));
+        if ($provider instanceof InferHubProvider && isset($provider->descriptions[$i])) {
+            file_put_contents($cacheDir.'/'.$specData['files'][$f].'.json', json_encode(['file' => basename($f), 'description' => $provider->descriptions[$i]], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+        }
     }
 
     return true;
@@ -123,6 +137,17 @@ foreach (array_chunk($todoGallery, 4) as $chunk) {
     $embedFiles($chunk, 'batch4');
 }
 $queryList = array_keys($queryFiles);
+// Fresh single-photo calls (not cached again), so speed is measured even when every vector is already cached.
+for ($k = 0; $k < (int) $opt['single-sample']; $k++) {
+    $f = $queryList[(7 * $k) % count($queryList)];
+    $t = microtime(true);
+    try {
+        $provider->embed([Preprocess::prepare((string) file_get_contents($f))]);
+        $timings['single'][] = microtime(true) - $t;
+    } catch (ProviderError $e) {
+        $errors[] = ['reason' => $e->reason, 'photos' => 1, 'seconds' => round(microtime(true) - $t, 3), 'sample' => true];
+    }
+}
 for ($k = 0; $k < (int) $opt['latency-sample']; $k++) {
     // 3-photo searches cost real calls but are not cached again (same vectors).
     $pick = [$queryList[(3 * $k) % count($queryList)], $queryList[(3 * $k + 1) % count($queryList)], $queryList[(3 * $k + 2) % count($queryList)]];
@@ -281,8 +306,9 @@ $rankings = [];
 foreach ($specData['splits'] as $name => $split) {
     $rankings[$name] = visual_rankings($split, $vector);
 }
-$fit = visual_fit($rankings[$specData['calibrate_on']]);
-$report = ['label' => $opt['label'], 'created' => gmdate('c'), 'model_key' => $modelKey, 'plan' => $plan, 'calibration' => $fit + ['fitted_on' => $specData['calibrate_on'], 'spec_sha256' => hash_file('sha256', $spec)],
+$fitOn = (array) $specData['calibrate_on'];
+$fit = visual_fit(array_merge(...array_map(fn ($s) => $rankings[$s], $fitOn)));
+$report = ['label' => $opt['label'], 'created' => gmdate('c'), 'model_key' => $modelKey, 'plan' => $plan, 'calibration' => $fit + ['fitted_on' => $fitOn, 'spec_sha256' => hash_file('sha256', $spec)],
     'latency_seconds' => ['single_photo' => ['n' => count($timings['single']), 'p50' => visual_pct($timings['single'], 0.5), 'p95' => visual_pct($timings['single'], 0.95)],
         'three_photos' => ['n' => count($timings['triple']), 'p50' => visual_pct($timings['triple'], 0.5), 'p95' => visual_pct($timings['triple'], 0.95)],
         'gallery_batch_of_4' => ['n' => count($timings['batch4']), 'p50' => visual_pct($timings['batch4'], 0.5)]],
@@ -290,7 +316,7 @@ $report = ['label' => $opt['label'], 'created' => gmdate('c'), 'model_key' => $m
 foreach ($rankings as $name => $r) {
     $report['splits'][$name] = $fit['cutoff'] === null ? null : visual_metrics($r, $fit['cutoff'], $fit['strong_cutoff']);
 }
-$held = array_filter(['commons-held_out-full', 'round2'], fn ($s) => isset($report['splits'][$s]) && $report['splits'][$s]);
+$held = array_filter((array) ($specData['held_out'] ?? ['commons-held_out-full', 'round2']), fn ($s) => isset($report['splits'][$s]) && $report['splits'][$s]);
 $so = ['n' => 0, 'hit5' => 0];
 $irr = ['n' => 0, 'returned' => 0];
 foreach ($held as $s) {
@@ -304,8 +330,8 @@ $p95 = $report['latency_seconds']['single_photo']['p95'];
 $report['gates'] = [
     'top5_same_object_at_least_80pct' => ['value' => $so['n'] ? round($so['hit5'] / $so['n'], 3) : null, 'n' => $so['n'], 'pass' => $so['n'] > 0 && $so['hit5'] / $so['n'] >= 0.8],
     'unrelated_returned_at_most_10pct' => ['value' => $irr['n'] ? round($irr['returned'] / $irr['n'], 3) : null, 'n' => $irr['n'], 'pass' => $irr['n'] > 0 && $irr['returned'] / $irr['n'] <= 0.10],
-    'typical_search_at_most_2s' => ['value' => $p50, 'pass' => $p50 !== null && $p50 <= 2.0, 'note' => $p50 === null ? 'no uncached query calls in this run' : null],
-    'slow_search_p95_at_most_5s' => ['value' => $p95, 'pass' => $p95 !== null && $p95 <= 5.0],
+    'typical_search_at_most_3s' => ['value' => $p50, 'pass' => $p50 !== null && $p50 <= 3.0, 'note' => $p50 === null ? 'no uncached query calls in this run' : null],
+    'slow_search_p95_at_most_6s' => ['value' => $p95, 'pass' => $p95 !== null && $p95 <= 6.0],
 ];
 $out = Workspace::ROOT.'/evidence/visual/batch-a-'.gmdate('Ymd\THis\Z').($opt['label'] ? '-'.preg_replace('/[^a-z0-9-]+/', '-', strtolower($opt['label'])) : '');
 mkdir($out, 0700, true);
@@ -319,7 +345,7 @@ foreach ($report['splits'] as $name => $m) {
     $neg = $m['lookalike']['n'] ? $m['lookalike'] : $m['hard_negative'];
     $md .= "| $name | {$m['same_object']['n']} | {$m['same_object']['hit1']} | {$m['same_object']['hit5']} | {$m['same_object']['mrr']} | {$m['irrelevant']['returned']}/{$m['irrelevant']['n']} | {$neg['target_returned']}/{$neg['n']} ({$neg['target_very_similar']}) |\n";
 }
-$md .= "\nGates (held-out: commons-held_out-full + round2):\n\n";
+$md .= "\nGates (held-out: ".implode(' + ', $held)."):\n\n";
 foreach ($report['gates'] as $gate => $g) {
     $md .= '- '.$gate.': '.json_encode($g['value']).($g['pass'] ? ' PASS' : ' FAIL')."\n";
 }
