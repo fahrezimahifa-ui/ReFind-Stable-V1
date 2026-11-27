@@ -35,7 +35,7 @@ final class VisualSearch
         if ($calibration === null) {
             throw new ContractError('Photo search is unavailable. You can still search by keyword.', 503, 'visual_uncalibrated');
         }
-        $store = new IndexStore(VisualConfig::indexDir());
+        $store = new IndexStore(VisualConfig::indexDir($provider->modelKey()));
         $meta = $store->load($provider->modelKey());
         $photos = [];
         $owner = [];

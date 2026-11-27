@@ -175,13 +175,17 @@ final class VisualConfig
         return $c;
     }
 
-    public static function indexDir(): string
+    /**
+     * One index folder per engine (model key), so the offline fake engine used by suites never touches the real
+     * engine's index: state/<profile>/visual/<first 12 hex of sha256(model key)>/.
+     */
+    public static function indexDir(string $modelKey): string
     {
         if (app()->bound('refind.visual.index_dir')) {
             return app('refind.visual.index_dir'); // feature tests use a scratch index
         }
 
-        return Workspace::storage().'/visual';
+        return Workspace::storage().'/visual/'.substr(hash('sha256', $modelKey), 0, 12);
     }
 
     public static function makeProvider(?array $config = null): Provider

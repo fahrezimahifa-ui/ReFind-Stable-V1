@@ -67,10 +67,10 @@ function visual_status(): array
         $provider = VisualConfig::makeProvider($config);
         $out['model_key'] = $provider->modelKey();
         $out['calibration'] = Calibration::load(Calibration::dir(), $provider->modelKey()) ? 'present' : 'missing';
-        $meta = (new IndexStore(VisualConfig::indexDir()))->load($provider->modelKey());
+        $meta = (new IndexStore(VisualConfig::indexDir($provider->modelKey())))->load($provider->modelKey());
         $eligible = visual_eligible();
         $ready = $meta ? count(array_filter($eligible, fn ($path, $id) => ($meta['entries'][(string) $id]['path'] ?? null) === $path, ARRAY_FILTER_USE_BOTH)) : 0;
-        $failures = visual_failures();
+        $failures = visual_failures($provider->modelKey());
         $out['photos'] = ['eligible' => count($eligible), 'ready' => $ready, 'pending' => count($eligible) - $ready, 'failing' => count(array_intersect_key($failures, $eligible))];
         $out['budget'] = Budget::forProfile($config)->summary();
     } catch (Throwable $e) {
@@ -80,17 +80,17 @@ function visual_status(): array
     return $out;
 }
 
-function visual_failures(): array
+function visual_failures(string $key): array
 {
-    $file = VisualConfig::indexDir().'/'.VISUAL_FAILURES;
+    $file = VisualConfig::indexDir($key).'/'.VISUAL_FAILURES;
     $data = is_file($file) ? json_decode((string) file_get_contents($file), true, 8) : [];
 
     return is_array($data) ? $data : [];
 }
 
-function visual_save_failures(array $failures): void
+function visual_save_failures(string $key, array $failures): void
 {
-    $dir = VisualConfig::indexDir();
+    $dir = VisualConfig::indexDir($key);
     if (! is_dir($dir)) {
         mkdir($dir, 0700, true);
     }
@@ -102,12 +102,12 @@ function visual_sync(int $limit): array
 {
     $config = VisualConfig::require();
     $provider = VisualConfig::makeProvider($config);
-    $store = new IndexStore(VisualConfig::indexDir());
+    $store = new IndexStore(VisualConfig::indexDir($provider->modelKey()));
     $result = $store->exclusive(function () use ($config, $provider, $store, $limit) {
         $key = $provider->modelKey();
         $meta = $store->load($key);
         $eligible = visual_eligible();
-        $failures = array_intersect_key(visual_failures(), $eligible);
+        $failures = array_intersect_key(visual_failures($key), $eligible);
         $now = time();
         $keep = [];
         foreach ($eligible as $id => $path) {
@@ -138,7 +138,8 @@ function visual_sync(int $limit): array
             if (! $jpegs) {
                 continue;
             }
-            if (($wait = $budget->reserve(null, count($jpegs))) > 0) {
+            // The offline fake engine costs nothing, so only the hosted engine draws on the spending budget.
+            if ($config['provider'] !== 'fake' && ($wait = $budget->reserve(null, count($jpegs))) > 0) {
                 $stop = 'budget_wait_'.$wait.'s';
                 break;
             }
@@ -174,7 +175,7 @@ function visual_sync(int $limit): array
         if ($dims !== null && ($done > 0 || $dropped > 0 || $meta === null)) {
             $store->commit($key, $dims, $keep, $meta);
         }
-        visual_save_failures($failures);
+        visual_save_failures($key, $failures);
 
         return ['indexed' => $done, 'dropped' => $dropped, 'ready' => count($keep), 'eligible' => count($eligible), 'failing' => count($failures), 'stopped' => $stop];
     });
