@@ -33,58 +33,6 @@ $(async function(){
   function requestWithdraw(itemId,after,trigger){withdrawTarget={itemId,after};dialogTrigger=trigger;document.querySelector('#withdraw-dialog').showModal();}
   $('#confirm-withdraw').on('click',async function(){if(!withdrawTarget)return;const button=$(this).prop('disabled',true).text('Withdrawing…');try{await app.request('claims.php',{action:'withdraw',itemId:withdrawTarget.itemId});document.querySelector('#withdraw-dialog').close();await withdrawTarget.after();U.notify('Claim withdrawn. You can send a new claim for this item later.');await shell.refreshUnread();}catch(e){document.querySelector('#withdraw-dialog').close();U.showError(e);}finally{button.prop('disabled',false).text('Withdraw claim');}});
 
-  function bindVisualSearch(filters){
-    if(!visualEnabled)return ()=>{};
-    const toggle=$('#visual-toggle').prop('hidden',false),form=$('#visual-search'),outcome=$('#visual-outcome');
-    const results=$('#visual-results'),status=$('#visual-status'),submit=$('#visual-submit'),input=$('#visual-photo');
-    const heading=$('#visual-heading,#visual-hint');
-    let sequence=0,busy=false;
-    const updateButton=()=>submit.prop('disabled',busy||upload.busy||upload.files.length!==1);
-    const upload=new PhotoUpload('#visual-upload',1,updateButton,true);
-    function reset(message=''){
-      sequence++;
-      results.empty();
-      heading.prop('hidden',true);
-      status.text(message);
-      outcome.prop('hidden',!message).attr('aria-busy','false');
-    }
-    toggle.on('click',()=>{
-      const opening=form.prop('hidden');
-      form.prop('hidden',!opening);
-      toggle.attr('aria-expanded',String(opening));
-      if(opening)input.trigger('focus');
-      else reset();
-    });
-    form.on('click','[data-remove-upload]',()=>{reset();updateButton();});
-    $('#visual-clear').on('click',()=>{
-      if(upload.busy)return;
-      upload.clear();reset();updateButton();input.trigger('focus');
-    });
-    form.on('submit',async event=>{
-      event.preventDefault();
-      if(submit.prop('disabled'))return;
-      reset('Searching for visually similar reports…');
-      const current=sequence,body=new FormData();
-      upload.append(body,'photo');
-      for(const [key,value] of Object.entries(filters()))if(value)body.append(key,value);
-      busy=true;updateButton();outcome.attr('aria-busy','true');
-      try{
-        const response=await app.request('visual-search.php',body);
-        if(current!==sequence)return;
-        if(response.state==='matches'){
-          heading.prop('hidden',false);
-          status.text(response.items.length+' possible visual match(es).');
-          response.items.forEach(item=>results.append(U.card(item)));
-        }else status.text(response.state==='no_match'?'No sufficiently similar matches.':'No indexed photos for these filters yet.');
-      }catch(error){
-        if(current===sequence)status.text(error.message);
-      }finally{
-        busy=false;updateButton();
-        if(current===sequence)outcome.attr('aria-busy','false');
-      }
-    });
-    return ()=>{if(!outcome.prop('hidden'))reset('Filters changed. Search by photo again to apply them.');};
-  }
   async function discovery(){
     const statusCodes=refs.statuses.map(s=>s.code),categoryIds=refs.filter_categories.map(c=>String(c.id)),locationIds=refs.filter_locations.map(l=>String(l.id));
     let type=(params.get('type')||'').toUpperCase(),currentPage=validPage(params.get('page')),request=0,timer;
@@ -94,7 +42,30 @@ $(async function(){
     const status=(params.get('status')||'').toUpperCase(),date=params.get('date')||'';
     $('#filter-q').val(params.get('q')||'');$('#filter-category').val(categoryIds.includes(params.get('category_id'))?params.get('category_id'):'');$('#filter-location').val(locationIds.includes(params.get('location_id'))?params.get('location_id'):'');$('#filter-status').val(statusCodes.includes(status)?status:'');$('#filter-date').val(/^\d{4}-\d{2}-\d{2}$/.test(date)?date:'');
     const structured=()=>({type,category_id:$('#filter-category').val()||'',location_id:$('#filter-location').val()||'',status:$('#filter-status').val()||'',date:$('#filter-date').val()||''});
-    const resetVisual=bindVisualSearch(structured);
+    // Photo search (Laravel round 5): camera in the search field, chip under the row, ranked matches in this grid.
+    // Filters narrow the matches already on screen (no new AI call); only a Status change searches again, because
+    // closed reports are not searched by default. Typed words are set aside and come back with × Clear.
+    let photo=null,photoItems=null,photoMode=false,savedWords='',photoStatus='';
+    const wordsPlaceholder=$('#filter-q').attr('placeholder');
+    const notice=$('<p>').addClass('photo-search-notice').attr('role','status').prop('hidden',true).insertBefore('#page-feedback');
+    const photoNotice=text=>notice.text(text||'').prop('hidden',!text);
+    function showPhoto(){
+      const f=structured(),me=String(app.state.user?.id||'');
+      const items=photoItems.filter(i=>(!type||i.item_type===type)&&(!f.category_id||String(i.category_id)===f.category_id)&&(!f.location_id||String(i.location_id)===f.location_id)&&(!f.date||i.event_date===f.date));
+      tabState('[data-filter-type]','data-filter-type',type);syncFilterButton();$('#pager').empty();$('.filter-panel').addClass('is-photo-results');
+      $('#result-count').text(items.length?items.length+' photo match'+(items.length===1?'':'es')+' · best first. Building Management verifies ownership.':'No photo matches with these filters');
+      const box=$('#browse-results').empty();
+      if(items.length)items.forEach(i=>box.append(U.card(i,{own:me!==''&&String(i.reporter_user_id)===me})));
+      else box.append(U.empty('No photo matches with these filters','Clear the filters, or try another photo or angle.'));
+      loading(false);document.body.dataset.ready='true';
+    }
+    if(visualEnabled)photo=new PhotoSearch({field:$('#filter-q').closest('.search-field'),after:'.search-row',endpoint:'visual-search.php',
+      fields:()=>({status:$('#filter-status').val()||''}),
+      onStart:()=>{if(!photoMode)savedWords=$('#filter-q').val();photoMode=true;photoStatus=$('#filter-status').val()||'';$('#filter-q').val('').attr('placeholder','Searching by photo');photoNotice('');clearPage();loading(true);},
+      onResults:r=>{if(r.state==='matches'){photoItems=r.items;showPhoto();return;}photoItems=null;photoNotice(r.state==='no_match'?'No close photo matches. Try cropping closer to the item or adding another angle.':'Photo search is not ready yet: report photos are still being prepared.');load(1);},
+      onError:e=>{photoItems=null;photoNotice(e.message||'Photo search is unavailable. You can still search by keyword.');load(1);},
+      onClear:restore=>{photoMode=false;photoItems=null;photoNotice('');$('#filter-q').attr('placeholder',wordsPlaceholder);if(restore)$('#filter-q').val(savedWords);savedWords='';load(1);}});
+    const refresh=()=>{if(photoItems&&photo?.active()){if(($('#filter-status').val()||'')!==photoStatus)photo.search();else showPhoto();}else load(1);};
     function filterCount(){return ['#filter-category','#filter-location','#filter-status','#filter-date'].filter(s=>$(s).val()).length;}
     function syncFilterButton(){const n=filterCount();$('#filter-toggle').text(n?'Filters · '+n:'Filters');}
     if(filterCount()){$('#advanced-filters').prop('hidden',false);$('#filter-toggle').attr('aria-expanded','true');}
@@ -107,13 +78,13 @@ $(async function(){
       const found=values.type==='LOST';
       return U.empty('No matching reports',hint+(found?' If you found this item, report it so its owner can find it.':' Lost it? Report it and ReFind will notify you when a possibly matching Found report is added.'),app.base+'report.html?'+query({type:found?'found':'lost',q:values.q.slice(0,120)}),found?'Report it as found':'Report it as lost').append(historyLink);
     }
-    async function load(next=currentPage){currentPage=next;const seq=++request;clearPage();loading(true);tabState('[data-filter-type]','data-filter-type',type);syncFilterButton();const values={q:$('#filter-q').val().trim(),...structured(),page:currentPage};
+    async function load(next=currentPage){currentPage=next;const seq=++request;$('.filter-panel').removeClass('is-photo-results');clearPage();loading(true);tabState('[data-filter-type]','data-filter-type',type);syncFilterButton();const values={q:$('#filter-q').val().trim(),...structured(),page:currentPage};
       try{const data=await get('items.php',{...values,active:values.status?'':'1'});if(seq!==request)return;
         if(data.total&&currentPage>data.pages)return load(data.pages);
         $('#result-count').text(U.plural(data.total,{LOST:'lost report',FOUND:'found report'}[type]||'report')+' · '+(values.status?'':'active · ')+'newest first');if(data.items.length)showList('#browse-results',data.items);else $('#browse-results').empty().append(noResults(values));U.pager(data,next=>load(next),'#result-count');history.replaceState(null,'',app.base+'browse.html?'+query(values));loading(false);document.body.dataset.ready='true';}catch(e){if(seq===request)failed(e);}}
     $('#filter-toggle').on('click',()=>{const open=$('#advanced-filters').prop('hidden');$('#advanced-filters').prop('hidden',!open);$('#filter-toggle').attr('aria-expanded',String(open));});
-    $('#filter-q').on('input',()=>{clearTimeout(timer);timer=setTimeout(()=>load(1),200);});$('#filter-category,#filter-location,#filter-status,#filter-date').on('change',()=>{resetVisual();load(1);});
-    $('[data-filter-type]').on('click',function(){type=$(this).attr('data-filter-type');resetVisual();load(1);});$('#clear-filters').on('click',()=>{$('#filter-q,#filter-category,#filter-location,#filter-status,#filter-date').val('');type='';resetVisual();load(1);});bindRetry(load);U.trackReturn('browse','Back to Explore');await load();U.restoreReturn('browse');
+    $('#filter-q').on('input',()=>{clearTimeout(timer);if(photo?.active()){photo.clear(false);return;}timer=setTimeout(()=>load(1),200);});$('#filter-category,#filter-location,#filter-status,#filter-date').on('change',refresh);
+    $('[data-filter-type]').on('click',function(){type=$(this).attr('data-filter-type');refresh();});$('#clear-filters,#clear-filters-panel').on('click',()=>{$('#filter-category,#filter-location,#filter-status,#filter-date').val('');refresh();});bindRetry(load);U.trackReturn('browse','Back to Explore');await load();U.restoreReturn('browse');
   }
   // Report journey: five steps derived from the status contract, plus a newest-first history log.
   // Each step carries one short line saying what it means (the status labels themselves never change).
@@ -190,7 +161,7 @@ $(async function(){
     let type=existing?.item_type||((params.get('type')||'').toUpperCase()==='FOUND'||validId(from)?'FOUND':'LOST'),sending=false;
     U.fillSelect('#r-category',refs.categories,'Select category');U.fillSelect('#r-location',refs.locations,'Select campus area');
     $('#r-date').attr('max',refs.campus_today);$('#found-next').append(U.deskCard(refs.pickup_desk));
-    $('#visual-report-consent').prop('hidden',!visualEnabled);
+    $('#photo-search-report-hint').prop('hidden',!visualEnabled);
     let keepPublic=existing?(existing.photo_ids||[]).map(String):[],savedProof=existing?(existing.ownership_photo_ids||[]).map(String):[];
     const busy=()=>$('#report-submit').prop('disabled',sending||publicUpload.busy||proofUpload.busy);
     const publicUpload=new PhotoUpload('#public-upload',()=>4-keepPublic.length,busy),proofUpload=new PhotoUpload('#proof-upload',()=>2-($('#keep-proof').prop('checked')?savedProof.length:0),busy);
@@ -261,7 +232,6 @@ $(async function(){
         keep_photo_ids:JSON.stringify(keepPublic),
         keep_ownership_ids:JSON.stringify(type==='LOST'&&$('#keep-proof').prop('checked')?savedProof:[])
       };
-      if(visualEnabled&&publicUpload.files.length&&$('#visual-report-opt-in').prop('checked'))form.append('visual_opt_in','1');
       Object.entries(values).forEach(([key,value])=>form.append(key,value));
       publicUpload.append(form,'photos');
       if(type==='LOST')proofUpload.append(form,'ownershipPhotos');

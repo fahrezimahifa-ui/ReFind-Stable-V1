@@ -73,7 +73,7 @@ final class VisualSearch
             }
         })();
         $ranked = Scorer::rank($candidates, $queries);
-        $matches = Scorer::select($ranked, $calibration['cutoff'], $calibration['strong_cutoff'], $scope === 'staff' ? 24 : Scorer::LIMIT);
+        $matches = Scorer::select($ranked, $calibration['cutoff'], $calibration['strong_cutoff'], 24);
 
         return ['state' => $matches ? 'matches' : 'no_match', 'matches' => $matches];
     }
