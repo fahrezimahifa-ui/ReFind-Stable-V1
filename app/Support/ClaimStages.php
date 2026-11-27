@@ -18,7 +18,8 @@ final class ClaimStages
         // 'visual' = photo search (owner decision 25 Nov 2026): phase8-dev first; the demo gets it only at promotion.
         'phase8-dev' => ['student', 'review', 'approval', 'pickup', 'status', 'notifications', 'account', 'registration', 'history', 'visual'],
         // The persistent localhost demo shows every journey on its own synthetic schema (owner authorization, 20 November 2026).
-        'demo' => ['student', 'review', 'approval', 'pickup', 'status', 'notifications', 'account', 'registration', 'history'],
+        // 'visual' added at the Stable 1.4.0 promotion (owner go-ahead, 27 Nov 2026).
+        'demo' => ['student', 'review', 'approval', 'pickup', 'status', 'notifications', 'account', 'registration', 'history', 'visual'],
     ];
 
     public const ALL = ['student', 'review', 'approval', 'pickup', 'status', 'notifications', 'account', 'registration', 'history', 'visual'];
