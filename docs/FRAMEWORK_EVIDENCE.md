@@ -34,7 +34,7 @@ ReFind's native v1.0 was procedural PHP: one script per endpoint (`api/*.php`) p
 | BM review: request more info, reject, approve, one pending handover | yes | Phase 6 WIP (unaccepted) |
 | Pickup: schedule, reschedule, cancel, return, release | yes | Phase 7 WIP (unaccepted) |
 | BM Reports tab and manual status; notification read-marking; account (name, password, avatar); self-registration; history | yes | Phase 8 WIP (unaccepted) |
-| AI visual search | experimental | **excluded by design** (separately gated) |
+| Photo search (native: experimental AI visual search) | experimental | `phase8-dev` now, Stable from the 1.4.0 promotion (owner decision 27 Nov 2026, `docs/VISUAL_SEARCH.md`); academic profiles keep it off |
 
 ## Test evidence (development profiles, synthetic data)
 

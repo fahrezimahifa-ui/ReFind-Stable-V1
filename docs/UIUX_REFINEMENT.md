@@ -551,3 +551,74 @@ Unlike round 3 it adds features at the owner's request. Round 2's lesson still h
 
 **Not verified here:** real phones (Take photo, touch hover), Safari and Firefox. `test-claim-read-ui.py` targets
 academic-test and was not run. Evidence: `C:\ReFind-Laravel\evidence\stable\round4-20261123\`.
+
+## Stable round 5: photo search (25–27 November 2026)
+
+**Context:** the owner remembered native ReFind's experimental AI visual search and asked for a Google Lens /
+Pinterest-style photo search for Students and Building Management, built on Test (8020) first, using the
+`design-review-loop` skill. Unlike rounds 3 and 4 this round adds a server feature: an engine, two endpoints, a
+background indexer and a private configuration. Branch `feature/photo-search` off `develop` (`8ab5f6a`). The engine,
+its evaluation and its operation are documented in [VISUAL_SEARCH.md](VISUAL_SEARCH.md).
+
+**Batches:**
+- **A, engine and numbers (no UI):** InferHub had no embedding models and its describe-then-compare strategies failed
+  every gate, so the owner chose Gemini `gemini-embedding-2`. The first calibration failed (unrelated 18.8 %, p95
+  6.5 s); an honest refit on a fresh held-out set plus a connection retry passed (top 5 88.6 %, unrelated 0 %, typical
+  1.48 s, p95 2.72 s). Calibration frozen in `resources/visual/`.
+- **B, Explore (B1–B5):** camera icon in the search field, crop dialog, chip, ranked results with labels, honest no
+  match, the report-form hint. Five review passes on the owner's notes.
+- **C, BM Reports tab:** the same component on the Reports tab, Lost reports first with an in-chip switch, matched-photo
+  thumbnails and labels on queue cards.
+
+### What changed
+
+| Area | Before | Now |
+|---|---|---|
+| Explore search (B) | Keyword field only; native's hidden visual-search markup, refused by the server | **Camera icon** at the field's right end (Students). **Crop dialog** with the box preset to the whole photo, corner handles and keyboard support, "Use whole photo" / "Search", and the AI notice line. **Chip** with up to 3 thumbnails, "+ Add" and "× Clear"; typed words are set aside and come back on Clear. **Results** in the normal grid, ranked, "Very similar" / "Similar" and "Your report" tags, never scores. **No match:** "No close photo matches" with a tip, the normal list below. |
+| Explore filters (B3–B5) | "Event date" with a hint line; "Clear filters" in the results line on every screen | "Date lost or found", no hint. On phones "Clear filters" sits at the bottom of the Filters dropdown, full width, spaced from the date field, and clears only the dropdown filters; desktop keeps the results-line link. With photo results, type/category/location/date narrow them locally and Status re-runs the search. |
+| Phone chip (B2) | — | Thumbnails on top, "+ Add" and "× Clear" as two halves underneath, no chip text; a thinner focus ring. The results line drops "Building Management verifies ownership" on phones so "Clear filters" never wraps. |
+| Report form (B) | A hidden Gemini opt-in checkbox (refused by the server) | One hint under public photos: "Public photos can also be found with photo search." Every public item photo is indexed automatically. |
+| BM Reports tab (C) | Keyword field only | Camera icon on the Reports tab only; Lost reports first, "Lost reports \| All reports" inside the chip; queue cards show the matched photo's thumbnail and label; desktop opens the best match, phones don't; the pager is hidden and switching tabs ends photo mode. |
+| Server (A) | `visual-search.php` refused; no BM route | `POST visual-search.php` (Student) and `POST staff-visual-search.php` (BM), gated by the `visual` stage (`phase8-dev` only), a private `visual.json`, the owner's key and a frozen calibration. |
+
+**Files:**
+- **New:** `app/Visual/*`, `app/Http/Controllers/VisualSearchController.php`, `resources/visual/calibration-*.json`,
+  `public/js/photo-search.js` (Laravel-only, under `added_assets`), `tools/visual-index.php`,
+  `tools/visual-eval-prep.py`, `tools/visual-evaluate.php`, `tools/test-visual-http.py`, `tools/test-visual-ui.py`,
+  `tests/Unit/VisualSearchTest.php`, `tests/Feature/VisualSearchContractTest.php`.
+- **Adapted, with hashes and reasons in `docs/SOURCE_PROVENANCE.json`:** `public/js/student.js`, `student-common.js`,
+  `bm.js`, `public/css/polish.css`. The provenance file's `excluded_feature` is now `null`, and a `laravel_divergences`
+  entry records how this differs from native (engine path, 3 photos, BM access, automatic index, crop).
+- **Changed:** `ItemReadRepository`, `StaffReportRepository`, `AuthController` (session flags), `ClaimStages`,
+  `ApiMethodBoundary`, `routes/web.php`, `browse.blade.php`, `report.blade.php`, `bm.blade.php`,
+  `tools/workspace/phase6-control.py` (indexer on `start --launcher`), `tools/verify-candidate.py`. The old
+  `DiscoveryController::visual()` stub is removed.
+- **No schema, grant or academic-profile change.** The pinned native assets are unchanged (CI checks this).
+- **Outside Git:** the `design-review-loop` skill's `capture.py` gained a `files` step (attach files to an input) for
+  these captures; documented in its `SKILL.md`.
+
+**Owner review notes, applied:** B2 (chip buttons under the thumbnails, no chip text on phones, thinner focus ring,
+shorter results line), B3 ("Clear filters" into the phone dropdown), B4 ("Date lost or found", desktop unchanged), B5
+(no hint text; more space above "Clear filters").
+
+**Found in my own review, before showing the owner:**
+- the crop box's outline and handles were clipped by the stage, so they now sit inside it;
+- the fake and Gemini engines shared one index folder, so each engine now has its own;
+- the suites relied on photos from the fixture data; they now create their own photo report, so they pass on the clean
+  pre-fixture snapshot too;
+- the UI suite clicked the BM switch while a search was still running; it now waits.
+
+### Round 5 verification (phase8-dev, 27 November 2026)
+
+| Check | Result |
+|---|---|
+| `verify-candidate.py --browser` on the clean pre-fixture snapshot | passed (`evidence\phase8\candidate-20261127T055232Z`): static (143 PHP files), grant audit, PHPUnit, inherited search/report/matching parity, HTTP 77 + 81 + 28 + security 75 + photo 29, browser 17 + 23 + 18 + photo 44, restore identical, protection |
+| Live Gemini check on 8020 | 10/10 (`evidence\visual\live-check-8020-20261127.txt`) |
+| Layout shift (CLS) | Explore with photo results 0.0003; BM Reports 0.0242 (unchanged); BM after a photo search 0.045 (match) and 0.068 (no match), under 0.1 |
+| Captures | Read-only guard: only the photo-search POST (which writes nothing) allowed; no other write attempted; restore identical |
+
+**Bookkeeping:** the regression recorded `58f7b8d` with the suites' then-uncommitted edits; those exact edits were
+committed as `b5d2866` during the run.
+
+**Not verified here:** real phones (camera capture, touch), Safari and Firefox. Evidence:
+`C:\ReFind-Laravel\evidence\visual\round5-photo-search-20261127\` and the `batch-a-*` evaluation folders beside it.
