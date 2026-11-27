@@ -67,10 +67,23 @@ def photo(payload, name='q.jpg', mime='image/jpeg'):
     return ('photo[]', name, mime, payload)
 
 
+def distinctive():
+    from PIL import ImageDraw
+    img = Image.new('RGB', (320, 240), (236, 238, 240)); d = ImageDraw.Draw(img)
+    d.ellipse((60, 40, 220, 200), fill=(20, 140, 150)); d.rectangle((200, 150, 300, 230), fill=(240, 120, 20))
+    b = io.BytesIO(); img.save(b, format='JPEG', quality=90); return b.getvalue()
+
+
 def run():
     check('fake engine only (no provider calls)', os.environ.get('REFIND_VISUAL_PROVIDER') == 'fake')
     status = php('status')
     check('fake engine configured for this run', status.get('provider') == 'fake' and status.get('calibration') == 'present', status)
+    # Works on any synthetic data: another student reports a Found item with its own photo first.
+    seeder = Client().login('student_b')
+    today = seeder.call('/api/references.php')[1]['campus_today']
+    code, obj, _, _ = seeder.call('/api/items.php', dict(action='create', type='FOUND', title='Synthetic photo-search HTTP report', description='Synthetic teal ring with an orange tab.', category_id='1', location_id='38', date=today, time='', clue='Synthetic private mark.'), [('photos[]', 'p.jpg', 'image/jpeg', distinctive())])
+    check('report with a photo created', code == 201, obj)
+    created = str(obj['id'])
     while php('status')['photos']['pending']:
         php('sync', '--limit', '200')
     check('every public photo indexed (fake engine)', php('status')['photos']['pending'] == 0)
@@ -82,8 +95,7 @@ def run():
     student = Client().login('student_a')
     session = student.call('/api/session.php')[1]
     check('student session: Explore photo search on, BM off', session['visual_search_enabled'] is True and session['visual_staff_enabled'] is False, session)
-    items = student.call('/api/items.php?active=1&limit=48')[1]['items']
-    target = next(i for i in items if i['photos'] and str(i['reporter_user_id']) != str(session['user']['id']))
+    target = student.call('/api/items.php?id=' + created)[1]['item']
     raw_photo = student.call(target['photos'][0])[3]
     code, obj, _, raw = student.call('/api/visual-search.php', {}, [photo(raw_photo)])
     check('exact photo -> matches', code == 200 and obj['state'] == 'matches', obj)

@@ -141,12 +141,8 @@ def run():
     while php('status')['photos']['pending']:
         php('sync', '--limit', '200')
     Image.new('RGB', (96, 72), (255, 0, 255)).save(TMP / 'magenta.jpg', format='JPEG')
-    # A gallery photo as the query: fetch it through the app as a student (private media are never read directly).
     with sync_playwright() as pw:
         ctx, page = context(pw, 1440, 'light'); login(page, 'student_a')
-        items = page.request.get(BASE + '/api/items.php?active=1&limit=48').json()['items']
-        target = next(i for i in items if i['photos'])
-        sample = TMP / 'sample.jpg'; sample.write_bytes(page.request.get(BASE + target['photos'][0]).body())
         # A brand-new report with a distinctive photo; the background indexer (fake engine) must pick it up by itself.
         new_photo = distinctive(secrets.randbelow(1000), TMP / 'new-report.jpg')
         token = page.request.get(BASE + '/api/session.php').json()['csrf']; today = page.request.get(BASE + '/api/references.php').json()['campus_today']
@@ -161,6 +157,11 @@ def run():
             check('indexer made the new photo searchable on its own', php('status')['photos']['pending'] == 0)
         finally:
             loop.terminate(); loop.wait(timeout=20)
+        # A gallery photo as the query, fetched through the app as a BM (private media are never read directly).
+        ctx, page = context(pw, 1440, 'light'); login(page, 'bm')
+        items = page.request.get(BASE + '/api/items.php?active=1&limit=48').json()['items']
+        target = next((i for i in items if i['photos'] and str(i['item_id']) != new_id), None) or next(i for i in items if str(i['item_id']) == new_id)
+        sample = TMP / 'sample.jpg'; sample.write_bytes(page.request.get(BASE + target['photos'][0]).body()); ctx.close()
         explore(pw, 1440, 'light', sample, new_photo, new_id)
         explore(pw, 390, 'dark', sample, None, None)
         bm_reports(pw, 1440, 'light', sample)
